@@ -18,7 +18,7 @@ function withMill(seed = 1, wheat = 50) {
 }
 
 test('factory data: unlock levels, products exist, value-add 25–60%', () => {
-  assert.deepEqual(DATA.FACTORIES.map((f) => f.unlockLevel), [11, 13, 15, 18, 21, 24]);
+  assert.deepEqual(DATA.FACTORIES.map((f) => f.unlockLevel), [11, 13, 15, 18, 19, 21, 24]);
   for (const f of DATA.FACTORIES) for (const r of f.recipes) {
     const val = (m) => Object.entries(m).reduce((s, [id, q]) => { assert.ok(P[id], `${f.id}/${r.id}: ${id}`); return s + q * P[id].basePrice; }, 0);
     const add = val(r.outputs) / val(r.inputs) - 1;
@@ -134,4 +134,36 @@ test('processed goods are on the market and sell', () => {
   g.state.silo.flour = 3;
   assert.ok(g.marketView().some((p) => p.id === 'flour' && p.stock === 3));
   assert.equal(g.sellProduct('flour').ok, true);
+});
+
+test('palm mill: TBS → CPO + kernel, kernel → PKO, CPO → cooking oil', () => {
+  const palm = DATA.FACTORIES.find((f) => f.id === 'palm_mill');
+  const crop = DATA.CROPS.find((c) => c.id === 'oilpalm');
+  assert.ok(palm.unlockLevel >= crop.unlockLevel);
+  const g = newGame(9);
+  g.state.money = 1e6;
+  g.state.siloCapacity = 1000;
+  g.state.level = palm.unlockLevel - 1;
+  assert.equal(g.buyFactory('palm_mill').ok, false);
+  g.state.level = palm.unlockLevel;
+  assert.equal(g.buyFactory('palm_mill').ok, true);
+  g.state.silo.oilpalm = 25;
+  assert.equal(g.startBatch('palm_mill', 2).ok, true);
+  assert.equal(g.state.silo.oilpalm, 15);
+  g.advance(17);
+  assert.equal(g.state.silo.oilpalm, 5);
+  assert.equal(g.state.silo.palm_cpo, 4.4);
+  assert.equal(g.state.silo.palm_kernel, 1);
+  assert.equal(g.setRecipe('palm_mill', 'palm_pko').ok, true);
+  g.state.silo.palm_kernel = 2;
+  assert.equal(g.startBatch('palm_mill', 1).ok, true);
+  assert.equal(g.state.silo.palm_kernel ?? 0, 0);
+  g.advance(7);
+  assert.equal(g.state.silo.palm_kernel_oil, 0.9);
+  assert.equal(g.setRecipe('palm_mill', 'cooking_oil').ok, true);
+  assert.equal(g.startBatch('palm_mill', 1).ok, true);
+  g.advance(9);
+  assert.equal(g.state.silo.palm_cpo, 2.4);
+  assert.equal(g.state.silo.cooking_oil, 1.6);
+  assert.ok(['palm_cpo', 'palm_kernel', 'palm_kernel_oil', 'cooking_oil'].every((id) => g.marketView().some((p) => p.id === id)));
 });

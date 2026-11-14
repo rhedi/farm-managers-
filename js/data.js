@@ -73,6 +73,11 @@ export const PRODUCTS = [
   { id: 'duck_eggs', name: 'Telur Bebek', emoji: '🪺', basePrice: 1.6, unit: 'pcs', volatility: 0.03 },
   { id: 'buffalo_milk', name: 'Susu Kerbau', emoji: '🍼', basePrice: 4.5, unit: 'L', volatility: 0.04 },
   { id: 'alpaca_wool', name: 'Wol Alpaka', emoji: '🧶', basePrice: 75, unit: 'kg', volatility: 0.06 },
+  // Palm oil chain (Pabrik Kelapa Sawit, Lv 19)
+  { id: 'palm_cpo', name: 'Minyak Sawit Mentah (CPO)', emoji: '🛢️', basePrice: 2350, unit: 't', volatility: 0.07 },
+  { id: 'palm_kernel', name: 'Inti Sawit', emoji: '🥥', basePrice: 1400, unit: 't', volatility: 0.06 },
+  { id: 'palm_kernel_oil', name: 'Minyak Inti Sawit (PKO)', emoji: '🫙', basePrice: 4350, unit: 't', volatility: 0.07 },
+  { id: 'cooking_oil', name: 'Minyak Goreng', emoji: '🍳', basePrice: 3950, unit: 't', volatility: 0.04 },
 ];
 
 export const MACHINES = [
@@ -155,6 +160,12 @@ export const FACTORIES = [
   { id: 'oil_press', name: 'Pabrik Minyak', emoji: '🛢️', unlockLevel: 18, price: 75000, upgradeCost: 22000, maxLevel: 5, recipes: [
     { id: 'oil_canola', name: 'Minyak (kanola)', inputs: { canola: 5 }, outputs: { oil: 2.1 }, hours: 8 }, // +35%
     { id: 'oil_sunflower', name: 'Minyak (bunga matahari)', inputs: { sunflower: 5 }, outputs: { oil: 2.5 }, hours: 8 }, // +32%
+  ] },
+  // TBS → CPO ≈ 22% + kernel 5% of bunch weight; kernel → PKO ≈ 45%; CPO refined → ≈ 80% olein (minyak goreng).
+  { id: 'palm_mill', name: 'Pabrik Kelapa Sawit', emoji: '🌴', unlockLevel: 19, price: 110000, upgradeCost: 32000, maxLevel: 5, recipes: [
+    { id: 'palm_cpo', name: 'CPO + inti sawit', inputs: { oilpalm: 10 }, outputs: { palm_cpo: 2.2, palm_kernel: 0.5 }, hours: 8 }, // +40%
+    { id: 'palm_pko', name: 'Minyak inti sawit (PKO)', inputs: { palm_kernel: 2 }, outputs: { palm_kernel_oil: 0.9 }, hours: 6 }, // +40%
+    { id: 'cooking_oil', name: 'Minyak goreng', inputs: { palm_cpo: 2 }, outputs: { cooking_oil: 1.6 }, hours: 8 }, // +34%
   ] },
   { id: 'bakery', name: 'Toko Roti', emoji: '🥖', unlockLevel: 21, price: 95000, upgradeCost: 28000, maxLevel: 5, recipes: [
     { id: 'bread', inputs: { flour: 3, eggs: 2000, sugar: 0.3 }, outputs: { bread: 4 }, hours: 6 }, // +43%

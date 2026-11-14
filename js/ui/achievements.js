@@ -6,6 +6,7 @@ import { netWorthCard } from './netWorthChart.js';
 import { financeCard } from './finance.js';
 import { sfxEnabled, setSfxEnabled, onSfxChange, sfx } from './sfx.js';
 import { missionsCard, leaderboardCard, missionsSig, updateMissionsCountdown } from './missions.js';
+import { installControl } from './pwa.js';
 
 const LOG_ICON = {
   task_done: '✅', crop_ready: '🌾', wither: '🥀', achievement: '🏆', level_up: '⭐', weather: '🌦️',
@@ -100,6 +101,7 @@ export function renderAchievements(root) {
       h('div.section-title', '⚙️ Pengaturan'),
       h('div.card',
         h('p.small.muted', 'Permainan tersimpan otomatis di peramban ini setiap 10 detik.'),
+        installControl(),
         h('div.card-actions',
           sfxToggle(),
           h('button.btn.btn-small.btn-secondary', { onclick: () => app.saveNow(true) }, '💾 Simpan sekarang'),

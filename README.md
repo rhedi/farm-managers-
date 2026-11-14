@@ -26,6 +26,28 @@ Game bisa dimainkan di browser Android seperti Chrome atau Firefox. Caranya:
 
 Kalau halaman tidak terbuka, cek apakah firewall PC mengizinkan koneksi masuk ke port 8000.
 
+### Pasang di HP (PWA)
+
+Farm Manager bisa dipasang sebagai aplikasi (ikon di layar utama, layar penuh tanpa bilah alamat) dan tetap jalan tanpa internet. Setelah dibuka sekali secara online, *service worker* (`sw.js`) menyimpan semua file game di cache ponsel.
+
+Service worker hanya aktif di *secure context*: alamat HTTPS atau `http://localhost` / `http://127.0.0.1`. Alamat LAN seperti `http://192.168.1.10:8000` dianggap tidak aman oleh Chrome, jadi di sana game tetap bisa dimainkan tetapi tidak bisa dipasang sebagai aplikasi dan tidak bisa dibuka offline (paling jauh menjadi pintasan biasa ke browser). Pilihan yang berfungsi:
+
+- **Server di ponsel itu sendiri.** Misalnya lewat Termux: salin folder game ke ponsel, lalu jalankan `python -m http.server 8000` (paket `python`) atau `npx serve` (paket `nodejs`), dan buka `http://localhost:8000` di Chrome pada ponsel yang sama.
+- **Penerusan port lewat USB.** Sambungkan ponsel ke PC dengan USB debugging, buka `chrome://inspect/#devices` di Chrome PC, aktifkan *Port forwarding* `8000 → localhost:8000`, lalu buka `http://localhost:8000` di Chrome ponsel.
+- **Hosting statis gratis dengan HTTPS**, misalnya GitHub Pages atau Netlify. Unggah isi folder apa adanya; tidak ada langkah build.
+
+Cara memasang: buka tab 🏆 Prestasi → ⚙️ Pengaturan dan tekan **📲 Pasang aplikasi** (muncul jika Chrome menawarkan pemasangan), atau buka menu browser → *Tambahkan ke layar utama* / *Instal aplikasi*. Di iPhone/iPad: Safari → tombol Bagikan → *Tambahkan ke Layar Utama*. Tombol dan petunjuknya disembunyikan bila game sudah berjalan sebagai aplikasi.
+
+Data simpanan ada di `localStorage` dan terikat pada alamat asal, jadi `http://localhost:8000`, `http://192.168.1.10:8000`, dan alamat HTTPS masing-masing punya simpanan sendiri.
+
+**Setelah mengubah file game**, perbarui daftar precache dan versi cache di `sw.js` (versinya adalah hash isi file, jadi browser mendeteksi versi baru):
+
+```sh
+node -e 'const fs=require("fs"),crypto=require("crypto");const walk=(d)=>fs.readdirSync(d,{withFileTypes:true}).flatMap((e)=>e.isDirectory()?walk(d+"/"+e.name):[d+"/"+e.name]);const files=["index.html","manifest.webmanifest",...["css","js","icons"].flatMap(walk).filter((f)=>/\.(css|js|png|svg)$/.test(f)).sort()];const hash=crypto.createHash("sha1");for(const f of files)hash.update(f).update(fs.readFileSync(f));const sw=fs.readFileSync("sw.js","utf8").replace(/const VERSION = ".*?";/,"const VERSION = \""+hash.digest("hex").slice(0,10)+"\";").replace(/\/\/ PRECACHE:start[\s\S]*?\/\/ PRECACHE:end/,"// PRECACHE:start\n"+files.map((f)=>"  \"./"+f+"\",\n").join("")+"  // PRECACHE:end");fs.writeFileSync("sw.js",sw);console.log(files.length+" file di-precache")'
+```
+
+Jalankan dari folder `farm-manager`. Pemain yang sudah memasang game akan melihat toast **Versi baru tersedia · Muat ulang** saat membuka game berikutnya; versi baru aktif setelah tombol itu ditekan. File yang lupa dimasukkan ke daftar tetap disimpan ke cache saat pertama kali dimuat secara online.
+
 ## Panduan bermain
 
 ### Panduan awal
@@ -103,7 +125,7 @@ Silo awal menampung 150 t hasil panen (produk ternak tidak memakai ruang silo). 
 
 ### Pabrik
 
-Mulai level 11, pabrik bisa dibeli di tab Gudang (bagian 🏭 Pabrik): Penggilingan (Lv 11: gandum → tepung, barley → malt), Pabrik Susu (Lv 13: susu → mentega/keju sapi), Pabrik Gula (Lv 15: tebu → gula), Pabrik Minyak (Lv 18: kanola/bunga matahari → minyak), Toko Roti (Lv 21: tepung + telur + gula (+ mentega) → roti/kue), dan Pabrik Tekstil (Lv 24: kapas → kain, wol → benang). Pilih resep, tekan ▶ Proses atau nyalakan 🔁 Otomatis. Bahan diambil dari gudang saat batch dimulai (cadangan pakan tidak dipakai) dan produk olahan bernilai sekitar 30–55% lebih tinggi. Produk berat (t) butuh ruang silo; jika silo penuh, pabrik menunggu. Peningkatan level membuat proses 25% lebih cepat per level.
+Mulai level 11, pabrik bisa dibeli di tab Gudang (bagian 🏭 Pabrik): Penggilingan (Lv 11: gandum → tepung, barley → malt), Pabrik Susu (Lv 13: susu → mentega/keju sapi), Pabrik Gula (Lv 15: tebu → gula), Pabrik Minyak (Lv 18: kanola/bunga matahari → minyak), Pabrik Kelapa Sawit (Lv 19: TBS kelapa sawit → CPO + inti sawit, inti sawit → minyak inti sawit/PKO, CPO → minyak goreng), Toko Roti (Lv 21: tepung + telur + gula (+ mentega) → roti/kue), dan Pabrik Tekstil (Lv 24: kapas → kain, wol → benang). Pilih resep, tekan ▶ Proses atau nyalakan 🔁 Otomatis. Bahan diambil dari gudang saat batch dimulai (cadangan pakan tidak dipakai) dan produk olahan bernilai sekitar 30–55% lebih tinggi. Produk berat (t) butuh ruang silo; jika silo penuh, pabrik menunggu. Peningkatan level membuat proses 25% lebih cepat per level.
 
 ### Ternak
 
@@ -171,6 +193,9 @@ Di layar lebar (≥ 1000 px), tab **Ladang** memakai dua kolom: peta di kiri (te
 
 ```
 index.html          Kerangka halaman: top bar, area tampilan, tab bawah
+manifest.webmanifest Manifest PWA (nama, warna, ikon)
+sw.js               Service worker: cache app shell untuk mode offline
+icons/              Ikon aplikasi (PNG 192/512, maskable, apple-touch-icon; sumber icon.svg)
 css/style.css       Gaya dasar dan kerangka aplikasi (mobile-first)
 css/fields.css      Gaya tampilan ladang dan tugas
 css/economy.css     Gaya tampilan pasar, garasi, ternak, dan gudang

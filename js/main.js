@@ -19,6 +19,7 @@ import { backupSave, loadTab, saveTab, trackTopbarHeight } from './ui/shell.js';
 import { feedbackEvent, initClickSounds } from './ui/feedback.js';
 import { tickMoneyFx, resetMoneyFx } from './ui/fx.js';
 import { sfxEnabled, setSfxEnabled, onSfxChange } from './ui/sfx.js';
+import { initPwa } from './ui/pwa.js';
 
 const VIEWS = {
   farm: { render: renderFarm, update: updateFarm },
@@ -173,6 +174,7 @@ document.addEventListener('visibilitychange', () => {
 });
 trackTopbarHeight();
 initClickSounds();
+initPwa();
 const sfxBtn = document.getElementById('sfx-toggle');
 const syncSfxBtn = (on) => {
   if (!sfxBtn) return;

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd4e6"/><stop offset="1" stop-color="#eef3cf"/></linearGradient>
+    <clipPath id="c"><rect width="512" height="512" rx="108"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="512" height="512" fill="url(#sky)"/>
+    <path d="M0 300 Q128 262 256 290 T512 280 V512 H0Z" fill="#7cb342"/>
+    <path d="M0 398 H512 V512 H0Z" fill="#4f7f2a"/>
+    <path d="M0 430 H512 M0 462 H512 M0 494 H512 M0 526 H512" stroke="#3d6620" stroke-width="8"/>
+    <g transform="translate(0 0) scale(1)">
+  <circle cx="398" cy="122" r="80" fill="#f6c343" opacity=".3"/>
+  <circle cx="398" cy="122" r="56" fill="#f6c343"/>
+  <circle cx="180" cy="340" r="62" fill="#24301f"/>
+  <circle cx="180" cy="340" r="26" fill="#f6c343"/>
+  <circle cx="180" cy="340" r="9" fill="#24301f"/>
+  <rect x="318" y="226" width="13" height="58" rx="4" fill="#24301f"/>
+  <rect x="206" y="276" width="176" height="66" rx="12" fill="#c8402c"/>
+  <rect x="356" y="290" width="20" height="40" rx="4" fill="#8f2a1c"/>
+  <rect x="150" y="198" width="98" height="116" rx="10" fill="#c8402c"/>
+  <rect x="166" y="214" width="66" height="54" rx="6" fill="#bfe3ef"/>
+  <rect x="138" y="184" width="122" height="18" rx="7" fill="#24301f"/>
+  <circle cx="352" cy="366" r="36" fill="#24301f"/>
+  <circle cx="352" cy="366" r="14" fill="#f6c343"/></g>
+  </g>
+</svg>

@@ -442,6 +442,9 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
 /* With a modal open, toasts sit over the dimmed topbar so they never cover the sheet header/✕. */
 body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
 .toast-msg { flex: 1; min-width: 0; }
+.toast .btn { pointer-events: auto; flex: none; }
+.pwa-install { margin: 6px 0; }
+.pwa-install p { margin: 0; }
 .toast-close {
   pointer-events: auto;
   border: 0;
