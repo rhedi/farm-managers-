@@ -1,0 +1,39 @@
+/* World simulation UI (stream W): seasons, forecast, pests, soil hints. */
+.season-chip { font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: var(--brown-l); color: var(--brown-d); white-space: nowrap; }
+
+.season-fit { font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.season-fit.good { background: var(--green-l); color: var(--green-d); }
+.season-fit.off { background: #f6e3c4; color: var(--brown-d); }
+.season-fit.cold { background: #d6e6f4; color: #2c5d86; }
+.season-hint { color: var(--ink-soft); margin-top: 2px; }
+.season-hint.warn { color: #2c5d86; font-weight: 600; }
+
+.fc-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0; }
+.fc-day { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 4px;
+  border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface); font-size: .78rem; }
+.fc-day.rain { background: #e3eef7; border-color: #bcd3e6; }
+.fc-ico { font-size: 1.3rem; line-height: 1.2; }
+.fc-d { color: var(--ink-mute); }
+.fc-t { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.fc-list { display: flex; flex-direction: column; gap: 10px; }
+.fc-region { padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.fc-region.owned { border-color: var(--green); box-shadow: inset 3px 0 0 var(--green); }
+.fc-event { margin-top: 4px; font-weight: 600; color: var(--brown-d); }
+
+.pest-alert { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+  margin: 8px 0; padding: 8px 10px; border-radius: var(--radius-s);
+  background: #f8e0d9; color: var(--red-d); font-weight: 600; font-size: .85rem; }
+
+.weather-tap { cursor: pointer; border-radius: var(--radius-s); }
+.weather-tap:focus-visible { outline: 2px solid var(--wheat); outline-offset: 2px; }
+
+.mkt-event { font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+.mkt-event.boom { background: var(--green-l); color: var(--green-d); }
+.mkt-event.crash { background: #f8e0d9; color: var(--red-d); }
+
+/* Compact market rows: name (+ event badge below) left, price + ratio stacked right. */
+.mkt-pname { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; min-width: 0; padding: 4px 0; }
+.mkt-pname-text { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mkt-pprice { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex: none; white-space: nowrap; }

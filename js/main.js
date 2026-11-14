@@ -1,0 +1,201 @@
+// Bootstrap: load/create game, game loop, autosave, tabs, event toasts.
+import { createGame, loadFrom } from './engine.js';
+import { SAVE_KEY } from './engine/persist.js';
+import { app } from './ui/app.js';
+import { fmtHours } from './ui/dom.js';
+import { toast, isModalOpen, refreshModal, closeModal } from './ui/modal.js';
+import { initTopbar, updateTopbar } from './ui/topbar.js';
+import { renderFarm, updateFarm } from './ui/farm.js';
+import { renderGarage, updateGarage } from './ui/garage.js';
+import { renderMarket, updateMarket } from './ui/market.js';
+import { renderAnimals, updateAnimals } from './ui/animals.js';
+import { renderSilo, updateSilo } from './ui/silo.js';
+import { renderAchievements, updateAchievements } from './ui/achievements.js';
+import { updateBadges } from './ui/badges.js';
+import { flushLevelUps } from './ui/levelUp.js';
+import { initOnboarding, updateOnboarding, resetOnboarding } from './ui/onboarding.js';
+import { notifyEvent } from './ui/notify.js';
+import { backupSave, loadTab, saveTab, trackTopbarHeight } from './ui/shell.js';
+import { feedbackEvent, initClickSounds } from './ui/feedback.js';
+import { tickMoneyFx, resetMoneyFx } from './ui/fx.js';
+import { sfxEnabled, setSfxEnabled, onSfxChange } from './ui/sfx.js';
+
+const VIEWS = {
+  farm: { render: renderFarm, update: updateFarm },
+  garage: { render: renderGarage, update: updateGarage },
+  market: { render: renderMarket, update: updateMarket },
+  animals: { render: renderAnimals, update: updateAnimals },
+  silo: { render: renderSilo, update: updateSilo },
+  achievements: { render: renderAchievements, update: updateAchievements },
+};
+const VIEW_INTERVAL_MS = 500;
+const AUTOSAVE_MS = 10000;
+
+const viewEl = document.getElementById('view');
+let currentTab = 'farm';
+let unsubscribe = null;
+let lastViewUpdate = 0;
+let storage = null;
+try { storage = window.localStorage; } catch { storage = null; }
+
+function save(manual = false) {
+  if (!storage || !app.game) return;
+  try {
+    app.game.save(storage);
+    if (manual) toast('Permainan disimpan.', 'success');
+  } catch (e) {
+    if (manual) toast(`Gagal menyimpan: ${e.message}`, 'error');
+  }
+}
+
+function inputFocusedInView() {
+  const a = document.activeElement;
+  return !!a && viewEl.contains(a) && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName);
+}
+
+// A re-render between pointerdown and pointerup replaces the pressed button, so the browser fires
+// no click (a held press on the silo "+200 t" button at 5× was lost). Hold view re-renders until
+// release; event-driven renders wait for the next loop update.
+let pressedInView = false;
+let renderPending = false;
+viewEl.addEventListener('pointerdown', () => { pressedInView = true; });
+for (const t of ['pointerup', 'pointercancel']) window.addEventListener(t, () => { pressedInView = false; });
+
+function renderView() {
+  VIEWS[currentTab].render(viewEl);
+  lastViewUpdate = performance.now();
+}
+
+function updateView(now) {
+  lastViewUpdate = now;
+  if (inputFocusedInView() || pressedInView) return;
+  if (renderPending) {
+    renderPending = false;
+    renderView();
+    return;
+  }
+  VIEWS[currentTab].update(viewEl);
+}
+
+function onGameEvent(ev) {
+  if (notifyEvent(ev)) {
+    if (pressedInView) renderPending = true;
+    else app.requestRender();
+  }
+  feedbackEvent(ev);
+}
+
+function start(game) {
+  unsubscribe?.();
+  app.game = game;
+  unsubscribe = game.on(onGameEvent);
+  resetMoneyFx();
+  updateTopbar(game);
+  renderView();
+}
+
+function loadOrCreate() {
+  let game = null;
+  try {
+    game = storage ? loadFrom(storage) : null;
+  } catch (e) {
+    console.warn('Save rusak:', e);
+    const bak = backupSave(storage);
+    setTimeout(() => toast(`Data simpanan rusak — memulai permainan baru.${bak ? ` Cadangan disimpan sebagai "${bak}".` : ''}`, 'error'), 0);
+    game = null;
+  }
+  if (!game) return createGame({ seed: Date.now() });
+  const away = (Date.now() - (game.state.savedAt ?? Date.now())) / 1000;
+  if (away > 0) {
+    const hours = game.catchUp(away);
+    if (hours >= 0.5) setTimeout(() => toast(`Selama kamu pergi, ${fmtHours(hours)} waktu permainan berlalu.`), 0);
+  }
+  return game;
+}
+
+function setTab(tab) {
+  if (!VIEWS[tab]) return;
+  currentTab = tab;
+  viewEl.dataset.tab = tab;
+  saveTab(storage, tab);
+  for (const b of document.querySelectorAll('#tabs .tab')) b.classList.toggle('active', b.dataset.tab === tab);
+  renderView();
+  viewEl.scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+let lastFrame = performance.now();
+function frame(now) {
+  const dt = Math.min(1, Math.max(0, (now - lastFrame) / 1000));
+  lastFrame = now;
+  app.game.tick(dt);
+  updateTopbar(app.game);
+  tickMoneyFx(app.game, now);
+  if (now - lastViewUpdate >= VIEW_INTERVAL_MS) {
+    updateView(now);
+    if (isModalOpen()) refreshModal();
+    updateBadges(app.game);
+    updateOnboarding(app.game, currentTab);
+    flushLevelUps(app.game);
+  }
+  requestAnimationFrame(frame);
+}
+
+// ---- wiring ----
+app.requestRender = () => {
+  updateTopbar(app.game);
+  renderView();
+};
+app.saveNow = save;
+app.resetGame = () => {
+  closeModal();
+  try { storage?.removeItem(SAVE_KEY); } catch { /* ignore */ }
+  start(createGame({ seed: Date.now() }));
+  resetOnboarding();
+  save();
+  toast('Permainan baru dimulai. Selamat bertani!', 'success');
+};
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('.tab[data-tab]');
+  if (b) setTab(b.dataset.tab);
+});
+let hiddenAt = null;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); save(); return; }
+  if (hiddenAt == null || !app.game) return;
+  const away = (Date.now() - hiddenAt) / 1000;
+  hiddenAt = null;
+  lastFrame = performance.now();
+  const hours = app.game.catchUp(away);
+  if (hours >= 0.5) toast(`Selama kamu pergi, ${fmtHours(hours)} waktu permainan berlalu.`);
+  app.requestRender();
+});
+trackTopbarHeight();
+initClickSounds();
+const sfxBtn = document.getElementById('sfx-toggle');
+const syncSfxBtn = (on) => {
+  if (!sfxBtn) return;
+  sfxBtn.textContent = on ? '🔊' : '🔇';
+  sfxBtn.title = on ? 'Suara aktif' : 'Suara mati';
+  sfxBtn.setAttribute('aria-pressed', String(on));
+};
+sfxBtn?.addEventListener('click', () => setSfxEnabled(!sfxEnabled()));
+onSfxChange(syncSfxBtn);
+syncSfxBtn(sfxEnabled());
+window.addEventListener('pagehide', () => save());
+setInterval(() => save(), AUTOSAVE_MS);
+Object.defineProperty(window, '__game', { get: () => app.game, configurable: true });
+
+const initial = loadOrCreate();
+app.game = initial;
+initTopbar(initial, (s) => {
+  const r = app.game.setSpeed(s);
+  if (!r.ok) toast(r.reason, 'error');
+  updateTopbar(app.game);
+});
+initOnboarding(storage, initial);
+start(initial);
+const savedTab = loadTab(storage);
+setTab(VIEWS[savedTab] ? savedTab : 'farm');
+requestAnimationFrame(frame);

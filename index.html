@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#24301f">
+  <meta name="description" content="Farm Manager — kelola ladang, mesin, dan ternakmu.">
+  <title>Farm Manager</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/fields.css">
+  <link rel="stylesheet" href="css/economy.css">
+  <link rel="stylesheet" href="css/world.css">
+  <link rel="stylesheet" href="css/ops.css">
+  <link rel="stylesheet" href="css/juice.css">
+  <link rel="stylesheet" href="css/factories.css">
+  <link rel="stylesheet" href="css/missions.css">
+  <link rel="stylesheet" href="css/levels.css">
+  <link rel="stylesheet" href="css/breeding.css">
+  <link rel="stylesheet" href="css/finance.css">
+</head>
+<body>
+  <header id="topbar">
+    <div class="topbar-row">
+      <div class="stat stat-money" title="Uang — ketuk untuk laporan keuangan">💰 <span id="money">0</span></div>
+      <div class="stat stat-level" title="Level">
+        <span class="lv">⭐ Lv <span id="level">1</span></span>
+        <div class="xp-wrap">
+          <div class="progress progress-xp"><div class="bar" id="xpbar" style="width:0%"></div></div>
+          <span class="xp-text" id="xptext"></span>
+        </div>
+      </div>
+      <div class="stat stat-weather" id="weather" title="Cuaca"><span id="weather-now">☀️</span><span class="season-chip" id="season-chip"></span></div>
+    </div>
+    <div class="topbar-row">
+      <div class="stat stat-clock" id="clock">Hari 1, 06:00</div>
+      <div class="speed-group" role="group" aria-label="Kecepatan waktu">
+        <button class="speed-btn" id="speed-0" data-speed="0" title="Jeda">⏸</button>
+        <button class="speed-btn active" id="speed-1" data-speed="1" title="Normal">1×</button>
+        <button class="speed-btn" id="speed-2" data-speed="2" title="Cepat">2×</button>
+        <button class="speed-btn" id="speed-5" data-speed="5" title="Sangat cepat">5×</button>
+      </div>
+      <button class="sfx-btn" id="sfx-toggle" type="button" title="Suara aktif" aria-label="Suara" aria-pressed="true">🔊</button>
+    </div>
+  </header>
+
+  <div id="coach" hidden></div>
+  <main id="view"></main>
+
+  <nav id="tabs">
+    <button class="tab active" data-tab="farm"><span class="tab-icon">🗺️</span><span class="tab-label">Ladang</span></button>
+    <button class="tab" data-tab="garage"><span class="tab-icon">🚜</span><span class="tab-label">Garasi</span></button>
+    <button class="tab" data-tab="market"><span class="tab-icon">📈</span><span class="tab-label">Pasar</span></button>
+    <button class="tab" data-tab="animals"><span class="tab-icon">🐄</span><span class="tab-label">Ternak</span></button>
+    <button class="tab" data-tab="silo"><span class="tab-icon">🏚️</span><span class="tab-label">Gudang</span></button>
+    <button class="tab" data-tab="achievements"><span class="tab-icon">🏆</span><span class="tab-label">Prestasi</span></button>
+  </nav>
+
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

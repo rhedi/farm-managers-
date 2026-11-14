@@ -1,0 +1,43 @@
+/* Breeding panel (Ternak) and machine upgrade modal (Garasi). */
+.breed-panel { margin-top: 10px; border-top: 1px solid var(--line, #d8d4bd); padding-top: 8px; }
+.breed-panel > summary { cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; min-height: 36px; }
+.breed-panel > summary::-webkit-details-marker { display: none; }
+.breed-panel > summary::after { content: '▾'; margin-left: auto; color: var(--ink-mute, #8a8672); }
+.breed-panel:not([open]) > summary::after { content: '▸'; }
+.breed-panel > div { margin-top: 8px; }
+.breed-stars { position: relative; display: inline-block; color: #d39e1f; letter-spacing: 1px; white-space: nowrap; }
+.breed-stars-fill { position: absolute; left: 0; top: 0; overflow: hidden; white-space: nowrap; }
+.breed-genes-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 4px; }
+.progress.breed-bar > .bar { background: linear-gradient(90deg, #b07ad8, #d39e1f); }
+.breed-born { color: var(--green-d, #3c6d21); }
+.breed-paused { color: var(--brown-d, #6b431d); }
+.breed-toggle-row { display: flex; align-items: center; gap: 8px; min-height: 40px; font-weight: 600; }
+.breed-toggle-row input { width: 22px; height: 22px; margin: 0; flex-shrink: 0; }
+.breed-stud .card-actions { margin-top: 6px; }
+.breed-stud-btn { white-space: normal; text-align: left; }
+.breed-reason, .upg-reason { color: var(--red-d, #9b3322); margin-top: 4px; }
+
+/* Machine upgrades */
+.upg-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  border: 1px solid rgba(0, 0, 0, .25); }
+.upg-badge { margin-left: 6px; background: var(--brown-l, #ead9c3); color: var(--brown-d, #6b431d); font-size: .75em; vertical-align: middle; }
+.upg-tracks { display: flex; flex-direction: column; gap: 10px; }
+.upg-track { border: 1px solid var(--line, #d8d4bd); border-radius: var(--radius-s, 9px); padding: 10px; background: var(--surface-2, #f3f1e4); }
+.upg-track.upg-na { opacity: .6; }
+.upg-track.upg-max { border-color: var(--green, #4f8a2e); }
+.upg-track-head { display: flex; align-items: center; gap: 8px; }
+.upg-name { font-weight: 700; flex: 1; min-width: 0; }
+.upg-pips { display: inline-flex; gap: 3px; }
+.upg-pip { width: 14px; height: 8px; border-radius: 3px; background: var(--line, #d8d4bd); }
+.upg-pip.on { background: var(--green, #4f8a2e); }
+.upg-stat { margin: 6px 0; font-size: 1.05em; }
+.upg-arrow { color: var(--ink-mute, #8a8672); }
+.upg-buy { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.upg-btn { min-height: 40px; }
+.upg-done { color: var(--green-d, #3c6d21); font-weight: 600; }
+.upg-summary { margin-top: 12px; color: var(--ink-soft, #5d5a48); display: flex; flex-direction: column; gap: 2px; }
+.upg-paint { margin-top: 12px; }
+.upg-swatches { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; padding: 6px; }
+.upg-swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(0, 0, 0, .2); padding: 0; cursor: pointer;
+  background: var(--surface, #fbfbf4); font-size: .9em; color: var(--ink-mute, #8a8672); }
+.upg-swatch.selected { outline: 3px solid var(--ink, #2a2a1f); outline-offset: 2px; }

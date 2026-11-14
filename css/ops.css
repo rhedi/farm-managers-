@@ -1,0 +1,32 @@
+/* Stream O (operations): silo capacity (F8), workers (F9), machine wear (F10). */
+.progress.ops-red > .bar { background: linear-gradient(90deg, var(--red-d, #a33), var(--red, #d55)); }
+.ops-bad { color: var(--red-d, #a33); }
+.ops-nowrap { white-space: nowrap; }
+
+/* Garasi: machine / worker rows — body column holds bar, note and actions so nothing squeezes the bar. */
+.ops-machine { align-items: flex-start; }
+.ops-body { flex: 1; min-width: 0; }
+.ops-cond { margin-top: 6px; }
+.ops-cond .progress { width: 100%; }
+.ops-cond > div.small { margin-top: 2px; }
+.ops-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; margin-top: 8px; }
+.ops-stars { color: #d39e1f; font-size: .85em; letter-spacing: 1px; white-space: nowrap; }
+.ops-hint { margin: -4px 0 8px; }
+.ops-sub { margin-top: 12px; }
+.ops-autorepair { margin: 0 0 8px; }
+.ops-autorepair-row { display: flex; align-items: center; gap: 6px; font-size: .9em; white-space: nowrap; }
+.ops-autorepair-row input { margin: 0; flex-shrink: 0; }
+.ops-autorepair-hint { margin: 2px 0 0 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Gudang */
+.ops-silo { margin-bottom: 10px; }
+.ops-silo-head { display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px; }
+.ops-stock-list { display: flex; flex-direction: column; }
+.ops-stock { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--line, #e5e0d6); }
+.ops-stock:last-child { border-bottom: 0; }
+.ops-stock-main { flex: 1; min-width: 0; }
+.ops-stock-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ops-stock-side { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* Batch bar */
+.ops-free { margin-left: auto; white-space: nowrap; }

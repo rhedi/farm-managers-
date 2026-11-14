@@ -1,0 +1,30 @@
+/* Gudang › 🏭 Pabrik (stream B) */
+.fac-section { margin-top: 14px; }
+.fac-card .card-head { margin-bottom: 6px; }
+.fac-card .card-head > div { min-width: 0; flex: 1; }
+.fac-card .card-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fac-recipes { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 8px; }
+.fac-recipe {
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); border-radius: 999px;
+  padding: 4px 10px; font: inherit; font-size: .82rem; cursor: pointer; min-height: 30px;
+}
+.fac-recipe.active { background: var(--green-l); border-color: var(--green); color: var(--green-d); font-weight: 600; }
+.fac-recipe:disabled { opacity: .5; cursor: default; }
+.fac-flow {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px 8px;
+  background: var(--bg); border-radius: var(--radius-s); padding: 8px 10px; margin-bottom: 8px;
+}
+.fac-io { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fac-item { font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fac-item.short { color: var(--red-d); }
+.fac-item.out { font-weight: 600; color: var(--green-d); }
+.fac-stock { color: var(--ink-mute); font-size: .78rem; }
+.fac-item.short .fac-stock { color: var(--red); }
+.fac-arrow { font-size: 1.2rem; color: var(--ink-mute); }
+.fac-meta { grid-column: 1 / -1; }
+.fac-gain { color: var(--green-d); font-weight: 700; }
+.fac-status .progress { margin: 2px 0 4px; }
+.fac-auto { display: flex; align-items: center; gap: 4px; font-size: .88rem; white-space: nowrap; }
+.fac-auto input { margin: 0; }
+.fac-card .card-actions { align-items: center; }
+.fac-card .card-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

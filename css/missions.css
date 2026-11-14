@@ -1,0 +1,39 @@
+/* Daily missions + rival leaderboard (Prestasi tab, stream C). */
+.ms-card { display: flex; flex-direction: column; gap: 10px; }
+.ms-row { display: flex; align-items: center; gap: 10px; }
+.ms-row + .ms-row { padding-top: 10px; border-top: 1px solid var(--line); }
+.ms-icon { flex: none; width: 36px; height: 36px; display: grid; place-items: center; font-size: 1.25rem;
+  border-radius: 50%; background: var(--brown-l); }
+.ms-row.done .ms-icon { background: var(--green-l); }
+.ms-row.claimed { opacity: .65; }
+.ms-body { flex: 1; min-width: 0; }
+.ms-label { font-weight: 600; font-size: .92rem; line-height: 1.25; }
+.ms-body .progress { margin: 5px 0 3px; }
+.ms-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.ms-reward { color: var(--green-d); font-weight: 600; }
+.ms-claim { flex: none; background: var(--wheat); color: var(--ink); border-color: transparent; animation: ms-pulse 1.6s ease-in-out infinite; }
+@keyframes ms-pulse { 50% { box-shadow: 0 0 0 5px rgba(226, 183, 67, .3); } }
+@media (prefers-reduced-motion: reduce) { .ms-claim { animation: none; } }
+.ms-streak { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 10px;
+  border-top: 1px dashed var(--line); font-weight: 600; font-size: .88rem; }
+.ms-dots { display: inline-flex; gap: 4px; }
+.ms-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.ms-dot.on { background: linear-gradient(180deg, #ffb321, var(--red)); }
+.ms-reset { text-align: right; }
+
+.lb-list { list-style: none; margin: 0; padding: 0; }
+.lb-row { display: grid; grid-template-columns: 30px 24px minmax(0, 1fr) auto 30px; align-items: center; gap: 6px;
+  padding: 7px 6px; border-radius: var(--radius-s); }
+.lb-row + .lb-row { border-top: 1px solid var(--line); }
+.lb-row.me { background: var(--green-l); border-top-color: transparent; font-weight: 700; }
+.lb-row.me + .lb-row { border-top-color: transparent; }
+.lb-rank { font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.lb-row:first-child .lb-rank { color: var(--brown); }
+.lb-emoji { font-size: 1.1rem; text-align: center; }
+.lb-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.lb-name > span:first-child { font-size: .9rem; overflow-wrap: break-word; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.lb-nw { text-align: right; font-size: .88rem; }
+.lb-ch { text-align: right; font-size: .78rem; color: var(--ink-mute); }
+.lb-ch.up { color: var(--green-d); }
+.lb-ch.down { color: var(--red); }
+.lb-note { margin: 8px 0 0; }

@@ -1,0 +1,62 @@
+/* WP3 economy UI: contracts, finance, market list, garage warnings, animal economics, feed reserves. */
+
+/* 📋 Contracts */
+.eco-contract { border-left: 4px solid var(--sky, #4a90c2); }
+.eco-contract.eco-urgent { border-left-color: var(--red, #b23a2e); }
+.eco-offer { border-left: 4px dashed var(--line, #d8cfbf); }
+.eco-contract .progress { margin: 6px 0 2px; }
+.eco-subtitle { margin: 8px 0 4px; }
+.eco-closed { display: grid; gap: 2px; margin-top: 8px; }
+
+/* 🏦 Finance */
+.eco-hint { margin: 6px 0 0; line-height: 1.35; }
+.eco-quick { flex-wrap: wrap; gap: 6px; }
+
+/* 📈 Market list */
+.sparkline .eco-baseline { opacity: 0.8; }
+.eco-ratio { font-weight: 600; }
+.eco-ratio.eco-mahal { color: var(--green-d, #2f6a1f); }
+.eco-ratio.eco-murah { color: var(--red, #b23a2e); }
+.eco-ratio.eco-normal { color: var(--ink-mute, #8a7f70); }
+.eco-reserve { color: var(--brown, #8a5a2b); }
+
+.eco-others > summary { cursor: pointer; list-style: none; user-select: none; }
+.eco-others > summary::-webkit-details-marker { display: none; }
+.eco-others > summary::before { content: '▸ '; }
+.eco-others[open] > summary::before { content: '▾ '; }
+.eco-plist { display: grid; gap: 4px; }
+.eco-prow {
+  background: var(--surface, #fff); border: 1px solid var(--line, #d8cfbf);
+  border-radius: var(--radius-s, 8px); padding: 0 10px;
+}
+.eco-prow > summary {
+  display: flex; align-items: center; gap: 6px; min-height: 44px;
+  cursor: pointer; list-style: none; font-size: 0.95em;
+}
+.eco-prow > summary::-webkit-details-marker { display: none; }
+.eco-prow > summary .eco-ratio { font-size: 0.8em; }
+.eco-prow[open] { padding-bottom: 10px; }
+.eco-prow > .card { box-shadow: none; border: 0; padding: 0; margin: 0; background: transparent; }
+
+/* 🚜 Garage */
+.eco-warn {
+  margin: 6px 0 0; padding: 4px 8px; border-radius: var(--radius-s, 8px);
+  background: #fff3d6; color: #7a4b00;
+}
+
+/* 🐄 Animals */
+.eco-animal {
+  margin: 6px 0; padding: 6px 8px; border-radius: var(--radius-s, 8px);
+  background: var(--surface-2, #f6f1e7);
+}
+.eco-herd { flex-wrap: wrap; }
+.eco-reserve-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 6px 0; border-bottom: 1px solid var(--line, #d8cfbf);
+}
+.eco-reserve-row:last-child { border-bottom: 0; }
+
+@media (max-width: 420px) {
+  .eco-reserve-row input { flex: 1 1 4em; }
+  .eco-quick .btn { flex: 1 1 auto; }
+}
