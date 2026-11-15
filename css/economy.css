@@ -36,7 +36,7 @@
 /* 🚜 Garage */
 .eco-warn {
   margin: 6px 0 0; padding: 4px 8px; border-radius: var(--radius-s, 8px);
-  background: #fff3d6; color: #7a4b00;
+  background: var(--gold-soft); color: var(--warn-ink);
 }
 
 /* 🐄 Animals */

@@ -1,10 +1,11 @@
-// ⚙️ Pengaturan (top bar button): sound, save now, install as app, restart the tutorial, reset the game.
+// ⚙️ Pengaturan (top bar button): theme, sound, save now, install as app, restart the tutorial, reset the game.
 import { h, mount } from './dom.js';
 import { openModal, confirmModal, toast } from './modal.js';
 import { app } from './app.js';
 import { sfxEnabled, setSfxEnabled, onSfxChange, sfx } from './sfx.js';
 import { installControl } from './pwa.js';
 import { resetOnboarding } from './onboarding.js';
+import { themePref, setThemePref, onThemeChange } from './theme.js';
 
 const sfxLabel = (on) => (on ? '🔊 Suara: aktif' : '🔇 Suara: mati');
 
@@ -17,6 +18,26 @@ function sfxToggle() {
     btn.setAttribute('aria-pressed', String(on));
   });
   return btn;
+}
+
+const THEME_LABELS = { auto: '📱 Otomatis (ikut HP)', light: '☀️ Terang', dark: '🌙 Gelap' };
+
+function themePicker() {
+  const btns = Object.entries(THEME_LABELS).map(([id, label]) => h('button.chip', {
+    type: 'button', role: 'radio', dataset: { theme: id }, onclick: () => setThemePref(id),
+  }, label));
+  const sync = (p) => {
+    for (const b of btns) {
+      const on = b.dataset.theme === p;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-checked', String(on));
+    }
+  };
+  sync(themePref());
+  const off = onThemeChange((p) => { if (!btns[0].isConnected) { off(); return; } sync(p); });
+  return h('div.theme-setting',
+    h('div.theme-label', { id: 'theme-label' }, '🌗 Tema'),
+    h('div.theme-seg', { role: 'radiogroup', 'aria-labelledby': 'theme-label' }, btns));
 }
 
 async function resetFlow() {
@@ -33,6 +54,7 @@ export function openSettings() {
     title: '⚙️ Pengaturan',
     render: (body, m) => mount(body,
       h('div.settings-list',
+        themePicker(),
         sfxToggle(),
         h('button.btn.btn-secondary.btn-block', { type: 'button', onclick: () => app.saveNow(true) }, '💾 Simpan sekarang'),
         h('button.btn.btn-secondary.btn-block', { type: 'button', onclick: () => {

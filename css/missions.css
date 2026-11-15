@@ -11,7 +11,7 @@
 .ms-body .progress { margin: 5px 0 3px; }
 .ms-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .ms-reward { color: var(--green-d); font-weight: 600; }
-.ms-claim { flex: none; background: var(--wheat); color: var(--ink); border-color: transparent; animation: ms-pulse 1.6s ease-in-out infinite; }
+.ms-claim { flex: none; background: var(--wheat); color: var(--on-wheat); border-color: transparent; animation: ms-pulse 1.6s ease-in-out infinite; }
 @keyframes ms-pulse { 50% { box-shadow: 0 0 0 5px rgba(226, 183, 67, .3); } }
 @media (prefers-reduced-motion: reduce) { .ms-claim { animation: none; } }
 .ms-streak { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 10px;

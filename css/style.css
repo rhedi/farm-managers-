@@ -1,26 +1,93 @@
 /* Farm Manager — mobile-first stylesheet */
+/* Colours live in variables only. :root holds the light theme; :root[data-theme="dark"] overrides it.
+   data-theme is always the resolved theme ("light"/"dark"): set before first paint by the inline script in
+   index.html (Otomatis follows prefers-color-scheme) and kept in sync by js/ui/theme.js. */
 :root {
+  color-scheme: light;
   --bg: #eef0e2;
   --bg-2: #e3e6d2;
   --surface: #fbfbf4;
   --surface-2: #f3f1e4;
+  --surface-hover: #ebe8d6;
+  --input-bg: #fff;
   --ink: #2a2a1f;
   --ink-soft: #5d5a48;
   --ink-mute: #6f6b58; /* ≥ 4.6:1 on --bg and --surface */
   --line: #d8d4bd;
   --line-strong: #c4bea0;
-  --header: #24301f;
+  --header: #24301f; /* also <meta name="theme-color"> */
   --header-2: #33432b;
+  --subtab-on: #33432b;
   --green: #477f28; /* white text ≥ 4.8:1 */
-  --green-d: #3a6a1f;
+  --green-press: #3a6a1f; /* border/hover of filled green */
+  --green-d: #3a6a1f; /* green text */
   --green-l: #d7ebc4;
   --brown: #8a5a2b;
   --brown-d: #6b431d;
   --brown-l: #ead9c3;
   --wheat: #e2b743;
+  --on-wheat: #2b2410;
   --sky: #4b8fc4;
-  --red: #c0442f;
+  --red: #c0442f; /* red text and accents */
   --red-d: #9b3322;
+  --red-fill: #c0442f; /* filled red behind white text */
+  --red-press: #9b3322;
+  --red-l: #f6d6cf;
+  --red-l2: #f8e0d9;
+  --red-line: #e0b4aa;
+  --red-hover: #fbeae6;
+  --blue-l: #d4e6f4;
+  --blue-d: #2c628d;
+  --rain-bg: #e3eef7;
+  --rain-line: #bcd3e6;
+  --gold-l: #fbeab8;
+  --gold-d: #7a5a06;
+  --gold-soft: #fff6d6;
+  --gold-line: #ecd58b;
+  --warn-ink: #7a4b00;
+  --orange-l: #f6e3c4;
+  --out-ink: #b8641c;
+  --out-bar: #d9822b;
+  --out-fill: #e0773a;
+  --teal-l: #d8edf0;
+  --teal-d: #27616b;
+  --teal-soft: #e2f0ed;
+  --teal-bg: #edf5f3;
+  --teal-line: #b8d5d7;
+  --leaf-bg: #f1f5e8;
+  --leaf-line: #b9cda6;
+  --link-bg: #eef6e4;
+  --link-line: #c9dcb5;
+  --link-hover: #e5f1d8;
+  --pos-line: #b9d79e;
+  --orch-young: #e3edcf; --orch-young-ink: #49682c;
+  --orch-prime: #d2e7bd; --orch-prime-ink: #35611e;
+  --orch-old: #eee0bd; --orch-old-ink: #75511d;
+  --ach-bg: #fff9e4;
+  --banner-a: #fff5d8;
+  --banner-b: #fde3c0;
+  --banner-line: #e6c48a;
+  --locked-bg: #f3efe2;
+  --locked-ink: #5a4a20;
+  --pin-sale-bg: #fff8e6;
+  --pin-sale-ink: #6b431d;
+  --bubble: #fff; /* small light chips: pest bubble, map legend borders */
+  --chart-ink: #24301f;
+  --chart-up: #3f7d2a;
+  --chart-down: #b23a2e;
+  --chart-base: #8a7a5c;
+  --toast-bg: rgba(45, 53, 38, .94);
+  --backdrop: rgba(20, 22, 10, .55);
+  --close-bg: rgba(0, 0, 0, .08);
+  --tint-base: #fff; /* status badges: background = --st mixed into --tint-base, text = --st mixed with --shade-base */
+  --shade-base: #000;
+  --st-ink: 75%;
+  --map-line: #b9c39c;
+  --map-dim: transparent; /* overlay on the map ground */
+  --map-label: rgba(45, 60, 25, .55);
+  --map-label-glow: rgba(235, 245, 215, .9);
+  --winter-tint: rgba(255, 255, 255, .8);
+  --tex-filter: brightness(1); /* field plot textures */
   --radius: 14px;
   --radius-s: 9px;
   --shadow: 0 1px 2px rgba(40, 35, 15, .08), 0 4px 14px rgba(40, 35, 15, .08);
@@ -29,6 +96,95 @@
   --wrap: 900px; /* shared content width: topbar rows, view, coach */
   --safe-b: env(safe-area-inset-bottom, 0px);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", sans-serif;
+}
+
+/* Dark theme: deep green-charcoal surfaces, soft off-white ink, muted earthy accents. Text colours keep
+   ≥ 4.5:1 on --surface/--surface-2 and on their tint (-l) backgrounds; filled green/red keep white text. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #151a13;
+  --bg-2: #262e22;
+  --surface: #1e251b;
+  --surface-2: #272f23;
+  --surface-hover: #313a2c;
+  --input-bg: #141912;
+  --ink: #e7e5d4;
+  --ink-soft: #c5c2ab;
+  --ink-mute: #a8a48e;
+  --line: #343e2f;
+  --line-strong: #4b5742;
+  --header: #10160e;
+  --header-2: #1d2819;
+  --subtab-on: #3b5a2b;
+  --green-d: #a3d47f;
+  --green-l: #2a3d21;
+  --brown: #d5a571;
+  --brown-d: #e6c095;
+  --brown-l: #3d3022;
+  --wheat: #dcb24a;
+  --sky: #4a88ba;
+  --red: #f08f7b;
+  --red-d: #f6a997;
+  --red-fill: #b8402c;
+  --red-press: #93311f;
+  --red-l: #45271f;
+  --red-l2: #3e251f;
+  --red-line: #7a3b2f;
+  --red-hover: #3a221d;
+  --blue-l: #1f3344;
+  --blue-d: #a2cbec;
+  --rain-bg: #1c2b37;
+  --rain-line: #335066;
+  --gold-l: #463a17;
+  --gold-d: #eccb6c;
+  --gold-soft: #312b1a;
+  --gold-line: #6a5a2a;
+  --warn-ink: #f2c77e;
+  --orange-l: #43331f;
+  --out-ink: #eda066;
+  --out-bar: #cf7d2c;
+  --out-fill: #d4733a;
+  --teal-l: #1c3639;
+  --teal-d: #98d3da;
+  --teal-soft: #1c302d;
+  --teal-bg: #192725;
+  --teal-line: #2f5356;
+  --leaf-bg: #1e2a19;
+  --leaf-line: #3d552f;
+  --link-bg: #21301d;
+  --link-line: #3b5530;
+  --link-hover: #283a23;
+  --pos-line: #3f5c2e;
+  --orch-young: #2a3820; --orch-young-ink: #bcd896;
+  --orch-prime: #2d4322; --orch-prime-ink: #a9dc8a;
+  --orch-old: #3e331e; --orch-old-ink: #e8c890;
+  --ach-bg: #2d2a1b;
+  --banner-a: #2e2b1b;
+  --banner-b: #34291b;
+  --banner-line: #5e4b2b;
+  --locked-bg: #2a2a20;
+  --locked-ink: #dcc994;
+  --pin-sale-bg: #3b2f20;
+  --pin-sale-ink: #f1d2a4;
+  --bubble: #e8e4cf;
+  --chart-ink: #e7e5d4;
+  --chart-up: #8fca6b;
+  --chart-down: #f08f7b;
+  --chart-base: #8f8a72;
+  --toast-bg: rgba(52, 63, 46, .97);
+  --backdrop: rgba(0, 0, 0, .62);
+  --close-bg: rgba(255, 255, 255, .1);
+  --tint-base: #1e251b;
+  --shade-base: #fff;
+  --st-ink: 45%;
+  --map-line: #3a4831;
+  --map-dim: rgba(12, 18, 10, .46);
+  --map-label: rgba(240, 244, 226, .92);
+  --map-label-glow: rgba(12, 18, 10, .85);
+  --winter-tint: rgba(225, 235, 245, .42);
+  --tex-filter: brightness(.82) saturate(.92);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 4px 14px rgba(0, 0, 0, .25);
+  --shadow-l: 0 10px 40px rgba(0, 0, 0, .6);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -106,7 +262,7 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
 }
 .speed-btn:hover { background: rgba(255, 255, 255, .08); }
-.speed-btn.active { background: var(--wheat); color: #2b2410; }
+.speed-btn.active { background: var(--wheat); color: var(--on-wheat); }
 .top-btn {
   flex: none; width: 42px; height: 42px; border: 0; border-radius: 50%;
   background: rgba(0, 0, 0, .28); color: inherit; font-size: 1.15rem; cursor: pointer;
@@ -186,18 +342,18 @@ button { font: inherit; color: inherit; }
   user-select: none;
   transition: background .12s, transform .08s, box-shadow .12s;
 }
-.btn:hover { background: #ebe8d6; }
+.btn:hover { background: var(--surface-hover); }
 .btn:active { transform: translateY(1px); }
 .btn:focus-visible, .tab:focus-visible, .speed-btn:focus-visible { outline: 3px solid rgba(226, 183, 67, .7); outline-offset: 2px; }
-.btn-primary { background: var(--green); border-color: var(--green-d); color: #fff; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .15); }
-.btn-primary:hover { background: var(--green-d); }
+.btn-primary { background: var(--green); border-color: var(--green-press); color: #fff; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .15); }
+.btn-primary:hover { background: var(--green-press); }
 /* One filled colour per screen: primary is green; secondary and danger are outlined (danger is filled only in confirmations). */
 .btn-secondary { background: var(--surface); border-color: var(--line-strong); color: var(--ink); }
 .btn-secondary:hover { background: var(--surface-2); }
-.btn-danger { background: var(--surface); border-color: #e0b4aa; color: var(--red-d); }
-.btn-danger:hover { background: #fbeae6; }
-.modal-actions .btn-danger, .btn-danger.btn-solid { background: var(--red); border-color: var(--red-d); color: #fff; }
-.btn-danger.btn-solid:hover { background: var(--red-d); }
+.btn-danger { background: var(--surface); border-color: var(--red-line); color: var(--red-d); }
+.btn-danger:hover { background: var(--red-hover); }
+.modal-actions .btn-danger, .btn-danger.btn-solid { background: var(--red-fill); border-color: var(--red-press); color: #fff; }
+.btn-danger.btn-solid:hover { background: var(--red-press); }
 .btn-small { min-height: 44px; padding: 6px 12px; font-size: .875rem; }
 .btn-block { width: 100%; }
 .btn[disabled], .btn:disabled {
@@ -224,9 +380,9 @@ button { font: inherit; color: inherit; }
 }
 .badge-green { background: var(--green-l); color: var(--green-d); }
 .badge-brown { background: var(--brown-l); color: var(--brown-d); }
-.badge-red { background: #f6d6cf; color: var(--red-d); }
-.badge-blue { background: #d4e6f4; color: #2c628d; }
-.badge-gold { background: #fbeab8; color: #7a5a06; }
+.badge-red { background: var(--red-l); color: var(--red-d); }
+.badge-blue { background: var(--blue-l); color: var(--blue-d); }
+.badge-gold { background: var(--gold-l); color: var(--gold-d); }
 
 /* ---------- Progress ---------- */
 .progress {
@@ -255,7 +411,7 @@ button { font: inherit; color: inherit; }
   aspect-ratio: 4 / 3;
   border-radius: var(--radius);
   overflow: hidden;
-  border: 1px solid #b9c39c;
+  border: 1px solid var(--map-line);
   box-shadow: var(--shadow);
   background:
     radial-gradient(ellipse 30% 25% at 18% 20%, rgba(170, 200, 110, .55), transparent 70%),
@@ -270,6 +426,7 @@ button { font: inherit; color: inherit; }
   position: absolute;
   inset: 0;
   background-image:
+    linear-gradient(var(--map-dim), var(--map-dim)),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, .07) 0 1px, transparent 1px 28px),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, .07) 0 1px, transparent 1px 28px);
   pointer-events: none;
@@ -281,7 +438,7 @@ button { font: inherit; color: inherit; }
   font-weight: 800;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: rgba(45, 60, 25, .55);
+  color: var(--map-label);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -306,9 +463,9 @@ button { font: inherit; color: inherit; }
 }
 .map-pin:hover { transform: translate(-50%, -50%) scale(1.12); z-index: 2; }
 .map-pin.owned { background: var(--green); }
-.map-pin.forsale { background: #fff8e6; color: var(--brown-d); border-color: var(--brown); border-style: dashed; }
+.map-pin.forsale { background: var(--pin-sale-bg); color: var(--pin-sale-ink); border-color: var(--brown); border-style: dashed; }
 .map-pin.selected { outline: 3px solid var(--wheat); outline-offset: 2px; }
-.map-pin.owned.st-ready { background: var(--wheat); color: #3a2d05; animation: pulse 1.4s ease-in-out infinite; }
+.map-pin.owned.st-ready { background: var(--wheat); color: var(--on-wheat); animation: pulse 1.4s ease-in-out infinite; }
 .map-pin.owned.st-busy { background: var(--sky); }
 
 @keyframes pulse {
@@ -325,14 +482,15 @@ button { font: inherit; color: inherit; }
 .st-busy { --st: #4b8fc4; }
 .field-card.st-idle, .field-card.st-plowed, .field-card.st-growing, .field-card.st-ready, .field-card.st-busy { border-left-color: var(--st); }
 .badge.st-idle, .badge.st-plowed, .badge.st-growing, .badge.st-ready, .badge.st-busy {
-  background: color-mix(in srgb, var(--st) 18%, white);
-  color: color-mix(in srgb, var(--st) 75%, black);
+  background: color-mix(in srgb, var(--st) 18%, var(--tint-base));
+  color: color-mix(in srgb, var(--st) var(--st-ink), var(--shade-base));
 }
 .field-plot {
   height: 54px;
   border-radius: var(--radius-s);
   margin: 6px 0 8px;
   background: #c9c4a8;
+  filter: var(--tex-filter);
 }
 
 /* ---------- Tables / lists ---------- */
@@ -347,7 +505,7 @@ input[type="number"], input[type="text"], select {
   padding: 6px 10px;
   border-radius: var(--radius-s);
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--input-bg);
   color: var(--ink);
   width: 100%;
 }
@@ -376,7 +534,7 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(20, 22, 10, .55);
+  background: var(--backdrop);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -430,7 +588,7 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
   gap: 8px;
   max-width: min(420px, calc(100vw - 24px));
   width: auto;
-  background: rgba(45, 53, 38, .94);
+  background: var(--toast-bg);
   color: #f4f2e2;
   padding: 5px 5px 5px 12px;
   border-radius: 10px;
@@ -518,8 +676,11 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
 .price-up { color: var(--green-d); }
 .price-down { color: var(--red); }
 .sparkline { width: 100%; height: 36px; display: block; }
-.achievement.done { border-color: var(--wheat); background: linear-gradient(180deg, #fff9e4, var(--surface)); }
-.achievement.done .card-icon { background: #fbeab8; }
+.sparkline .eco-baseline { stroke: var(--chart-base); }
+.spark-up, .nw-net { stroke: var(--chart-up); }
+.spark-down { stroke: var(--chart-down); }
+.achievement.done { border-color: var(--wheat); background: linear-gradient(180deg, var(--ach-bg), var(--surface)); }
+.achievement.done .card-icon { background: var(--gold-l); }
 
 /* ---------- Larger screens ---------- */
 @media (min-width: 560px) {
@@ -565,14 +726,14 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
   line-height: 18px;
   text-align: center;
 }
-.tab-badge.warn { background: var(--red); }
+.tab-badge.warn { background: var(--red-fill); }
 .tab-badge[hidden] { display: none; }
 
 /* ---------- Onboarding coach-mark ---------- */
 #coach { max-width: var(--wrap); margin: 0 auto; padding: 12px 12px 0; }
 #coach[hidden] { display: none; }
 .coach {
-  background: #fff6d6;
+  background: var(--gold-soft);
   border: 1px solid var(--wheat);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -581,10 +742,10 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
 .coach-steps { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
 .coach-step { font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--bg-2); color: var(--ink-mute); }
 .coach-step.done { background: var(--green-l); color: var(--green-d); }
-.coach-step.current { background: var(--wheat); color: #2b2410; }
+.coach-step.current { background: var(--wheat); color: var(--on-wheat); }
 .coach-row { display: flex; align-items: flex-start; gap: 8px; font-size: .9rem; }
 .coach-text { flex: 1; }
-.coach-close { border: 0; background: rgba(0, 0, 0, .08); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; flex: none; }
+.coach-close { border: 0; background: var(--close-bg); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; flex: none; }
 .coach-target { position: relative; animation: coach-pulse 1.4s ease-in-out infinite; }
 .coach-target::after {
   content: "👆";
@@ -605,5 +766,7 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
 .networth-chart { width: 100%; height: 120px; display: block; margin: 10px 0 4px; background: var(--surface-2); border-radius: var(--radius-s); }
 .chart-legend { display: flex; justify-content: space-between; gap: 8px; }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
-.legend-dot.nw { background: #3f7d2a; }
-.legend-dot.cash { background: #e2b743; }
+.legend-dot.nw { background: var(--chart-up); }
+.legend-dot.cash { background: var(--wheat); }
+.nw-cash { stroke: var(--wheat); }
+.nw-zero { stroke: var(--red); }

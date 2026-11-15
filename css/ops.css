@@ -1,6 +1,6 @@
 /* Stream O (operations): silo + Gudang Dingin capacity (F8), workers (F9), machine wear (F10). */
-.progress.ops-red > .bar { background: linear-gradient(90deg, var(--red-d, #a33), var(--red, #d55)); }
-.ops-bad { color: var(--red-d, #a33); }
+.progress.ops-red > .bar { background: linear-gradient(90deg, var(--red-press), var(--red-fill)); }
+.ops-bad { color: var(--red-d); }
 .ops-nowrap { white-space: nowrap; }
 
 /* Garasi: machine / worker rows — body column holds bar, note and actions so nothing squeezes the bar. */

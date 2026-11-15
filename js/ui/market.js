@@ -31,11 +31,11 @@ export function sparkline(history, w = 120, hgt = 36, base = null) {
   const y = (p) => (hgt - 3 - (p - min) / span * (hgt - 6)).toFixed(1);
   if (base > 0) {
     svg.appendChild(svgEl('line', { x1: 0, x2: w, y1: y(base), y2: y(base), class: 'eco-baseline',
-      stroke: '#8a7a5c', 'stroke-width': '1', 'stroke-dasharray': '4 3', 'vector-effect': 'non-scaling-stroke' }));
+      'stroke-width': '1', 'stroke-dasharray': '4 3', 'vector-effect': 'non-scaling-stroke' }));
   }
   const coords = pts.map((p, i) => `${(i / (pts.length - 1) * w).toFixed(1)},${y(p)}`);
   svg.appendChild(svgEl('polyline', { points: coords.join(' '), fill: 'none',
-    stroke: pts[pts.length - 1] >= pts[0] ? '#3f7d2a' : '#b23a2e', 'stroke-width': '2', 'vector-effect': 'non-scaling-stroke' }));
+    class: pts[pts.length - 1] >= pts[0] ? 'spark-up' : 'spark-down', 'stroke-width': '2', 'vector-effect': 'non-scaling-stroke' }));
   return svg;
 }
 

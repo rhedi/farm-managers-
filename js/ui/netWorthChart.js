@@ -10,14 +10,14 @@ function svgEl(tag, attrs) {
   return el;
 }
 
-function line(points, key, min, span, color) {
+function line(points, key, min, span, cls) {
   const n = points.length;
   const coords = points.map((p, i) => {
     const x = PAD + (n > 1 ? i / (n - 1) : 0) * (W - 2 * PAD);
     const y = H - PAD - ((p[key] - min) / span) * (H - 2 * PAD);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
-  return svgEl('polyline', { points: coords.join(' '), fill: 'none', stroke: color, 'stroke-width': '2',
+  return svgEl('polyline', { points: coords.join(' '), fill: 'none', class: cls, 'stroke-width': '2',
     'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' });
 }
 
@@ -37,11 +37,11 @@ export function netWorthCard(game) {
     role: 'img', 'aria-label': 'Grafik kekayaan bersih' });
   if (min < 0 && max > 0) {
     const y = (H - PAD - ((0 - min) / span) * (H - 2 * PAD)).toFixed(1);
-    svg.appendChild(svgEl('line', { x1: 0, x2: W, y1: y, y2: y, stroke: '#c0442f', 'stroke-dasharray': '4 4',
+    svg.appendChild(svgEl('line', { x1: 0, x2: W, y1: y, y2: y, class: 'nw-zero', 'stroke-dasharray': '4 4',
       'vector-effect': 'non-scaling-stroke' }));
   }
-  if (hist.some((p) => p.money != null)) svg.appendChild(line(hist.map((p) => ({ v: p.money ?? p.netWorth })), 'v', min, span, '#e2b743'));
-  svg.appendChild(line(hist, 'netWorth', min, span, '#3f7d2a'));
+  if (hist.some((p) => p.money != null)) svg.appendChild(line(hist.map((p) => ({ v: p.money ?? p.netWorth })), 'v', min, span, 'nw-cash'));
+  svg.appendChild(line(hist, 'netWorth', min, span, 'nw-net'));
   const first = hist[0], lastP = hist[hist.length - 1];
   return h('div.card', head, svg,
     h('div.chart-legend.small.muted',

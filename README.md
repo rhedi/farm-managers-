@@ -67,7 +67,15 @@ Enam tab di bawah: **🗺️ Ladang**, **🚜 Garasi**, **📈 Pasar**, **🐄 T
 | Gudang | 🌾 Pertanian (silo) · 🐄 Peternakan (gudang dingin) · 🏭 Olahan (stok olahan + pabrik) |
 | Prestasi | 🎯 Misi · 🔬 Riset · 🏆 Prestasi · 💰 Keuangan (laporan, pinjaman, kekayaan) |
 
-Angka pada tab hanya muncul untuk hal yang bisa ditindaklanjuti: ladang yang perlu langkah, mesin yang hampir rusak, kontrak yang bisa dikirim, pakan hampir habis (⚠️), silo atau gudang dingin hampir penuh atau pabrik terhenti, dan hadiah misi (🔬 bila hanya ada poin riset). Bar atas: uang (ketuk → laporan keuangan), level dan XP (ketuk → riset), cuaca (ketuk → prakiraan), hari dan jam, kecepatan ⏸ 1× 2× 5×, dan ⚙️ Pengaturan (suara, simpan, ulangi panduan, pasang aplikasi, reset).
+Angka pada tab hanya muncul untuk hal yang bisa ditindaklanjuti: ladang yang perlu langkah, mesin yang hampir rusak, kontrak yang bisa dikirim, pakan hampir habis (⚠️), silo atau gudang dingin hampir penuh atau pabrik terhenti, dan hadiah misi (🔬 bila hanya ada poin riset). Bar atas: uang (ketuk → laporan keuangan), level dan XP (ketuk → riset), cuaca (ketuk → prakiraan), hari dan jam, kecepatan ⏸ 1× 2× 5×, dan ⚙️ Pengaturan (tema, suara, simpan, ulangi panduan, pasang aplikasi, reset).
+
+### Tema
+
+Di ⚙️ Pengaturan ada pilihan **Tema: 📱 Otomatis (ikut HP) · ☀️ Terang · 🌙 Gelap**. Otomatis (bawaan) mengikuti mode gelap/terang ponsel (`prefers-color-scheme`) dan langsung berganti saat mode ponsel berubah; Terang dan Gelap mengabaikan mode ponsel. Pilihan disimpan di `localStorage` dengan kunci `farm-manager-theme`, terpisah dari data permainan.
+
+Tema gelap memakai permukaan hijau-arang yang tidak hitam pekat, teks putih gading, dan aksen tanah yang diredam; tombol utama tetap hijau, dan teks memenuhi kontras WCAG AA (≥ 4,5:1). Peta dan tekstur ladang sedikit diredupkan, semua animasi tetap ada. Bilah status Android (`<meta name="theme-color">`) dan kontrol bawaan (`color-scheme`) ikut tema.
+
+Cara kerjanya: semua warna ada di variabel CSS. `:root` di `css/style.css` berisi tema terang dan `:root[data-theme="dark"]` menimpanya. Skrip kecil di `<head>` `index.html` memasang `data-theme` sebelum halaman pertama kali digambar (tanpa kilatan putih), lalu `js/ui/theme.js` mengurus pilihan di Pengaturan, perubahan mode ponsel, dan warna `theme-color`. Warna baru selalu ditambahkan sebagai variabel di kedua blok, bukan ditulis langsung di aturan CSS atau di JavaScript.
 
 ### Siklus ladang
 
@@ -254,7 +262,7 @@ index.html          Kerangka halaman: top bar, area tampilan, tab bawah
 manifest.webmanifest Manifest PWA (nama, warna, ikon)
 sw.js               Service worker: cache app shell untuk mode offline
 icons/              Ikon aplikasi (PNG 192/512, maskable, apple-touch-icon; sumber icon.svg)
-css/style.css       Gaya dasar dan kerangka aplikasi (mobile-first)
+css/style.css       Gaya dasar, kerangka aplikasi, dan variabel warna tema terang/gelap (mobile-first)
 css/fields.css      Gaya tampilan ladang dan tugas
 css/economy.css     Gaya tampilan pasar, garasi, ternak, dan gudang
 css/ops.css         Gaya silo & gudang dingin, pekerja, dan kondisi mesin

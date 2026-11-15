@@ -35,8 +35,8 @@
   margin: 6px 0;
   padding: 8px 10px;
   border-radius: 8px;
-  background: #f3efe2;
-  color: #5a4a20;
+  background: var(--locked-bg);
+  color: var(--locked-ink);
   font-weight: 700;
   font-size: .85rem;
 }
@@ -45,11 +45,11 @@
   margin: 0 0 8px;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #8a6400;
+  color: var(--gold-d);
 }
 
 /* Keep scrollIntoView targets clear of the sticky topbar. */
 .section, .section-title, .card, .modal-section { scroll-margin-top: 92px; }
 @media (min-width: 640px) { .section, .section-title, .card, .modal-section { scroll-margin-top: 96px; } }
 /* Region labels stay readable above rain clouds of a neighbouring cluster. */
-.map-region-label { z-index: 1; text-shadow: 0 0 3px rgba(235, 245, 215, .9); }
+.map-region-label { z-index: 1; text-shadow: 0 0 3px var(--map-label-glow); }

@@ -17,7 +17,7 @@
 .crop-outlook { font-size: .85rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 .ph-fit { font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
 .ph-fit.ok { background: var(--green-l); color: var(--green-d); }
-.ph-fit.warn { background: #f6e3c4; color: var(--brown-d); }
+.ph-fit.warn { background: var(--orange-l); color: var(--brown-d); }
 .crop-locked { margin-top: 6px; font-size: .85rem; color: var(--ink-mute); }
 .crop-locked summary { cursor: pointer; padding: 6px 2px; }
 
@@ -44,7 +44,7 @@
   font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
   background: var(--green-l); color: var(--green-d);
 }
-.plan-chip.blocked { background: #f6e3c4; color: var(--brown-d); }
+.plan-chip.blocked { background: var(--orange-l); color: var(--brown-d); }
 
 /* Batch actions (U3/F1) */
 .batch-bar {
@@ -55,5 +55,5 @@
 .batch-title { font-weight: 700; font-size: .875rem; color: var(--ink-soft); }
 .batch-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .batch-buttons .btn { flex: 1 1 auto; }
-.best-tag { font-size: .72rem; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: #fbeab8; color: #6b4f05; white-space: nowrap; }
+.best-tag { font-size: .72rem; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: var(--gold-l); color: var(--gold-d); white-space: nowrap; }
 .tree-section.fold { margin: 12px 0 0; }

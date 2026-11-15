@@ -33,7 +33,7 @@
   position: relative;
 }
 .subtab:hover { background: var(--bg-2); }
-.subtab.active { background: var(--header-2); color: #fff; box-shadow: 0 2px 6px rgba(36, 48, 31, .3); }
+.subtab.active { background: var(--subtab-on); color: #fff; box-shadow: 0 2px 6px rgba(36, 48, 31, .3); }
 .subtab-icon { font-size: 1.15rem; line-height: 1.15; }
 .subtab-label { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .subtab-badge {
@@ -41,7 +41,7 @@
   min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
   background: var(--green); color: #fff; font-size: .7rem; line-height: 18px; text-align: center;
 }
-.subtab-badge.warn { background: var(--red); }
+.subtab-badge.warn { background: var(--red-fill); }
 .subtab:focus-visible { outline: 3px solid rgba(226, 183, 67, .7); outline-offset: 1px; }
 
 /* ---------- Filter chips (inside a sub-tab) ---------- */
@@ -50,7 +50,7 @@
   flex: 1 0 auto; min-height: 44px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line-strong);
   background: var(--surface); color: var(--ink-soft); font-weight: 700; font-size: .875rem; cursor: pointer; white-space: nowrap;
 }
-.chip.active { background: var(--green); border-color: var(--green-d); color: #fff; }
+.chip.active { background: var(--green); border-color: var(--green-press); color: #fff; }
 .chip-count { margin-left: 6px; font-size: .78rem; opacity: .85; }
 
 /* ---------- Collapsible sections ---------- */
@@ -74,7 +74,7 @@
   display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px;
   background: var(--bg-2); color: var(--ink-soft); font-size: .8rem; font-weight: 800;
 }
-.count-chip.hot { background: var(--wheat); color: #3a2d05; }
+.count-chip.hot { background: var(--wheat); color: var(--on-wheat); }
 .section-title > .count-chip { margin-right: auto; }
 .more-btn { margin-top: 8px; }
 .hint { color: var(--ink-mute); font-size: .875rem; margin: -4px 2px 10px; }
@@ -94,9 +94,9 @@
 .buy-row-price { flex: none; font-weight: 800; }
 .map-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 2px 0; font-size: .875rem; color: var(--ink-soft); }
 .map-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.lg { width: 14px; height: 14px; border-radius: 4px; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .2); }
+.lg { width: 14px; height: 14px; border-radius: 4px; border: 2px solid var(--bubble); box-shadow: 0 0 0 1px rgba(0, 0, 0, .2); }
 .lg-owned { background: var(--green); }
-.lg-sale { background: #fff8e6; border: 2px dashed var(--brown); }
+.lg-sale { background: var(--pin-sale-bg); border: 2px dashed var(--brown); }
 .lg-lock { background: rgba(70, 70, 60, .55); border-style: dotted; }
 
 /* ---------- Stock lists (Gudang groups, Pasar › Jual) ---------- */
@@ -122,9 +122,9 @@
 .empty.compact { padding: 18px 12px; }
 .link-card {
   display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit;
-  padding: 12px; margin-bottom: 14px; border-radius: var(--radius); border: 1px solid #c9dcb5; background: #eef6e4; box-shadow: var(--shadow);
+  padding: 12px; margin-bottom: 14px; border-radius: var(--radius); border: 1px solid var(--link-line); background: var(--link-bg); box-shadow: var(--shadow);
 }
-.link-card:hover { background: #e5f1d8; }
+.link-card:hover { background: var(--link-hover); }
 .link-card-icon { font-size: 1.5rem; flex: none; }
 .link-card-main { flex: 1; min-width: 0; }
 .link-card .progress { margin: 4px 0; }
@@ -133,6 +133,10 @@
 /* ---------- Settings ---------- */
 .settings-list { display: grid; gap: 8px; margin-bottom: 10px; }
 .settings-list .pwa-install .btn { width: 100%; }
+.theme-setting { margin-bottom: 4px; }
+.theme-label { font-size: .875rem; font-weight: 700; color: var(--ink-soft); margin: 0 2px 6px; }
+.theme-seg { display: flex; gap: 6px; }
+.theme-seg .chip { flex: 1 1 0; min-width: 0; padding: 6px 8px; white-space: normal; line-height: 1.2; }
 .settings-danger { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
 
 /* ---------- Wide screens: Ladang shows the field list and the map side by side ---------- */
@@ -183,7 +187,7 @@
 .herd-feedline.neg { color: var(--red-d); }
 .herd-meters { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
 .herd-meter .small { display: flex; justify-content: space-between; margin-bottom: 2px; }
-.herd-card.herd-hungry { border-color: #e0b4aa; box-shadow: inset 4px 0 0 var(--red), var(--shadow); }
+.herd-card.herd-hungry { border-color: var(--red-line); box-shadow: inset 4px 0 0 var(--red), var(--shadow); }
 .herd-start { align-items: flex-start; }
 .herd-start .card-actions { margin-top: 6px; }
 .list-item.locked { opacity: .7; }

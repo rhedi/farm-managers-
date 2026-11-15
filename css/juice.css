@@ -7,6 +7,7 @@
   position: relative; height: 48px; margin: 2px 0 8px; overflow: hidden;
   border-radius: var(--radius-s); background: var(--furrow);
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, .18);
+  filter: var(--tex-filter);
 }
 .plot.ps-idle {
   background:
@@ -43,7 +44,7 @@
   background: linear-gradient(100deg, transparent 35%, rgba(255, 250, 220, .55) 50%, transparent 65%) 0 0 / 300% 100%;
   animation: shine 3.2s ease-in-out infinite;
 }
-.plot.withering { filter: grayscale(.75) sepia(.35) brightness(.92); }
+.plot.withering { filter: grayscale(.75) sepia(.35) brightness(.92) var(--tex-filter); }
 .plot.withering .sp { animation: droop 3s ease-in-out infinite; }
 .plot.pest .sp { filter: hue-rotate(-35deg) saturate(.6) drop-shadow(0 1px 1px rgba(0, 0, 0, .3)); }
 .plot-rig {
@@ -59,7 +60,7 @@
 .plot-rig.harvest::after { content: "🌾"; position: absolute; left: -6px; top: -6px; font-size: 11px; animation: chaff .5s linear infinite; }
 .plot-pest {
   display: none; position: absolute; right: 6px; top: 5px; z-index: 4; font-size: 15px; line-height: 1;
-  padding: 2px 3px; border-radius: 999px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+  padding: 2px 3px; border-radius: 999px; background: var(--bubble); box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
   animation: crawl 1.4s ease-in-out infinite alternate;
 }
 .plot.pest .plot-pest { display: block; }
@@ -82,7 +83,7 @@
 .map-tint[data-season="spring"] { --tint: rgba(255, 170, 205, .55); }
 .map-tint[data-season="summer"] { --tint: rgba(255, 215, 80, .5); }
 .map-tint[data-season="autumn"] { --tint: rgba(215, 115, 35, .5); }
-.map-tint[data-season="winter"] { --tint: rgba(255, 255, 255, .8); }
+.map-tint[data-season="winter"] { --tint: var(--winter-tint); }
 .map-tint[data-season="wet"] { --tint: rgba(70, 150, 210, .4); }
 .map-tint[data-season="dry"] { --tint: rgba(215, 165, 80, .5); }
 .map-rain { position: absolute; pointer-events: none; opacity: 0; transition: opacity 1s; border-radius: 45%; overflow: hidden; }
@@ -120,7 +121,7 @@
 /* ---------- Events banner (Ladangku) ---------- */
 .events-banner {
   margin-bottom: 14px; padding: 6px 12px; border-radius: var(--radius);
-  background: linear-gradient(135deg, #fff5d8, #fde3c0); border: 1px solid #e6c48a; box-shadow: var(--shadow);
+  background: linear-gradient(135deg, var(--banner-a), var(--banner-b)); border: 1px solid var(--banner-line); box-shadow: var(--shadow);
   animation: slide-up .35s ease-out;
 }
 .events-banner[hidden] { display: none; }
@@ -131,7 +132,7 @@
 .events-title::-webkit-details-marker { display: none; }
 .events-title::after { content: "▾"; margin-left: auto; font-size: .9rem; }
 .events-banner:not([open]) .events-title::after { content: "▸"; }
-.events-alert { padding: 1px 8px; border-radius: 999px; background: #f6d6cf; color: var(--red-d); letter-spacing: 0; text-transform: none; }
+.events-alert { padding: 1px 8px; border-radius: 999px; background: var(--red-l); color: var(--red-d); letter-spacing: 0; text-transform: none; }
 .event-item { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 10px; padding: 6px 0; border-top: 1px dashed rgba(138, 90, 43, .3); }
 .events-title + .event-item { border-top: 0; }
 .event-emoji { font-size: 1.4rem; line-height: 1; animation: sway 2.6s ease-in-out infinite; }

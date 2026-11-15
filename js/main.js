@@ -20,6 +20,7 @@ import { feedbackEvent, initClickSounds } from './ui/feedback.js';
 import { tickMoneyFx, resetMoneyFx } from './ui/fx.js';
 import { openSettings } from './ui/settings.js';
 import { initPwa } from './ui/pwa.js';
+import { initTheme } from './ui/theme.js';
 
 const VIEWS = {
   farm: { render: renderFarm, update: updateFarm },
@@ -173,6 +174,7 @@ document.addEventListener('visibilitychange', () => {
   if (hours >= 0.5) toast(`Selama kamu pergi, ${fmtHours(hours)} waktu permainan berlalu.`);
   app.requestRender();
 });
+initTheme();
 trackTopbarHeight();
 initClickSounds();
 initPwa();
