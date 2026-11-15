@@ -19,11 +19,17 @@ function fxLayer() {
 export function floatText(anchor, text, kind = '') {
   const r = anchor?.getBoundingClientRect?.();
   let p = r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : anchor;
-  // Topbar pills: below the topbar (and below any visible toasts), clamped inside the viewport.
-  if (kind.includes('top') && p) p = { x: Math.min(Math.max(p.x, 48), window.innerWidth - 48), y: belowChrome() };
+  // Top-bar pills stay inside the top bar: just under the money (over the date text, left of the speed buttons),
+  // XP one line lower, so they never land on cards, switches or toasts.
+  if (kind.includes('top') && r) {
+    const barBottom = document.getElementById('topbar')?.getBoundingClientRect().bottom ?? Infinity;
+    p = { x: Math.max(p.x, 48), y: Math.min(r.bottom + 9 + (kind.includes('xp') ? 18 : 0), barBottom - 12) };
+  }
   if (!p || (r && !r.width)) return;
   const L = fxLayer();
   if (L.childElementCount > 24) return; // offline catch-up bursts: don't flood
+  // Top-bar pills replace the previous one of the same kind instead of piling up on the same spot.
+  if (kind.includes('top')) for (const old of L.querySelectorAll(`.fx-float.${kind.includes('xp') ? 'xp' : 'top:not(.xp)'}`)) old.remove();
   const el = document.createElement('div');
   el.className = `fx-float${kind ? ` ${kind}` : ''}`;
   el.textContent = text;
@@ -32,15 +38,6 @@ export function floatText(anchor, text, kind = '') {
   el.addEventListener('animationend', () => el.remove());
   L.appendChild(el);
   setTimeout(() => el.remove(), 2000);
-}
-
-/** Lowest edge of the top chrome (top bar, sticky sub-tab bar, visible toasts) so floats never cover their buttons. */
-function belowChrome() {
-  let y = document.getElementById('topbar')?.getBoundingClientRect().bottom ?? 0;
-  const sub = document.querySelector('#view .subtabs')?.getBoundingClientRect();
-  if (sub?.height && sub.top <= y + 1) y = Math.max(y, sub.bottom);
-  for (const t of document.querySelectorAll('#toast-root .toast:not(.leaving)')) y = Math.max(y, t.getBoundingClientRect().bottom);
-  return y + 6;
 }
 
 const COLORS = ['#e2b743', '#4f8a2e', '#c0442f', '#4b8fc4', '#f2f0df', '#b57f45', '#9b5fc0'];
@@ -132,7 +129,7 @@ export function tickMoneyFx(game, now = performance.now()) {
       void moneyEl.offsetWidth;
       if (pendingMoney > 0) moneyEl.parentElement?.classList.add('fx-bump');
     }
-    if (pendingXp >= 1) floatText(document.getElementById('xpbar') ?? moneyEl, `+${fmtNum(pendingXp)} XP`, 'xp top');
+    if (pendingXp >= 1) floatText(moneyEl, `+${fmtNum(pendingXp)} XP`, 'xp top');
     pendingMoney = 0;
     pendingXp = 0;
   }

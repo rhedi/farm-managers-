@@ -74,9 +74,9 @@ function productRow(p, s, steps) {
 function settingsFold(v) {
   const s = v.settings, steps = v.steps;
   const maxTrucks = Math.max(1, Math.min(v.hired.trucks, v.trucks));
-  const summary = `min ${fmtMoney(s.minProfit)} · ${s.minMargin}%`;
+  const summary = `Min. ${fmtMoney(s.minProfit)}/trip · ${s.minMargin}% · ${v.cities.filter((c) => c.allowed && c.inRange).length} kota`;
   const prods = v.products;
-  return fold('disp-settings', '⚙️ Pengaturan manajer', { meta: summary, cls: 'boxed disp-settings' },
+  return fold('disp-settings', [h('span.disp-fold-name', '⚙️ Pengaturan manajer'), h('span.disp-fold-sum', summary)], { cls: 'boxed disp-settings' },
     h('div.disp-set-title', 'Kelompok produk yang boleh dikirim'),
     h('div.disp-chips', CATEGORIES.map((c) => chip(`${c.icon} ${c.label}`, s.groups[c.id], () => set({ groups: { [c.id]: !s.groups[c.id] } })))),
     h('div.disp-set-title', 'Kota tujuan'),
@@ -104,6 +104,12 @@ function recentRow(r, fresh) {
     h(`span.num.${r.estProfit >= 0 ? 'pos' : 'neg'}`, `≈ +${fmtMoney(r.estProfit)}`));
 }
 
+/** Moving trucks first (positive state); the waiting reason only when nothing is on the road. */
+function statusLine(v) {
+  if (v.onRoad) return h('div.disp-moving', `🚚 ${v.onRoad} truk di jalan · berikutnya diperiksa tiap jam`);
+  return v.note ? h('div.disp-wait', `💤 ${v.note}`) : null;
+}
+
 function hiredBody(v) {
   const hd = v.hired;
   const newest = v.recent[0]?.shipmentId ?? null;
@@ -120,7 +126,7 @@ function hiredBody(v) {
       h('div.disp-stat', h('span.small.muted', 'Total'), h('b', `${fmtNum(v.stats.trips)} trip`)),
       h('div.disp-stat', h('span.small.muted', 'Untung ekstra'), h('b.pos', `+${fmtMoney(v.stats.extraProfit)}`))),
     h('div.small.muted', `Gaji ${fmtMoney(hd.wagePaid)}/hari · ${tierLine(hd)} · ${v.onRoad} truk di jalan`),
-    v.on && v.note ? h('div.disp-wait', `💤 ${v.note}`) : null,
+    v.on ? statusLine(v) : null,
     v.sellPlans ? h('div.disp-warn', `⚠️ ${v.sellPlans} rencana ladang menjual otomatis saat panen, jadi hasilnya tidak sempat dikirim. Matikan 💰 Jual otomatis di rencana ladang.`) : null,
     v.recent.length ? h('div.disp-recent', h('div.disp-set-title', 'Kiriman terakhir'), v.recent.slice(0, 4).map((r, i) => recentRow(r, fresh && i === 0)))
       : h('p.small.muted', 'Belum ada kiriman otomatis. Untung = harga kota − jual lokal − BBM − sopir − aus truk.'),

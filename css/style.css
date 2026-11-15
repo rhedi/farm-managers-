@@ -572,7 +572,7 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
   position: fixed;
   left: 0;
   right: 0;
-  top: calc(var(--top-h, 84px) + 8px);
+  bottom: calc(var(--nav-h) + var(--safe-b) + 46px); /* above the bottom tabs and the truck lane (fx.js truckDepart) */
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -599,10 +599,10 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
   font-weight: 500;
   animation: toast-in .2s ease;
 }
-/* With a modal open, toasts sit over the dimmed topbar so they never cover the sheet header/✕. */
-/* Below the sticky sub-tab bar, so a toast's ✕ never sits on a sub-tab. */
-body:not(.modal-open):has(#view .subtabs) #toast-root { top: calc(var(--top-h, 84px) + 66px); }
-body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
+/* Toasts stack upward just above the bottom tabs, away from card headers, switches and sub-tabs at the top.
+   With a modal open (sheet covers the bottom), they sit over the dimmed topbar so they never cover the sheet header/✕. */
+body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; }
+body.modal-open .toast { animation-name: toast-in-top; }
 .toast-msg { flex: 1; min-width: 0; }
 .toast .btn { pointer-events: auto; flex: none; }
 .pwa-install { margin: 6px 0; }
@@ -622,8 +622,10 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
 .toast.success { background: rgba(60, 109, 33, .95); }
 .toast.error { background: rgba(155, 51, 34, .95); }
 .toast.warn { background: rgba(138, 106, 18, .95); }
-.toast.leaving { opacity: 0; transform: translateY(-8px); transition: opacity .25s, transform .25s; }
-@keyframes toast-in { from { opacity: 0; transform: translateY(-10px); } }
+.toast.leaving { opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; }
+body.modal-open .toast.leaving { transform: translateY(-8px); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes toast-in-top { from { opacity: 0; transform: translateY(-10px); } }
 
 /* ---------- Bottom nav ---------- */
 #tabs {
