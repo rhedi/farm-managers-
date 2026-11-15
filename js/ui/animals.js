@@ -1,12 +1,16 @@
-// Animals tab: barns, buy/sell animals, feed stock, quality/happiness.
+// Ternak tab: link to Gudang › Peternakan, own herds (production, feed, quality first; "Kelola" and breeding
+// folded), herds to start (barn), locked herds folded, feed reserves.
 import { h, mount, fmtMoney, fmtNum, fmtPct, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
 import { app, act } from './app.js';
 import { fmtAmt } from './ecoFmt.js';
 import { econRow, reservePanel, reserveSig } from './animalEcon.js';
 import { breedingPanel, breedingSig, starRating, fmtGene } from './breeding.js';
+import { fold, goTo } from './subtabs.js';
+import { stockByCategory, groupValue } from './stock.js';
 
 const qty = new Map(); // animalId → typed count (survives re-render)
+const manageOpen = new Set(); // herds whose "Kelola kawanan" panel is open
 let sig = '';
 
 function productOf(a) {
@@ -34,69 +38,8 @@ function feedButton(a, days, label, primary) {
   }, `${label} (${fmtMoney(q.cost)})`);
 }
 
-function feedRow(a, lowFeed) {
-  if (!(a.count > 0)) return null;
-  const q = app.game.feedQuote(a.id, 3);
-  return h('div',
-    h('div.small', `Pakan: beli ${q ? q.name : '—'} (termurah di pasar)`),
-    h('div.card-actions',
-      feedButton(a, 3, '🌾 Beli pakan 3 hari', lowFeed),
-      feedButton(a, 7, '7 hari', lowFeed)));
-}
-
-function animalCard(a) {
-  const game = app.game;
-  const prod = productOf(a);
-  const free = Math.max(0, a.capacity - a.count);
-  const n = () => Math.floor(Number(qty.get(a.id) ?? 1));
-  const head = h('div.card-head',
-    h('div.card-icon', a.emoji),
-    h('div', { style: { flex: '1', minWidth: '0' } },
-      h('div.card-title', a.name),
-      h('div.card-sub', `${prod ? prod.emoji + ' ' + prod.name : a.product} · ${fmtMoney(a.price)}/ekor`)),
-    a.unlocked ? h('span.badge.badge-green', `${a.count}/${a.capacity}`) : h('span.badge', `🔒 Lv ${a.unlockLevel}`));
-  if (!a.unlocked) {
-    return h('div.card.locked', head, h('p.small.muted', `Terbuka di level ${a.unlockLevel}.`));
-  }
-  const barnBtn = h('button.btn.btn-small.btn-secondary', {
-    disabled: game.state.money < a.barnCost, title: game.state.money < a.barnCost ? 'Uang tidak cukup' : null,
-    onclick: () => act(game.buildBarn(a.id), (r) => `Kandang ${a.name} dibangun (kapasitas ${r.capacity}).`),
-  }, `🏗️ ${a.barns ? 'Perluas' : 'Bangun'} kandang ${fmtMoney(a.barnCost)}`);
-  if (!a.barns) {
-    return h('div.card', head, econRow(a),
-      h('p.small.muted', `Butuh kandang (+${a.barnCapacity} ekor). Pakan: ${cropNames(a.feedCrops)}.`),
-      h('div.card-actions', barnBtn));
-  }
-  const lowFeed = a.count > 0 && (a.feedDaysLeft ?? 99) < 3;
-  return h('div.card', head,
-    h('div.kv',
-      h('span', 'Kandang'), h('span', `${a.barns} (kapasitas ${a.capacity})`),
-      h('span', 'Produksi'), h('span', `${fmtNum(a.productionPerDay ?? a.count * a.productPerDay * a.quality, 1)} ${prod?.unit ?? ''}/hari`),
-      h('span', 'Genetika'), h('span', starRating(a.stars ?? 3), ` ${fmtGene(a.breedQuality ?? 1)}`),
-      h('span', 'Pakan/hari'), h('span', `${fmtNum(a.feedNeedPerDay * 1000)} kg`),
-      h('span', 'Stok pakan'), h(`span${lowFeed ? '.neg' : ''}`, feedText(a)),
-      h('span', 'Jenis pakan'), h('span.small', cropNames(a.feedCrops))),
-    econRow(a),
-    h('div.small', `Kualitas ${fmtPct(a.quality)}`), progressBar(a.quality, 'gold'),
-    h('div.small', `Kebahagiaan ${fmtPct(a.happiness)}`), progressBar(a.happiness, 'blue'),
-    feedRow(a, lowFeed),
-    h('div.card-actions',
-      h('input', { type: 'number', min: '1', step: '1', value: String(qty.get(a.id) ?? 1), style: { width: '5em' },
-        'aria-label': `Jumlah ${a.name}`, oninput: (e) => qty.set(a.id, e.target.value) }),
-      h('button.btn.btn-small.btn-primary', { disabled: free <= 0, title: free <= 0 ? 'Kandang penuh' : null, onclick: () => {
-        const k = n();
-        if (!(k > 0)) return act({ ok: false, reason: 'Isi jumlah ternak.' });
-        act(game.buyAnimal(a.id, k), `${k} ${a.name} dibeli (${fmtMoney(k * a.price)}).`);
-      } }, 'Beli'),
-      h('button.btn.btn-small.btn-danger', { disabled: a.count <= 0, onclick: () => {
-        const k = Math.min(n(), a.count);
-        if (!(k > 0)) return act({ ok: false, reason: 'Isi jumlah ternak.' });
-        act(game.sellAnimal(a.id, k), (r) => `${k} ${a.name} terjual (${fmtMoney(r.earned)}).`);
-      } }, 'Jual'),
-      h('span.spacer'),
-      barnBtn),
-    herdButtons(a, free),
-    breedingPanel(a));
+function meter(label, v, color) {
+  return h('div.herd-meter', h('div.small', h('span.muted', label), ' ', h('b', fmtPct(v))), progressBar(v, `thin.${color}`));
 }
 
 /** "Isi penuh" (as many as fit and are affordable) and "Jual semua" with confirm (U10). */
@@ -117,6 +60,90 @@ function herdButtons(a, free) {
     } }, 'Jual semua'));
 }
 
+/** Buy/sell by count, details, economics, fill/sell all, barn. */
+function managePanel(a, free) {
+  const game = app.game;
+  const n = () => Math.floor(Number(qty.get(a.id) ?? 1));
+  return h('details.herd-manage', { open: manageOpen.has(a.id) || a.count === 0,
+    ontoggle: (e) => (e.target.open ? manageOpen.add(a.id) : manageOpen.delete(a.id)) },
+  h('summary', '⚙️ Kelola kawanan'),
+  h('div.kv',
+    h('span', 'Kandang'), h('span', `${a.barns} (kapasitas ${a.capacity})`),
+    h('span', 'Harga beli'), h('span', `${fmtMoney(a.price)}/ekor`),
+    h('span', 'Pakan/hari'), h('span', `${fmtNum(a.feedNeedPerDay * 1000)} kg`),
+    h('span', 'Jenis pakan'), h('span.small', cropNames(a.feedCrops))),
+  econRow(a),
+  h('div.card-actions',
+    h('input', { type: 'number', min: '1', step: '1', value: String(qty.get(a.id) ?? 1), style: { width: '5em' },
+      'aria-label': `Jumlah ${a.name}`, oninput: (e) => qty.set(a.id, e.target.value) }),
+    h('button.btn.btn-small.btn-primary', { disabled: free <= 0, title: free <= 0 ? 'Kandang penuh' : null, onclick: () => {
+      const k = n();
+      if (!(k > 0)) return act({ ok: false, reason: 'Isi jumlah ternak.' });
+      act(game.buyAnimal(a.id, k), `${k} ${a.name} dibeli (${fmtMoney(k * a.price)}).`);
+    } }, 'Beli'),
+    h('button.btn.btn-small.btn-danger', { disabled: a.count <= 0, onclick: () => {
+      const k = Math.min(n(), a.count);
+      if (!(k > 0)) return act({ ok: false, reason: 'Isi jumlah ternak.' });
+      act(game.sellAnimal(a.id, k), (r) => `${k} ${a.name} terjual (${fmtMoney(r.earned)}).`);
+    } }, 'Jual')),
+  herdButtons(a, free),
+  h('div.card-actions', h('button.btn.btn-small.btn-secondary', {
+    disabled: game.state.money < a.barnCost, title: game.state.money < a.barnCost ? 'Uang tidak cukup' : null,
+    onclick: () => act(game.buildBarn(a.id), (r) => `Kandang ${a.name} dibangun (kapasitas ${r.capacity}).`),
+  }, `🏗️ Perluas kandang +${a.barnCapacity} (${fmtMoney(a.barnCost)})`)));
+}
+
+/** Herd with a barn: daily essentials on top (production, feed + buy, quality, happiness). */
+function herdCard(a) {
+  const prod = productOf(a);
+  const free = Math.max(0, a.capacity - a.count);
+  const lowFeed = a.count > 0 && (a.feedDaysLeft ?? 99) < 3;
+  const perDay = a.productionPerDay ?? a.count * a.productPerDay * a.quality;
+  const q = a.count > 0 ? app.game.feedQuote(a.id, 3) : null;
+  return h(`div.card.herd-card${lowFeed ? '.herd-hungry' : ''}`,
+    h('div.card-head',
+      h('div.card-icon', a.emoji),
+      h('div.card-main',
+        h('div.card-title', a.name),
+        h('div.card-sub', `${prod ? prod.emoji + ' ' : ''}${fmtNum(perDay, 1)} ${prod?.unit ?? ''}/hari · `, starRating(a.stars ?? 3), ` ${fmtGene(a.breedQuality ?? 1)}`)),
+      h('span.badge.badge-green', `${a.count}/${a.capacity}`)),
+    a.count > 0
+      ? [h(`div.herd-feedline${lowFeed ? '.neg' : ''}`, `${lowFeed ? '⚠️' : '🌾'} Stok pakan ${feedText(a)}`,
+        q ? h('span.small.muted', ` · beli ${q.name} (termurah)`) : null),
+      h('div.herd-meters', meter('Kualitas', a.quality, 'gold'), meter('Kebahagiaan', a.happiness, 'blue')),
+      h('div.card-actions.herd-feed', feedButton(a, 3, '🌾 Pakan 3 hari', lowFeed), feedButton(a, 7, '7 hari', false))]
+      : h('p.small.muted', 'Kandang masih kosong — beli ternak di "Kelola kawanan".'),
+    managePanel(a, free),
+    breedingPanel(a));
+}
+
+/** Unlocked herd without a barn: one compact row with the barn button. */
+function startRow(a) {
+  const game = app.game;
+  const prod = productOf(a);
+  const poor = game.state.money < a.barnCost;
+  return h('div.list-item.herd-start',
+    h('div.card-icon', a.emoji),
+    h('div.card-main',
+      h('div.card-title', a.name),
+      h('div.card-sub', `${prod ? prod.emoji + ' ' + prod.name : a.product} · ${fmtMoney(a.price)}/ekor · pakan: ${cropNames(a.feedCrops)}`),
+      econRow(a),
+      h('div.card-actions', h('button.btn.btn-small.btn-primary', { disabled: poor, title: poor ? 'Uang tidak cukup' : null,
+        onclick: () => act(game.buildBarn(a.id), (r) => `Kandang ${a.name} dibangun (kapasitas ${r.capacity}).`) },
+      `🏗️ Bangun kandang ${fmtMoney(a.barnCost)} (+${a.barnCapacity} ekor)`))));
+}
+
+/** Summary + link to the animal-products storage (Gudang › Peternakan). */
+function storageLink(game) {
+  const items = stockByCategory(game).animal;
+  const text = items.length ? items.slice(0, 3).map((it) => `${it.emoji} ${fmtAmt(it.qty, it.unit)}`).join(' · ') + (items.length > 3 ? ' …' : '')
+    : 'Belum ada produk ternak.';
+  return h('button.link-card', { type: 'button', onclick: () => goTo('silo', 'animal') },
+    h('span.link-card-icon', '❄️'),
+    h('span.link-card-main', h('b', 'Gudang ternak'), h('div.small.muted', text)),
+    h('span.link-card-go', items.length ? `${fmtMoney(groupValue(items))} ›` : '›'));
+}
+
 function computeSig(game) {
   return `${game.day}|${game.state.level}|${Math.floor(game.state.money / 500)}|${reserveSig(game)}|`
     + game.animalsView().map((a) => `${a.count}:${a.barns}:${a.feedStock}:${a.quality}:${breedingSig(a)}:`
@@ -127,11 +154,24 @@ export function renderAnimals(root) {
   const game = app.game;
   sig = computeSig(game);
   const views = game.animalsView();
+  const herds = views.filter((a) => a.unlocked && a.barns > 0);
+  const start = views.filter((a) => a.unlocked && !a.barns);
+  const locked = views.filter((a) => !a.unlocked);
   mount(root,
+    storageLink(game),
     h('section.section',
-      h('div.section-title', '🐄 Peternakan'),
-      h('p.small.muted', 'Ternak makan tanaman pakan termurah dari gudang setiap hari. Pakan bisa dari hasil panen sendiri atau dibeli di pasar. Jaga stok pakan agar kualitas tetap tinggi.'),
-      h('div.cards', views.map(animalCard))),
+      h('div.section-title', '🐄 Kandangku', h('span.small.muted', `${herds.length} kawanan`)),
+      herds.length ? h('div.cards', herds.map(herdCard))
+        : h('div.empty.compact', 'Belum punya kandang. Bangun kandang pertama di bawah.'),
+      h('p.hint', 'Ternak makan pakan termurah dari gudang setiap hari. Jaga stok pakan agar kualitas tetap tinggi.')),
+    start.length ? h('section.section',
+      h('div.section-title', '🏗️ Mulai beternak', h('span.small.muted', String(start.length))),
+      h('div.list', start.map(startRow))) : null,
+    locked.length ? fold('animals-locked', '🔒 Ternak terkunci', { meta: `${locked.length} · Lv ${Math.min(...locked.map((a) => a.unlockLevel))}+` },
+      h('div.list', locked.map((a) => h('div.list-item.locked',
+        h('div.card-icon', a.emoji),
+        h('div.card-main', h('div.card-title', a.name), h('div.card-sub', `${productOf(a)?.emoji ?? ''} ${productOf(a)?.name ?? a.product} · ${fmtMoney(a.price)}/ekor`)),
+        h('span.badge', `🔒 Lv ${a.unlockLevel}`))))) : null,
     reservePanel(views));
 }
 

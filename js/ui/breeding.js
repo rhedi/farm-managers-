@@ -2,7 +2,7 @@
 import { h, fmtMoney, fmtNum, progressBar } from './dom.js';
 import { app, act } from './app.js';
 
-const closed = new Set(); // herds whose breeding panel the player collapsed
+const opened = new Set(); // herds whose breeding panel the player expanded (folded by default)
 
 const x2 = (v) => (Number(v) || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** Genetics multiplier with 2 fixed decimals: ×1,10. */
@@ -75,8 +75,8 @@ function studRow(a) {
 
 /** Breeding section for a herd that has a barn. */
 export function breedingPanel(a) {
-  return h('details.breed-panel', { open: !closed.has(a.id),
-    ontoggle: (e) => (e.target.open ? closed.delete(a.id) : closed.add(a.id)) },
+  return h('details.breed-panel', { open: opened.has(a.id),
+    ontoggle: (e) => (e.target.open ? opened.add(a.id) : opened.delete(a.id)) },
     h('summary', '🧬 Pembiakan', a.bornToday ? h('span.badge.badge-green', `+${a.bornToday} lahir`) : null),
     geneticsRow(a), birthsRow(a), intensiveToggle(a), studRow(a));
 }

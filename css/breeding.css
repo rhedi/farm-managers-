@@ -1,10 +1,10 @@
 /* Breeding panel (Ternak) and machine upgrade modal (Garasi). */
-.breed-panel { margin-top: 10px; border-top: 1px solid var(--line, #d8d4bd); padding-top: 8px; }
-.breed-panel > summary { cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; min-height: 36px; }
-.breed-panel > summary::-webkit-details-marker { display: none; }
-.breed-panel > summary::after { content: '▾'; margin-left: auto; color: var(--ink-mute, #8a8672); }
-.breed-panel:not([open]) > summary::after { content: '▸'; }
-.breed-panel > div { margin-top: 8px; }
+.breed-panel, .herd-manage { margin-top: 10px; border-top: 1px solid var(--line, #d8d4bd); padding-top: 4px; }
+.breed-panel > summary, .herd-manage > summary { cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; min-height: 44px; list-style: none; }
+.breed-panel > summary::-webkit-details-marker, .herd-manage > summary::-webkit-details-marker { display: none; }
+.breed-panel > summary::after, .herd-manage > summary::after { content: '▾'; margin-left: auto; color: var(--ink-mute, #8a8672); }
+.breed-panel:not([open]) > summary::after, .herd-manage:not([open]) > summary::after { content: '▸'; }
+.breed-panel > div, .herd-manage > div { margin-top: 8px; }
 .breed-stars { position: relative; display: inline-block; color: #d39e1f; letter-spacing: 1px; white-space: nowrap; }
 .breed-stars-fill { position: absolute; left: 0; top: 0; overflow: hidden; white-space: nowrap; }
 .breed-genes-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 4px; }

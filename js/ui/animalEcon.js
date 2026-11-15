@@ -2,6 +2,7 @@
 import { h, fmtMoney, fmtPrice, fmtNum } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
+import { fold } from './subtabs.js';
 
 const reserveInput = new Map(); // cropId → typed tons
 const RESERVE_DAYS = 7;
@@ -75,9 +76,9 @@ export function reservePanel(views) {
   if (typeof app.game.setFeedReserve !== 'function') return null;
   const need = needByCrop(views);
   if (!need.size) return null;
-  return h('section.section.eco-reserves',
-    h('div.section-title', '🔒 Cadangan pakan'),
-    h('p.small.muted', 'Stok yang dicadangkan tidak ikut terjual di Pasar/Gudang. Ternak tetap boleh memakannya.'),
+  const set = Object.values(app.game.state.feedReserve || {}).filter((t) => t > 0).length;
+  return fold('feed-reserve', '🔒 Cadangan pakan', { meta: set ? `${set} aktif` : 'belum diatur', cls: 'eco-reserves' },
+    h('p.hint', 'Stok yang dicadangkan tidak ikut terjual di Pasar/Gudang. Ternak tetap boleh memakannya.'),
     h('div.card', [...need].map(([c, perDay]) => reserveRow(c, perDay))));
 }
 
