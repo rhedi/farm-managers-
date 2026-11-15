@@ -50,7 +50,7 @@ Usable height between the top bar (82 px) and the bottom nav (62 px) is **700 px
 
 ### P1: visual noise and inconsistency
 4. **Too many loud buttons.** Secondary buttons are filled brown and destructive ones filled red, so a single herd card (`animals-top`) carries 9 filled buttons in three colours. Garasi shows a red "Jual $X" next to every machine (`garage-top`). Field cards show "💸 Jual" (sell the field) next to farming actions. Nothing tells the player which button is the next step.
-5. **Constant motion**: 70 CSS animations run at once on Ladang (14 swaying sprites per ready plot, a shine sweep, the ready card icon swaying as well, a pulsing ready pin, bobbing busy pins, drifting clouds and rain, swaying event emojis). Every money/XP change floats one or two pills under the top bar, often several per second at 5×.
+5. **Constant motion** (measured, but kept: the player likes the animations, so v9 changes no animation; only floats/toasts were moved off the sub-tab bar): 70 CSS animations run at once on Ladang (14 swaying sprites per ready plot, a shine sweep, the ready card icon swaying as well, a pulsing ready pin, bobbing busy pins, drifting clouds and rain, swaying event emojis). Every money/XP change floats one or two pills under the top bar, often several per second at 5×.
 6. **Small text**: the top-bar XP text is 9.3 px and the season chip 8.7 px, bottom-nav labels 10.2 px, badges 11 px, `.small` 12.75 px, card sub-lines 12.3 px. Lock labels on map pins are 8.7 px.
 7. **Low-contrast muted text** (3.2–3.5:1) carries most secondary information.
 8. **Duplicated information and entry points**: stock + Jual exists in both Gudang and Pasar, with different layouts. The finance report opens from the top bar, the Prestasi card and the Pasar loans card. Research appears in the top-bar modal and at the top of Prestasi. The 🔬 badge shows in both the top bar and the Prestasi tab.
@@ -67,6 +67,48 @@ Usable height between the top bar (82 px) and the bottom nav (62 px) is **700 px
 2. Ladangku first: fields split into "Perlu tindakan" and "Berjalan", the next step shown as the single primary button, field selling only in the detail dialog, and a short "Ladang dijual" list so buying a field still takes 2 taps.
 3. Gudang split by `PRODUCTS[].category` (crop / animal / processed). Each group gets its own list, value and "Jual semua". The capacity line says which group uses the silo. Ternak gets a link to its storage.
 4. Calmer components: outlined secondary and danger buttons (filled only in confirmations), 44 px targets, ≥ 13 px secondary text, muted colour with ≥ 4.5:1 contrast, collapsible sections for secondary content, locked items behind "lihat semua".
-5. Calm motion: no duplicate sways, one merged money/XP pill at a time, a single toast stack, and `prefers-reduced-motion` respected (already global in CSS).
+5. ~~Calm motion~~: dropped at the player's request; all animations stay. Toasts and floating money/XP texts now appear below the sticky sub-tab bar so they never cover a sub-tab. `prefers-reduced-motion` stays as it was.
 6. Top bar: full XP text, a larger speed control, and ⚙️ settings in the top bar (sound, save, install, tutorial, reset).
 7. Badges only for things to act on: fields needing a step, deliverable contracts, hungry herds, a nearly full silo or a stopped factory, worn-out machines, claimable missions.
+
+## After (v9)
+
+Screenshots: `docs/shots/v9-after-*.png`, the same views as before. Each sub-tab has its own `-top` shot, and the first sub-tab of each tab also has a `-scrolled` shot. There are also `modal-settings` and `firstrun-*`. Same harness, same saves.
+
+| Tab (mid save) | Before | After: page height per sub-tab (screens) |
+|---|---|---|
+| Ladang | 3.42 (2 885 px), 0 field cards above the fold | **Ladangku 3.36** (1 actionable card above the fold below 3 events; 4 for a new player) · Peta 1.00 |
+| Garasi | 11.14 (9 406 px) | **Mesin 1.64** · Pekerja 1.30 · Toko 1.28 (locked machines folded) |
+| Pasar | 6.59 (5 561 px) | **Jual 1.26** · Kontrak 1.16 · Kirim 3.15 · Harga 2.19 |
+| Ternak | 5.85 (4 941 px) | **2.67** |
+| Gudang | 2.36 (1 988 px) | **Pertanian 1.00** · Peternakan 1.00 · Olahan 1.05 |
+| Prestasi | 11.40 (9 621 px) | **Misi 1.37** · Riset 2.75 · Prestasi 1.46 · Keuangan 1.47 |
+| New player: Garasi / Prestasi | 8.74 / 8.02 | 1.00 / 1.37 (longest sub-tab) |
+
+| Dialog | Before | After |
+|---|---|---|
+| Field (ready + pest) | 2.24 screens | **0.92** (plan, yield factors, greenhouse, forecast, land folded) |
+| Crop picker | 4.41 | **2.09** (top 5 by profit, crops that can't grow now last, trees folded) |
+| Research | 3.14 | 2.65 (nodes on one line, "Teliti" inline, reset moved to the bottom) |
+| Task / sell / finance | 0.67 / 0.21 / 1.62 | 0.68 / 0.24 / 1.63 (unchanged) |
+
+- **Core loop**: still **10 taps** (row in "🛒 Ladang dijual", Beli, Bajak, Mulai, Tanam, Mulai, Panen, Mulai, tab Pasar, Jual $…), but nothing needs scrolling now. Before, every step after buying meant scrolling past the full-screen map.
+- **First run**: the tutorial's 🪓 Bajak target sits on the first screen (`firstrun-1`). Step 6 points at the Gudang tab.
+- **Touch targets** (controls under 44 px above the fold): Ladang 21 → **1**, Garasi 7 → 0, Pasar 3 → 0, Ternak 8 → 0, Gudang 9 → 0. Map pins stay 34 px.
+- **Text under 12 px** (mid save): Ladangku 36 → 2, Pasar 87 → 2 (Jual), Prestasi 46 → 1. Muted text is now `#6f6b58` (4.6–5.2:1) and white on the primary green 4.85:1.
+- **Animations**: unchanged at the player's request. Ladangku runs 55 and the map 14, the same total as before; they now sit on two sub-tabs.
+- **Overflow**: none at 360×760, 390×844, 412×915 or 800×400. Landscape uses a one-row top bar and a 50 px nav. No console errors.
+
+### Gudang split (new requirement)
+`PRODUCTS[].category` in `js/data.js` (`crop` / `animal` / `processed`) drives the grouping. A test checks that it matches `ledger.saleCategory`, the engine's existing split for booking sales. The engine already stores animal products (L, pcs, kg) outside the silo, so v9 does **not** add a capacity:
+
+- 🌾 Pertanian shows the silo bar, with the crop and processed-ton shares named;
+- 🐄 Peternakan says "tidak memakai kapasitas silo";
+- 🏭 Olahan notes that ton products use the silo and kg products don't.
+
+*Proposal, not implemented*: a separate "Gudang dingin" capacity for animal products, with upgrades, would make the split symmetric. It is a balance change, because today animal products have unlimited storage.
+
+### Leftovers
+- Pasar › Kirim is still 3.2 screens: the city list with demand chips is long. A city picker in steps would shorten it.
+- Map pins are 34 px on a 366 px map. Making them bigger would make the 30 pins overlap.
+- Ladangku with 8 fields is 3.4 screens. Each field card is ~210 px including the animated plot, which stays at the player's request.

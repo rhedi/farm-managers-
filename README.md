@@ -36,7 +36,7 @@ Service worker hanya aktif di *secure context*: alamat HTTPS atau `http://localh
 - **Penerusan port lewat USB.** Sambungkan ponsel ke PC dengan USB debugging, buka `chrome://inspect/#devices` di Chrome PC, aktifkan *Port forwarding* `8000 → localhost:8000`, lalu buka `http://localhost:8000` di Chrome ponsel.
 - **Hosting statis gratis dengan HTTPS**, misalnya GitHub Pages atau Netlify. Unggah isi folder apa adanya; tidak ada langkah build.
 
-Cara memasang: buka tab 🏆 Prestasi → ⚙️ Pengaturan dan tekan **📲 Pasang aplikasi** (muncul jika Chrome menawarkan pemasangan), atau buka menu browser → *Tambahkan ke layar utama* / *Instal aplikasi*. Di iPhone/iPad: Safari → tombol Bagikan → *Tambahkan ke Layar Utama*. Tombol dan petunjuknya disembunyikan bila game sudah berjalan sebagai aplikasi.
+Cara memasang: ketuk ⚙️ di bilah atas (Pengaturan) dan tekan **📲 Pasang aplikasi** (muncul jika Chrome menawarkan pemasangan), atau buka menu browser → *Tambahkan ke layar utama* / *Instal aplikasi*. Di iPhone/iPad: Safari → tombol Bagikan → *Tambahkan ke Layar Utama*. Tombol dan petunjuknya disembunyikan bila game sudah berjalan sebagai aplikasi.
 
 Data simpanan ada di `localStorage` dan terikat pada alamat asal, jadi `http://localhost:8000`, `http://192.168.1.10:8000`, dan alamat HTTPS masing-masing punya simpanan sendiri.
 
@@ -54,6 +54,21 @@ Jalankan dari folder `farm-manager`. Pemain yang sudah memasang game akan meliha
 
 Pemain baru disambut panduan langkah demi langkah di tab **Ladang**: Bajak → Pupuk → Tanam → percepat 5× → Panen → Jual. Tombol yang perlu diketuk diberi tanda 👆, dan panduan maju sendiri setiap kali satu langkah selesai. Panduan bisa ditutup dengan ✕. Kemajuannya disimpan di `localStorage` dengan kunci `farm-manager-tutorial`, terpisah dari data permainan, dan dimulai lagi dari awal setelah reset game.
 
+### Navigasi
+
+Enam tab di bawah: **🗺️ Ladang**, **🚜 Garasi**, **📈 Pasar**, **🐄 Ternak**, **🏚️ Gudang**, **🏆 Prestasi**. Setiap tab dibuka dengan hal yang perlu dikerjakan sekarang, dan bagian lainnya dipisah ke sub-tab di bilah yang tetap terlihat di bawah bar atas:
+
+| Tab | Sub-tab |
+|---|---|
+| Ladang | 🌾 Ladangku · 🗺️ Peta |
+| Garasi | 🚜 Mesin · 👷 Pekerja · 🛒 Toko (filter Traktor/Pemanen/Alat/Truk, mesin terkunci dilipat) |
+| Pasar | 💰 Jual · 📋 Kontrak · 🚚 Kirim · 📊 Harga |
+| Ternak | satu halaman: gudang ternak, kandangku, mulai beternak, ternak terkunci, cadangan pakan |
+| Gudang | 🌾 Pertanian · 🐄 Peternakan · 🏭 Olahan (stok olahan + pabrik) |
+| Prestasi | 🎯 Misi · 🔬 Riset · 🏆 Prestasi · 💰 Keuangan (laporan, pinjaman, kekayaan) |
+
+Angka pada tab hanya muncul untuk hal yang bisa ditindaklanjuti: ladang yang perlu langkah, mesin yang hampir rusak, kontrak yang bisa dikirim, pakan hampir habis (⚠️), silo hampir penuh atau pabrik terhenti, dan hadiah misi (🔬 bila hanya ada poin riset). Bar atas: uang (ketuk → laporan keuangan), level dan XP (ketuk → riset), cuaca (ketuk → prakiraan), hari dan jam, kecepatan ⏸ 1× 2× 5×, dan ⚙️ Pengaturan (suara, simpan, ulangi panduan, pasang aplikasi, reset).
+
 ### Siklus ladang
 
 1. **Bajak**: ladang yang kosong (idle) harus dibajak dulu.
@@ -61,8 +76,8 @@ Pemain baru disambut panduan langkah demi langkah di tab **Ladang**: Bajak → P
 3. **Tanam**: pilih tanaman yang sudah terbuka di levelmu. Biaya benih dihitung per hektare.
 4. **Tumbuh**: tanaman tumbuh selama beberapa hari game. Irigasi (opsional) menambah hasil dan menghapus penalti kekeringan.
 5. **Panen**: memakai mesin panen milikmu. Kalau belum punya, kamu bisa menyewa dengan biaya per hektare, dengan kecepatan 1 ha per jam dan tanpa biaya bahan bakar.
-6. **Gudang**: hasil panen otomatis masuk ke gudang (silo).
-7. **Jual di Pasar**: harga bergerak setiap hari, jadi pilih waktu yang tepat untuk menjual.
+6. **Gudang**: hasil panen otomatis masuk ke gudang (Gudang › 🌾 Pertanian, silo).
+7. **Jual di Pasar**: Pasar › 💰 Jual menampilkan stok per kelompok dengan tren harga; satu ketukan **Jual $…** menjual satu produk. Harga bergerak setiap hari, jadi pilih waktu yang tepat untuk menjual.
 
 Jangan biarkan tanaman yang siap panen terlalu lama. Setelah 72 jam, tanaman mulai layu dan hasilnya turun 10% per hari.
 
@@ -75,17 +90,17 @@ Hasil panen dipengaruhi oleh beberapa faktor:
 
 Biaya tugas (bahan bakar, benih atau pupuk) dibayar saat tugas dimulai. Panen adalah pengecualian: bahan bakar dan sewa dibayar saat panen selesai. Kalau uangmu kurang, sebagian hasil panen otomatis dijual untuk menutup biayanya, jadi ladang yang siap panen selalu bisa dipanen. XP diberikan saat tugas selesai.
 
-### Aksi massal dan rencana ladang
+### Kerjakan sekaligus dan rencana ladang
 
-- **Aksi massal**: bilah "⚡ Aksi massal" di atas daftar ladang menjalankan satu tugas di semua ladang yang bisa, misalnya *Panen semua* atau *Bajak semua*. Hasilnya dirangkum dalam satu notifikasi. Ladang yang dilewati (misalnya karena mesin sedang dipakai atau uang kurang) disebutkan alasannya.
+- **Kerjakan sekaligus**: bilah "⚡ Kerjakan sekaligus" di atas daftar ladang menjalankan satu tugas di semua ladang yang bisa, misalnya *🌾 Panen ×3* atau *🪓 Bajak ×2*. Hasilnya dirangkum dalam satu notifikasi. Ladang yang dilewati (misalnya karena mesin sedang dipakai atau uang kurang) disebutkan alasannya.
 - **Rencana (🔁)**: di detail ladang kamu bisa menyimpan rencana berisi tanaman, pupuk ya/tidak, irigasi ya/tidak, sewa pemanen, dan ulangi. Game lalu menjalankan langkah berikutnya sendiri setiap jam dan setiap kali tugas selesai, selama mesin dan uang mencukupi. Kalau rencana tertahan, kartu ladang menampilkan alasannya, misalnya "Menunggu traktor".
   - **💰 Jual otomatis saat panen** (aktif secara bawaan): hasil panen langsung dijual dengan harga pasar, kecuali cadangan pakan. Dengan begitu uang tidak habis untuk gaji dan bunga.
   - **🔄 Rotasi dengan**: tanaman kedua yang ditanam bergantian dengan tanaman utama setiap siklus, agar terhindar dari penalti tanam berulang (−10%).
-  - Rencana menghindari mesin dengan kondisi di bawah 20% kalau ada mesin lain yang bebas. Di Garasi kamu bisa menyalakan **Perbaiki otomatis**: mesin yang selesai bekerja dengan kondisi di bawah 30% langsung diperbaiki kalau uangnya cukup.
+  - Rencana menghindari mesin dengan kondisi di bawah 20% kalau ada mesin lain yang bebas. Di Garasi › 🚜 Mesin kamu bisa menyalakan **Perbaikan otomatis**: mesin yang selesai bekerja dengan kondisi di bawah 30% langsung diperbaiki kalau uangnya cukup.
 
 ### Ladang dan peta
 
-Tab **Ladang** menampilkan peta semua wilayah. Penanda ladang milikmu berbeda dengan ladang yang dijual. Ketuk sebuah ladang untuk melihat luas, jenis tanah, pH, kontaminasi, dan harganya, lalu beli ladang tersebut. Ladang yang sedang kosong bisa dijual lagi dengan nilai 70% dari harga beli. Ladang terakhir yang kamu miliki tidak bisa dijual. Angka pada ikon tab 🗺️ menunjukkan jumlah ladang yang siap panen atau masih kosong.
+Tab **Ladang** punya dua sub-tab. **🌾 Ladangku** dibuka lebih dulu: ladang yang perlu langkah berikutnya (siap panen, kosong, dibajak tanpa rencana, terkena hama atau layu) tampil paling atas di "⚡ Perlu tindakan", ladang yang sedang dikerjakan atau tumbuh di "⏳ Sedang berjalan", lalu "🛒 Ladang dijual" berisi tiga ladang termurah yang sudah terbuka. Di setiap kartu, langkah berikutnya adalah satu-satunya tombol hijau. **🗺️ Peta** menampilkan peta semua wilayah; penanda ladang milikmu berbeda dengan ladang yang dijual. Ketuk sebuah ladang (di peta atau di daftar) untuk melihat luas, jenis tanah, pH, kontaminasi, dan harganya, lalu beli ladang tersebut. Di detail ladang, bagian sekunder (rencana, faktor hasil, rumah kaca, prakiraan, lahan) bisa dilipat. Ladang yang sedang kosong bisa dijual lagi dari detail ladang dengan nilai 70% dari harga beli. Ladang terakhir yang kamu miliki tidak bisa dijual. Angka pada ikon tab 🗺️ menunjukkan jumlah ladang yang perlu tindakan (merah jika ada hama atau tanaman layu).
 
 ### Musim, prakiraan, dan kejadian
 
@@ -131,19 +146,21 @@ Durasi tugas sama dengan luas ladang dibagi kapasitas alat (ha/jam), dikali kece
 
 ### Pekerja
 
-Setiap tugas ladang butuh satu pekerja bebas. Pengecualiannya panen dengan pemanen sewaan, karena sopirnya sudah termasuk. Kamu mulai dengan satu pekerja, Pak Budi. Di bagian **Pekerja** di tab Garasi ada tiga calon yang berganti setiap minggu; merekrut mereka gratis. Pekerja yang lebih ahli menyelesaikan tugas sampai 20% lebih cepat, dan keahliannya naik sedikit demi sedikit setiap kali menyelesaikan tugas. Gaji dibayar setiap pergantian hari. Kalau uang kurang, kekurangannya ditambahkan ke pinjaman. Rencana ladang yang menunggu pekerja menampilkan "Tidak ada pekerja bebas."
+Setiap tugas ladang butuh satu pekerja bebas. Pengecualiannya panen dengan pemanen sewaan, karena sopirnya sudah termasuk. Kamu mulai dengan satu pekerja, Pak Budi. Di **Garasi › 👷 Pekerja** ada tiga calon yang berganti setiap minggu; merekrut mereka gratis. Pekerja yang lebih ahli menyelesaikan tugas sampai 20% lebih cepat, dan keahliannya naik sedikit demi sedikit setiap kali menyelesaikan tugas. Gaji dibayar setiap pergantian hari. Kalau uang kurang, kekurangannya ditambahkan ke pinjaman. Rencana ladang yang menunggu pekerja menampilkan "Tidak ada pekerja bebas."
 
 ### Silo
 
-Silo awal menampung 150 t hasil panen (produk ternak tidak memakai ruang silo). Hasil panen yang tidak muat langsung dijual paksa seharga 70% harga pasar. Kamu juga tidak bisa membeli tanaman melebihi sisa ruang. Di tab Gudang, silo bisa diperbesar 200 t setiap kali, dengan biaya yang naik setiap peningkatan. Menjual hasil panen atau memenuhi kontrak mengosongkan ruang.
+Tab **Gudang** memisahkan stok menurut kelompok produk (`PRODUCTS[].category` di `js/data.js`): **🌾 Pertanian** (tanaman, buah, sawit), **🐄 Peternakan** (susu, telur, wol, daging, madu, keju kambing) dan **🏭 Olahan** (hasil pabrik). Setiap kelompok punya daftar, nilai total, dan tombol **Jual semua…** sendiri; tombol **Jual $…** di setiap baris langsung menjual produk itu (bertanya dulu bila produk itu pakan ternak tanpa cadangan). Produk ternak tidak memakai kapasitas silo (gudang ternak tanpa batas); produk olahan bersatuan ton memakai silo, yang bersatuan kg tidak.
+
+Silo awal menampung 150 t hasil panen (produk ternak tidak memakai ruang silo). Hasil panen yang tidak muat langsung dijual paksa seharga 70% harga pasar. Kamu juga tidak bisa membeli tanaman melebihi sisa ruang. Di Gudang › 🌾 Pertanian, silo bisa diperbesar 200 t setiap kali, dengan biaya yang naik setiap peningkatan. Menjual hasil panen atau memenuhi kontrak mengosongkan ruang.
 
 ### Pabrik
 
-Mulai level 11, pabrik bisa dibeli di tab Gudang (bagian 🏭 Pabrik): Penggilingan (Lv 11: gandum → tepung, barley → malt), Pabrik Susu (Lv 13: susu → mentega/keju sapi), Pabrik Gula (Lv 15: tebu → gula), Pabrik Minyak (Lv 18: kanola/bunga matahari → minyak), Pabrik Kelapa Sawit (Lv 19: TBS kelapa sawit → CPO + inti sawit, inti sawit → minyak inti sawit/PKO, CPO → minyak goreng), Toko Roti (Lv 21: tepung + telur + gula (+ mentega) → roti/kue), dan Pabrik Tekstil (Lv 24: kapas → kain, wol → benang). Pilih resep, tekan ▶ Proses atau nyalakan 🔁 Otomatis. Bahan diambil dari gudang saat batch dimulai (cadangan pakan tidak dipakai) dan produk olahan bernilai sekitar 30–55% lebih tinggi. Produk berat (t) butuh ruang silo; jika silo penuh, pabrik menunggu. Peningkatan level membuat proses 25% lebih cepat per level.
+Mulai level 11, pabrik bisa dibeli di **Gudang › 🏭 Olahan** (bagian 🏭 Pabrik; pabrik yang belum terbuka dilipat di "🔒 Pabrik terkunci"): Penggilingan (Lv 11: gandum → tepung, barley → malt), Pabrik Susu (Lv 13: susu → mentega/keju sapi), Pabrik Gula (Lv 15: tebu → gula), Pabrik Minyak (Lv 18: kanola/bunga matahari → minyak), Pabrik Kelapa Sawit (Lv 19: TBS kelapa sawit → CPO + inti sawit, inti sawit → minyak inti sawit/PKO, CPO → minyak goreng), Toko Roti (Lv 21: tepung + telur + gula (+ mentega) → roti/kue), dan Pabrik Tekstil (Lv 24: kapas → kain, wol → benang). Pilih resep, tekan ▶ Proses atau nyalakan 🔁 Otomatis. Bahan diambil dari gudang saat batch dimulai (cadangan pakan tidak dipakai) dan produk olahan bernilai sekitar 30–55% lebih tinggi. Produk berat (t) butuh ruang silo; jika silo penuh, pabrik menunggu. Peningkatan level membuat proses 25% lebih cepat per level.
 
 ### Ternak
 
-Ternak dikelola di tab **Ternak**. Ada empat jenis: sapi (susu), ayam (telur), domba (wol), dan babi (daging). Sebelum membeli hewan, kamu harus membangun kandang. Setiap kandang menambah kapasitas.
+Ternak dikelola di tab **Ternak**. Kartu **❄️ Gudang ternak** di atas merangkum produk ternak di gudang dan membuka Gudang › 🐄 Peternakan. Setiap kawanan menampilkan produksi per hari, stok pakan dengan tombol beli pakan, kualitas, dan kebahagiaan; jual-beli ternak, kandang, dan pembiakan ada di bagian **⚙️ Kelola kawanan** dan **🧬 Pembiakan** yang bisa dibuka. Ada empat jenis: sapi (susu), ayam (telur), domba (wol), dan babi (daging). Sebelum membeli hewan, kamu harus membangun kandang. Setiap kandang menambah kapasitas.
 
 Setiap hari hewan makan tanaman pakan dari gudang. Misalnya sapi memakan gandum, jagung, barley, atau kedelai. Hewan memakan tanaman pakan yang harganya paling murah lebih dulu. Pakan bisa berasal dari panen sendiri, atau dibeli di pasar dengan harga 20% di atas harga jual. Di kartu ternak ada tombol untuk membeli pakan 3 atau 7 hari, dan game otomatis memilih tanaman pakan yang paling murah. Tanaman juga bisa dibeli langsung di tab **Pasar**. Kamu bisa menyisihkan cadangan pakan per tanaman. Stok cadangan tidak ikut terjual saat kamu menjual dari gudang atau pasar, tetapi tetap boleh dimakan ternak. Tanda ⚠️ di tab 🐄 muncul kalau pakan salah satu ternak tinggal kurang dari sehari. Hewan yang kurang makan akan turun kualitasnya, sehingga produksinya berkurang dan harga jualnya turun. Hasil ternak masuk ke gudang dan dijual di pasar.
 
@@ -151,27 +168,27 @@ Setiap hari hewan makan tanaman pakan dari gudang. Misalnya sapi memakan gandum,
 
 ### Kontrak
 
-Bagian "📋 Kontrak" di tab **Pasar** berisi tawaran pesanan yang diperbarui setiap hari. Setiap kontrak meminta sejumlah produk sampai hari tertentu, dengan harga di atas harga pasar dan hadiah XP. Saat harga pasar anjlok, harga kontrak dihitung dari minimal 90% harga dasar, dan persentasenya ditampilkan terhadap harga dasar. Kamu boleh menjalankan beberapa kontrak sekaligus. Kirim hasil panen dari gudang sampai jumlahnya terpenuhi untuk menerima bayaran. Kontrak yang lewat batas waktu gagal dan kamu dikenai denda. Angka di tab 📈 menunjukkan jumlah kontrak yang sedang berjalan.
+**Pasar › 📋 Kontrak** berisi tawaran pesanan yang diperbarui setiap hari. Setiap kontrak meminta sejumlah produk sampai hari tertentu, dengan harga di atas harga pasar dan hadiah XP. Saat harga pasar anjlok, harga kontrak dihitung dari minimal 90% harga dasar, dan persentasenya ditampilkan terhadap harga dasar. Kamu boleh menjalankan beberapa kontrak sekaligus. Kirim hasil panen dari gudang sampai jumlahnya terpenuhi untuk menerima bayaran. Kontrak yang lewat batas waktu gagal dan kamu dikenai denda. Angka di tab 📈 menunjukkan jumlah kontrak berjalan yang bisa dikirim sekarang.
 
 ### Pengiriman ke kota (truk)
 
-Beli truk di **Garasi** (5 tingkat, mulai level 2: Isuzi Elf 4 t sampai Volvu 60 t). Bagian "🚚 Pengiriman" di tab **Pasar** (setelah Kontrak): pilih truk, kota tujuan, dan muatan dari gudang (cadangan pakan tidak ikut). Ada 8 kota (Bandung, Jakarta, Des Moines, München, Sapporo, Paris, Chicago, Cuiabá); kota hanya bisa dituju dari wilayah tempat kamu punya ladang dan terbuka di level tertentu. Tiap kota membayar harga pasar × pengali permintaan (badge kuning), tanaman maksimal +15%. BBM dibayar saat berangkat; truk dan satu pekerja bebas sibuk selama perjalanan pulang-pergi (`2 × km ÷ kecepatan`); muatan terjual saat tiba di kota. Kapasitas hanya dihitung dari produk bersatuan ton; susu, telur, dan barang kg ikut tanpa memakan kapasitas. Perkiraan menampilkan hasil di kota vs jual lokal, BBM, gaji sopir + aus truk, dan untung bersih. Upgrade mesin berlaku: Mesin = muatan, Transmisi = kecepatan, Efisiensi = BBM.
+Beli truk di **Garasi** (5 tingkat, mulai level 2: Isuzi Elf 4 t sampai Volvu 60 t). **Pasar › 🚚 Kirim**: pilih truk, kota tujuan, dan muatan dari gudang (cadangan pakan tidak ikut). Ada 8 kota (Bandung, Jakarta, Des Moines, München, Sapporo, Paris, Chicago, Cuiabá); kota hanya bisa dituju dari wilayah tempat kamu punya ladang dan terbuka di level tertentu. Tiap kota membayar harga pasar × pengali permintaan (badge kuning), tanaman maksimal +15%. BBM dibayar saat berangkat; truk dan satu pekerja bebas sibuk selama perjalanan pulang-pergi (`2 × km ÷ kecepatan`); muatan terjual saat tiba di kota. Kapasitas hanya dihitung dari produk bersatuan ton; susu, telur, dan barang kg ikut tanpa memakan kapasitas. Perkiraan menampilkan hasil di kota vs jual lokal, BBM, gaji sopir + aus truk, dan untung bersih. Upgrade mesin berlaku: Mesin = muatan, Transmisi = kecepatan, Efisiensi = BBM.
 
 ### Riset
 
-Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya). Buka "🔬 Riset" di atas tab **Prestasi** atau ketuk badge level di bar atas. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 5 riset dengan prasyarat; beberapa butuh 2–3 poin. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
+Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya). Buka **Prestasi › 🔬 Riset** (angkanya menunjukkan poin yang tersedia) atau ketuk level di bar atas. Cabang yang masih punya riset siap diteliti terbuka otomatis. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 5 riset dengan prasyarat; beberapa butuh 2–3 poin. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
 
 ### Pinjaman
 
-Kalau kekurangan modal, kamu bisa mengambil pinjaman. Batas pinjaman adalah `level × 25.000`. Bunga harian (diatur lewat `BALANCE.loanDailyRate`) dipotong otomatis dari uangmu. Kalau uangmu tidak cukup, bunga ditambahkan ke pokok pinjaman. Pinjaman bisa dilunasi kapan saja.
+Kalau kekurangan modal, kamu bisa mengambil pinjaman di **Prestasi › 💰 Keuangan** (bagian 🏦 Pinjaman). Batas pinjaman adalah `level × 25.000`. Bunga harian (diatur lewat `BALANCE.loanDailyRate`) dipotong otomatis dari uangmu. Kalau uangmu tidak cukup, bunga ditambahkan ke pokok pinjaman. Pinjaman bisa dilunasi kapan saja.
 
 ### Laporan keuangan
 
-Ketuk angka uang di bar atas (atau kartu **📊 Laporan Keuangan** di tab **Prestasi**, atau tombol di Pasar › Keuangan) untuk melihat pemasukan dan pengeluaran. Pilih periode Hari ini, Kemarin, 7 hari, 30 hari, atau Semua. Laporan menampilkan pemasukan, biaya operasional (BBM, benih, pupuk/kapur/irigasi, sewa pemanen, gaji, pakan, perbaikan, semprot hama, bunga, denda kontrak, pembelian produk), laba operasional dan margin, investasi (ladang, mesin, upgrade, kandang, ternak, indukan, gudang, pabrik), serta arus kas bersih. Ada kesimpulan singkat ("✅ Untung…" atau "⚠️ Biaya operasional lebih besar…"), rincian per kategori, grafik harian, dan saran untuk biaya terbesar. Pinjaman yang diterima dan pelunasannya dicatat terpisah: bukan pemasukan dan bukan biaya. Rincian per hari disimpan untuk 60 hari terakhir; total sepanjang permainan tetap tersimpan. Simpanan lama mulai mencatat sejak dimuat.
+Ketuk angka uang di bar atas (atau kartu **📊 Laporan keuangan** di **Prestasi › 💰 Keuangan**) untuk melihat pemasukan dan pengeluaran. Pilih periode Hari ini, Kemarin, 7 hari, 30 hari, atau Semua. Laporan menampilkan pemasukan, biaya operasional (BBM, benih, pupuk/kapur/irigasi, sewa pemanen, gaji, pakan, perbaikan, semprot hama, bunga, denda kontrak, pembelian produk), laba operasional dan margin, investasi (ladang, mesin, upgrade, kandang, ternak, indukan, gudang, pabrik), serta arus kas bersih. Ada kesimpulan singkat ("✅ Untung…" atau "⚠️ Biaya operasional lebih besar…"), rincian per kategori, grafik harian, dan saran untuk biaya terbesar. Pinjaman yang diterima dan pelunasannya dicatat terpisah: bukan pemasukan dan bukan biaya. Rincian per hari disimpan untuk 60 hari terakhir; total sepanjang permainan tetap tersimpan. Simpanan lama mulai mencatat sejak dimuat.
 
 ### Level dan prestasi
 
-XP didapat dari setiap tugas yang selesai, dari nilai hasil panen, dan dari produksi ternak. Jumlah XP saat ini dan target level berikutnya tampil di bar atas (misalnya "XP 514/1.500"). Saat naik level kamu mendapat hadiah uang sebesar `1.000 × level` (`BALANCE.levelReward`), dan sebuah jendela menampilkan hadiah itu beserta tanaman, mesin, hewan, pabrik, wilayah, dan ladang yang baru terbuka. Tab **Prestasi** berisi daftar target beserta hadiah uangnya, grafik kekayaan bersih (uang + nilai ladang, mesin, isi gudang, ternak, dan pabrik, dikurangi pinjaman), statistik, dan catatan kejadian.
+XP didapat dari setiap tugas yang selesai, dari nilai hasil panen, dan dari produksi ternak. Jumlah XP saat ini dan target level berikutnya tampil di bar atas (misalnya "XP 514/1.500"). Saat naik level kamu mendapat hadiah uang sebesar `1.000 × level` (`BALANCE.levelReward`), dan sebuah jendela menampilkan hadiah itu beserta tanaman, mesin, hewan, pabrik, wilayah, dan ladang yang baru terbuka. Tab **Prestasi** berisi misi harian dan papan peringkat (🎯 Misi), pohon riset (🔬 Riset), daftar target dengan hadiah uangnya, mulai dari yang paling dekat tercapai, beserta statistik dan catatan kejadian (🏆 Prestasi), serta laporan keuangan, pinjaman, dan grafik kekayaan bersih (uang + nilai ladang, mesin, isi gudang, ternak, dan pabrik, dikurangi pinjaman) (💰 Keuangan).
 
 **Level 11–30.** Level maksimal adalah 30 dan setiap level membuka sesuatu:
 
@@ -192,7 +209,7 @@ Ladang di wilayah baru terkunci sampai levelnya tercapai (pin 🔒 Lv N di peta)
 
 ### Misi harian dan papan peringkat
 
-- **🎯 Misi harian** (paling atas di tab **Prestasi**): setiap hari game ada 3 misi baru yang disesuaikan dengan level dan ladangmu, misalnya "Panen 30 t Jagung", "Jual hasil sendiri senilai .000" (barang yang dibeli dari pasar lalu dijual lagi tidak dihitung), "Selesaikan 2 tugas bajak", "Beli 2 t pakan ternak", "Selesaikan 1 kontrak", atau "Produksi 2 batch di pabrik". Misi yang selesai memberi uang dan XP lewat tombol **Ambil**; angka di ikon tab 🏆 menunjukkan hadiah yang siap diambil. Hadiah yang lupa diambil tetap dibayar saat pergantian hari.
+- **🎯 Misi harian** (**Prestasi › 🎯 Misi**): setiap hari game ada 3 misi baru yang disesuaikan dengan level dan ladangmu, misalnya "Panen 30 t Jagung", "Jual hasil sendiri senilai .000" (barang yang dibeli dari pasar lalu dijual lagi tidak dihitung), "Selesaikan 2 tugas bajak", "Beli 2 t pakan ternak", "Selesaikan 1 kontrak", atau "Produksi 2 batch di pabrik". Misi yang selesai memberi uang dan XP lewat tombol **Ambil**; angka di ikon tab 🏆 menunjukkan hadiah yang siap diambil. Hadiah yang lupa diambil tetap dibayar saat pergantian hari.
 - **🔥 Beruntun**: selesaikan ketiga misi beberapa hari berturut-turut. Setiap 7 hari beruntun ada bonus besar; satu hari terlewat membuat hitungan kembali ke 0.
 - **🏆 Papan peringkat**: 7 pertanian pesaing (misalnya Koperasi Sido Rukun, Hoeness Agrar, PT Tani Makmur, Iowa Golden Acres) yang kekayaannya tumbuh setiap hari dengan gaya masing-masing (stabil, agresif, fluktuatif). Baris pertanianmu disorot, dan ▲/▼ menunjukkan perubahan peringkat sejak kemarin. Pesaing terlemah bisa disalip dalam beberapa minggu dan peringkat #2 sekitar hari 120–180. Agro Nusantara Group terus tumbuh pesat, baru bisa disalip sekitar level 20–23, dan tetap membayangi sesudahnya.
 
@@ -203,13 +220,13 @@ Ladang di wilayah baru terkunci sampai levelnya tercapai (pin 🔒 Lv N di peta)
 - Permainan tersimpan otomatis di `localStorage` browser.
 - Saat game dibuka kembali, atau saat kamu kembali ke tab yang sempat tersembunyi, waktu yang berlalu ikut disimulasikan, maksimal 48 jam game. Kalau game sedang dijeda (⏸), waktu tidak berjalan.
 - Kalau data simpanan rusak, salinannya disimpan di `localStorage` dengan kunci `farm-manager-save.bak-<waktu>` sebelum permainan baru dimulai.
-- Tab yang terakhir dibuka diingat setelah halaman dimuat ulang.
+- Tab dan sub-tab yang terakhir dibuka, serta bagian yang dilipat/dibuka, diingat setelah halaman dimuat ulang (`localStorage` kunci `farm-manager-tab` dan `farm-manager-ui`).
 
 ### Notifikasi
 
-Notifikasi muncul di bagian atas, di bawah bar atas, sehingga tidak menutupi tombol di jendela aksi. Saat sebuah jendela terbuka, notifikasi pindah ke atas bar atas agar judul dan tombol ✕ jendela tetap terlihat. Paling banyak dua notifikasi tampil sekaligus. Kejadian yang sama digabung, misalnya "🌾 3 ladang siap panen.", dan setiap notifikasi bisa ditutup dengan ✕. Notifikasi muncul untuk tanaman siap panen, tanaman layu, prestasi, peringatan pakan, dan kontrak. Naik level ditampilkan dalam jendela tersendiri. Kejadian rutin seperti tugas selesai, penjualan, dan pembelian hanya dicatat di tab **Prestasi**.
+Notifikasi muncul di bagian atas, di bawah bar atas dan bilah sub-tab, sehingga tidak menutupi tombol sub-tab maupun tombol di jendela aksi. Saat sebuah jendela terbuka, notifikasi pindah ke atas bar atas agar judul dan tombol ✕ jendela tetap terlihat. Paling banyak dua notifikasi tampil sekaligus. Kejadian yang sama digabung, misalnya "🌾 3 ladang siap panen.", dan setiap notifikasi bisa ditutup dengan ✕. Notifikasi muncul untuk tanaman siap panen, tanaman layu, prestasi, peringatan pakan, dan kontrak. Naik level ditampilkan dalam jendela tersendiri. Kejadian rutin seperti tugas selesai, penjualan, dan pembelian hanya dicatat di **Prestasi › 🏆 Prestasi** (📜 Catatan kejadian).
 
-Di layar lebar (≥ 1000 px), tab **Ladang** memakai dua kolom: peta di kiri (tetap terlihat saat menggulir) dan kartu ladang di kanan.
+Di layar lebar (≥ 1000 px), tab **Ladang** menampilkan Ladangku dan Peta berdampingan: kartu ladang di kiri, peta di kanan (tetap terlihat saat menggulir). Di ponsel mendatar, bar atas menjadi satu baris.
 
 ## Struktur proyek
 
@@ -222,12 +239,13 @@ css/style.css       Gaya dasar dan kerangka aplikasi (mobile-first)
 css/fields.css      Gaya tampilan ladang dan tugas
 css/economy.css     Gaya tampilan pasar, garasi, ternak, dan gudang
 css/ops.css         Gaya silo, pekerja, dan kondisi mesin
-css/factories.css   Gaya bagian Pabrik di tab Gudang
-css/missions.css    Gaya misi harian dan papan peringkat (tab Prestasi)
+css/factories.css   Gaya bagian Pabrik (Gudang › Olahan)
+css/missions.css    Gaya misi harian dan papan peringkat (Prestasi › Misi)
 css/breeding.css    Gaya panel pembiakan ternak dan dialog upgrade mesin
 css/finance.css     Gaya laporan keuangan
 css/logistics.css   Gaya pengiriman truk ke kota
 css/orchard.css     Gaya kebun buah dan rumah kaca
+css/layout.css      Sub-tab, bagian yang bisa dilipat, daftar stok, tata letak layar lebar/mendatar
 js/data.js          Data game: tanaman, produk, mesin, hewan, wilayah, ladang, level, prestasi, BALANCE
 js/engine.js        Mesin game (tanpa DOM): state, waktu, aksi pemain, view, simpan/muat
 js/engine/*         Modul engine: rng, defs, weather, market, fields, tasks, taskrun,
@@ -239,6 +257,7 @@ js/ui/*             Komponen antarmuka per tab
 js/main.js          Titik masuk: memuat/membuat game, game loop, autosave, navigasi tab
 tests/              Tes engine (node:test)
 docs/ENGINE_API.md  Dokumentasi API engine
+docs/UX_AUDIT.md    Audit tata letak v9 (ukuran sebelum/sesudah, tangkapan layar di docs/shots/)
 ```
 
 Antarmuka hanya berkomunikasi dengan `js/engine.js`. Detail lengkapnya ada di `docs/ENGINE_API.md`.
