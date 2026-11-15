@@ -2,7 +2,7 @@
 // cached index.html as offline fallback. A new version waits until the page asks it to take over
 // (toast "Versi baru tersedia" in js/ui/pwa.js). After changing any file, regenerate VERSION and
 // PRECACHE with the command in README → "Pasang di HP (PWA)".
-const VERSION = "51e1609727";
+const VERSION = "8363ca9c23";
 const PREFIX = 'farm-manager-';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = [
@@ -53,8 +53,8 @@ const PRECACHE = [
   "./js/engine/rivals.js",
   "./js/engine/rng.js",
   "./js/engine/seasons.js",
-  "./js/engine/silo.js",
   "./js/engine/soil.js",
+  "./js/engine/storage.js",
   "./js/engine/taskrun.js",
   "./js/engine/tasks.js",
   "./js/engine/upgrades.js",

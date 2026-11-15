@@ -63,11 +63,11 @@ Enam tab di bawah: **🗺️ Ladang**, **🚜 Garasi**, **📈 Pasar**, **🐄 T
 | Ladang | 🌾 Ladangku · 🗺️ Peta |
 | Garasi | 🚜 Mesin · 👷 Pekerja · 🛒 Toko (filter Traktor/Pemanen/Alat/Truk, mesin terkunci dilipat) |
 | Pasar | 💰 Jual · 📋 Kontrak · 🚚 Kirim · 📊 Harga |
-| Ternak | satu halaman: gudang ternak, kandangku, mulai beternak, ternak terkunci, cadangan pakan |
-| Gudang | 🌾 Pertanian · 🐄 Peternakan · 🏭 Olahan (stok olahan + pabrik) |
+| Ternak | satu halaman: gudang dingin, kandangku, mulai beternak, ternak terkunci, cadangan pakan |
+| Gudang | 🌾 Pertanian (silo) · 🐄 Peternakan (gudang dingin) · 🏭 Olahan (stok olahan + pabrik) |
 | Prestasi | 🎯 Misi · 🔬 Riset · 🏆 Prestasi · 💰 Keuangan (laporan, pinjaman, kekayaan) |
 
-Angka pada tab hanya muncul untuk hal yang bisa ditindaklanjuti: ladang yang perlu langkah, mesin yang hampir rusak, kontrak yang bisa dikirim, pakan hampir habis (⚠️), silo hampir penuh atau pabrik terhenti, dan hadiah misi (🔬 bila hanya ada poin riset). Bar atas: uang (ketuk → laporan keuangan), level dan XP (ketuk → riset), cuaca (ketuk → prakiraan), hari dan jam, kecepatan ⏸ 1× 2× 5×, dan ⚙️ Pengaturan (suara, simpan, ulangi panduan, pasang aplikasi, reset).
+Angka pada tab hanya muncul untuk hal yang bisa ditindaklanjuti: ladang yang perlu langkah, mesin yang hampir rusak, kontrak yang bisa dikirim, pakan hampir habis (⚠️), silo atau gudang dingin hampir penuh atau pabrik terhenti, dan hadiah misi (🔬 bila hanya ada poin riset). Bar atas: uang (ketuk → laporan keuangan), level dan XP (ketuk → riset), cuaca (ketuk → prakiraan), hari dan jam, kecepatan ⏸ 1× 2× 5×, dan ⚙️ Pengaturan (suara, simpan, ulangi panduan, pasang aplikasi, reset).
 
 ### Siklus ladang
 
@@ -148,11 +148,30 @@ Durasi tugas sama dengan luas ladang dibagi kapasitas alat (ha/jam), dikali kece
 
 Setiap tugas ladang butuh satu pekerja bebas. Pengecualiannya panen dengan pemanen sewaan, karena sopirnya sudah termasuk. Kamu mulai dengan satu pekerja, Pak Budi. Di **Garasi › 👷 Pekerja** ada tiga calon yang berganti setiap minggu; merekrut mereka gratis. Pekerja yang lebih ahli menyelesaikan tugas sampai 20% lebih cepat, dan keahliannya naik sedikit demi sedikit setiap kali menyelesaikan tugas. Gaji dibayar setiap pergantian hari. Kalau uang kurang, kekurangannya ditambahkan ke pinjaman. Rencana ladang yang menunggu pekerja menampilkan "Tidak ada pekerja bebas."
 
-### Silo
+### Gudang: silo dan gudang dingin
 
-Tab **Gudang** memisahkan stok menurut kelompok produk (`PRODUCTS[].category` di `js/data.js`): **🌾 Pertanian** (tanaman, buah, sawit), **🐄 Peternakan** (susu, telur, wol, daging, madu, keju kambing) dan **🏭 Olahan** (hasil pabrik). Setiap kelompok punya daftar, nilai total, dan tombol **Jual semua…** sendiri; tombol **Jual $…** di setiap baris langsung menjual produk itu (bertanya dulu bila produk itu pakan ternak tanpa cadangan). Produk ternak tidak memakai kapasitas silo (gudang ternak tanpa batas); produk olahan bersatuan ton memakai silo, yang bersatuan kg tidak.
+Tab **Gudang** memisahkan stok menurut kelompok produk (`PRODUCTS[].category` di `js/data.js`): **🌾 Pertanian** (tanaman, buah, sawit), **🐄 Peternakan** (susu, telur, wol, daging, madu, keju kambing) dan **🏭 Olahan** (hasil pabrik). Setiap kelompok punya daftar, nilai total, dan tombol **Jual semua…** sendiri; tombol **Jual $…** di setiap baris langsung menjual produk itu (bertanya dulu bila produk itu pakan ternak tanpa cadangan). Hasil panen dan produk olahan bersatuan ton disimpan di **silo**; produk ternak di **❄️ Gudang Dingin**; produk olahan bersatuan kg (mentega, keju sapi, kain, benang) tidak memakai gudang.
 
-Silo awal menampung 150 t hasil panen (produk ternak tidak memakai ruang silo). Hasil panen yang tidak muat langsung dijual paksa seharga 70% harga pasar. Kamu juga tidak bisa membeli tanaman melebihi sisa ruang. Di Gudang › 🌾 Pertanian, silo bisa diperbesar 200 t setiap kali, dengan biaya yang naik setiap peningkatan. Menjual hasil panen atau memenuhi kontrak mengosongkan ruang.
+Kedua gudang diukur dalam ton dan punya level (Lv 1 = awal). Kartu kapasitas di Gudang › 🌾 Pertanian (silo) dan Gudang › 🐄 Peternakan (gudang dingin) menampilkan level, isi/kapasitas, sisa ruang, dan tombol **🏗️ Perbesar ke Lv N** dengan tambahan, kapasitas baru, dan biayanya (misalnya "+800 t → 2.150 t · $14.600"). Setiap peningkatan menambah sekitar setengah kapasitas saat ini, dibulatkan ke angka rapi (minimal 200 t untuk silo, 10 t untuk gudang dingin), jadi gudang ikut tumbuh bersama ladang dan kandangmu. Biayanya $15 per ton tambahan untuk silo dan $500 per ton untuk gudang dingin, ×1,05 setiap level. Barang yang tidak muat langsung dijual paksa seharga 70% harga pasar (hasil panen saat panen, produk ternak saat produksi harian), dengan notifikasi. Kamu juga tidak bisa membeli tanaman melebihi sisa ruang silo, dan pabrik menunggu bila hasilnya tidak muat. Menjual, mengirim, memenuhi kontrak, atau mengolah di pabrik mengosongkan ruang. Riset **Gudang Rapi** memperbesar kedua gudang 10%. Tab Gudang (dan sub-tabnya) memberi tanda bila salah satu gudang terisi ≥ 90%.
+
+| Lv | Silo | Biaya ke Lv berikutnya | Gudang dingin | Biaya ke Lv berikutnya |
+|---|---|---|---|---|
+| 1 | 150 t | $3.000 | 10 t | $5.000 |
+| 2 | 350 t | $3.150 | 20 t | $5.250 |
+| 3 | 550 t | $4.960 | 30 t | $8.270 |
+| 4 | 850 t | $8.680 | 45 t | $14.500 |
+| 5 | 1.350 t | $14.600 | 70 t | $24.300 |
+| 6 | 2.150 t | $23.000 | 110 t | $38.300 |
+| 7 | 3.350 t | $40.200 | 170 t | $67.000 |
+| 8 | 5.350 t | $63.300 | 270 t | $106.000 |
+| 9 | 8.350 t | $111.000 | 420 t | $185.000 |
+| 10 | 13.350 t | $186.000 | 670 t | $310.000 |
+| 11 | 21.350 t | $293.000 | 1.070 t | $489.000 |
+| 12 | 33.350 t | $513.000 | 1.670 t | $855.000 |
+| 13 | 53.350 t | $808.000 | 2.670 t | … |
+| 14 | 83.350 t | $1.410.000 | 4.170 t | … |
+
+Gudang dingin menghitung berat: 1.000 L susu atau 1.000 kg wol/daging/madu/keju kambing = 1 t, 1.000 telur ≈ 0,06 t (telur bebek 0,07 t). Kapasitas awal 10 t cukup untuk ±17 hari produksi satu kandang sapi plus satu kandang ayam. Simpanan lama: silo mendapat level pertama yang sama besar atau lebih besar dari kapasitas lamanya (misalnya 950 t → Lv 5, 1.350 t), dan gudang dingin mendapat level pertama yang memuat stok produk ternak yang ada.
 
 ### Pabrik
 
@@ -160,7 +179,7 @@ Mulai level 11, pabrik bisa dibeli di **Gudang › 🏭 Olahan** (bagian 🏭 Pa
 
 ### Ternak
 
-Ternak dikelola di tab **Ternak**. Kartu **❄️ Gudang ternak** di atas merangkum produk ternak di gudang dan membuka Gudang › 🐄 Peternakan. Setiap kawanan menampilkan produksi per hari, stok pakan dengan tombol beli pakan, kualitas, dan kebahagiaan; jual-beli ternak, kandang, dan pembiakan ada di bagian **⚙️ Kelola kawanan** dan **🧬 Pembiakan** yang bisa dibuka. Ada empat jenis: sapi (susu), ayam (telur), domba (wol), dan babi (daging). Sebelum membeli hewan, kamu harus membangun kandang. Setiap kandang menambah kapasitas.
+Ternak dikelola di tab **Ternak**. Kartu **❄️ Gudang dingin** di atas menampilkan level, isi/kapasitas dengan bilah, dan produk ternak di gudang, lalu membuka Gudang › 🐄 Peternakan (tempat memperbesarnya). Setiap kawanan menampilkan produksi per hari, stok pakan dengan tombol beli pakan, kualitas, dan kebahagiaan; jual-beli ternak, kandang, dan pembiakan ada di bagian **⚙️ Kelola kawanan** dan **🧬 Pembiakan** yang bisa dibuka. Ada empat jenis: sapi (susu), ayam (telur), domba (wol), dan babi (daging). Sebelum membeli hewan, kamu harus membangun kandang. Setiap kandang menambah kapasitas.
 
 Setiap hari hewan makan tanaman pakan dari gudang. Misalnya sapi memakan gandum, jagung, barley, atau kedelai. Hewan memakan tanaman pakan yang harganya paling murah lebih dulu. Pakan bisa berasal dari panen sendiri, atau dibeli di pasar dengan harga 20% di atas harga jual. Di kartu ternak ada tombol untuk membeli pakan 3 atau 7 hari, dan game otomatis memilih tanaman pakan yang paling murah. Tanaman juga bisa dibeli langsung di tab **Pasar**. Kamu bisa menyisihkan cadangan pakan per tanaman. Stok cadangan tidak ikut terjual saat kamu menjual dari gudang atau pasar, tetapi tetap boleh dimakan ternak. Tanda ⚠️ di tab 🐄 muncul kalau pakan salah satu ternak tinggal kurang dari sehari. Hewan yang kurang makan akan turun kualitasnya, sehingga produksinya berkurang dan harga jualnya turun. Hasil ternak masuk ke gudang dan dijual di pasar.
 
@@ -176,7 +195,7 @@ Beli truk di **Garasi** (5 tingkat, mulai level 2: Isuzi Elf 4 t sampai Volvu 60
 
 ### Riset
 
-Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya). Buka **Prestasi › 🔬 Riset** (angkanya menunjukkan poin yang tersedia) atau ketuk level di bar atas. Cabang yang masih punya riset siap diteliti terbuka otomatis. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 5 riset dengan prasyarat; beberapa butuh 2–3 poin. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
+Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya). Buka **Prestasi › 🔬 Riset** (angkanya menunjukkan poin yang tersedia) atau ketuk level di bar atas. Cabang yang masih punya riset siap diteliti terbuka otomatis. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 5 riset dengan prasyarat; beberapa butuh 2–3 poin. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo, gudang dingin, dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
 
 ### Pinjaman
 
@@ -238,7 +257,7 @@ icons/              Ikon aplikasi (PNG 192/512, maskable, apple-touch-icon; sumb
 css/style.css       Gaya dasar dan kerangka aplikasi (mobile-first)
 css/fields.css      Gaya tampilan ladang dan tugas
 css/economy.css     Gaya tampilan pasar, garasi, ternak, dan gudang
-css/ops.css         Gaya silo, pekerja, dan kondisi mesin
+css/ops.css         Gaya silo & gudang dingin, pekerja, dan kondisi mesin
 css/factories.css   Gaya bagian Pabrik (Gudang › Olahan)
 css/missions.css    Gaya misi harian dan papan peringkat (Prestasi › Misi)
 css/breeding.css    Gaya panel pembiakan ternak dan dialog upgrade mesin
@@ -250,7 +269,7 @@ js/data.js          Data game: tanaman, produk, mesin, hewan, wilayah, ladang, l
 js/engine.js        Mesin game (tanpa DOM): state, waktu, aksi pemain, view, simpan/muat
 js/engine/*         Modul engine: rng, defs, weather, market, fields, tasks, taskrun,
                     animals, economy, purchase, contracts, plans, views, persist,
-                    silo, workers, wear, seasons, events, soil, factories, factoryView,
+                    storage, workers, wear, seasons, events, soil, factories, factoryView,
                     missions, rivals, breeding, upgrades, ledger, orchard, greenhouse,
                     logistics, logisticsView, research
 js/ui/*             Komponen antarmuka per tab

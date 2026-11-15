@@ -1,6 +1,6 @@
 // Serialization helpers. Storage is injected ({getItem,setItem}); no globals.
 import { newFieldState } from './fields.js';
-import { SILO_START, SILO_STEP } from './silo.js';
+import { STORAGE_KINDS, stockTons, upgradesFor } from './storage.js';
 import { HERD_DEFAULTS } from './breeding.js';
 import { upgradesOf } from './upgrades.js';
 import { normalizeLedger } from './ledger.js';
@@ -55,12 +55,15 @@ export function normalizeState(s, data, idx) {
     if (typeof m.condition !== 'number') m.condition = 1;
     m.upgrades = upgradesOf(m); // machine upgrades (engine/transmission/efficiency 0–3)
   }
-  // F8: old saves get enough free silo steps to hold their current stock (workers: workers.ensureWorkers).
-  if (typeof s.siloCapacity !== 'number') {
-    const S = data.BALANCE.silo ?? {}, start = S.start ?? SILO_START, step = S.step ?? SILO_STEP;
-    const used = Object.entries(s.silo).reduce((sum, [id, q]) => sum + (idx.products.get(id)?.unit === 't' ? q : 0), 0);
-    s.siloCapacity = start + step * Math.ceil(Math.max(0, used - start) / step);
+  // Storage levels (workers: workers.ensureWorkers). Old saves: the silo gets the first level of the current curve
+  // holding the old built capacity (siloCapacity, F8) and its stock; the Gudang dingin one that holds the animal stock.
+  s.storageUpgrades ||= {};
+  for (const kind of STORAGE_KINDS) {
+    if (typeof s.storageUpgrades[kind] === 'number') continue;
+    const old = kind === 'silo' && typeof s.siloCapacity === 'number' ? s.siloCapacity : 0;
+    s.storageUpgrades[kind] = upgradesFor(data.BALANCE.storage[kind], Math.max(old, stockTons(idx.products, s.silo, kind)));
   }
+  delete s.siloCapacity;
   const maxUid = s.machines.reduce((mx, m) => Math.max(mx, Number(String(m.uid).slice(1)) || 0), 0);
   s.nextUid = Math.max(s.nextUid || 1, maxUid + 1);
   for (const p of data.PRODUCTS) {

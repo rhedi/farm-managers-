@@ -25,7 +25,7 @@ export const PERK_KEYS = {
   contractPrice: 'contracts offer price × (1 + contractPrice), max 1.19 × market',
   cityPrice: 'logistics city multiplier × (1 + cityPrice)',
   wear: 'wear.wearMachines × (1 − wear)',
-  silo: 'silo capacity × (1 + silo)',
+  silo: 'storage: silo and Gudang dingin capacity × (1 + silo)',
   truckCap: 'logistics truck capacity × (1 + truckCap)',
 };
 
@@ -43,7 +43,7 @@ const EFFECT_TEXT = {
   contractPrice: (v) => `Harga tawaran kontrak +${pct(v)} (maks. 119% pasar)`,
   cityPrice: (v) => `Harga jual di kota +${pct(v)} (tanaman maks. 115%)`,
   wear: (v) => `Keausan mesin −${pct(v)}`,
-  silo: (v) => `Kapasitas silo +${pct(v)}`,
+  silo: (v) => `Kapasitas silo & gudang dingin +${pct(v)}`,
   truckCap: (v) => `Kapasitas truk +${pct(v)}`,
 };
 export const effectText = (effects = {}) =>

@@ -3,6 +3,7 @@ import { clamp, round2 } from './rng.js';
 import { syncCounts } from './economy.js';
 import { xpForValue } from './taskrun.js';
 import { HERD_DEFAULTS, breedingMods, stepBreedingDay, mixQuality, breedingView } from './breeding.js';
+import { storeProduct } from './storage.js';
 
 export const LOW_FEED_DAYS = 3;
 const ok = (extra = {}) => ({ ok: true, ...extra });
@@ -62,7 +63,7 @@ function feedStock(game, a) {
   return a.feedCrops.reduce((s, c) => s + (game.state.silo[c] || 0), 0);
 }
 
-/** Daily feed consumption + production. Animals eat the cheapest accepted crop first. */
+/** Daily feed consumption + production (into the Gudang dingin). Animals eat the cheapest accepted crop first. */
 export function stepAnimalsDay(game) {
   const { state } = game;
   let producedValue = 0;
@@ -92,7 +93,7 @@ export function stepAnimalsDay(game) {
     }
     const produced = round2(h.count * a.productPerDay * h.quality * fed * mods.production);
     if (produced > 0) {
-      state.silo[a.product] = round2((state.silo[a.product] || 0) + produced);
+      storeProduct(game, a.product, produced); // Gudang dingin; what doesn't fit is force-sold
       producedValue += produced * (game.idx.products.get(a.product)?.basePrice ?? 0);
     }
     // Alert only when the feed situation changes (ok → low → starving), not every day.

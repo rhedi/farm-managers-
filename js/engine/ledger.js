@@ -37,7 +37,7 @@ export const CATEGORIES = [
   { id: 'kandang', name: 'Kandang', emoji: '🏠', group: 'capex' },
   { id: 'beli_ternak', name: 'Beli ternak', emoji: '🐑', group: 'capex' },
   { id: 'indukan', name: 'Indukan unggul', emoji: '🧬', group: 'capex' },
-  { id: 'gudang', name: 'Gudang/silo', emoji: '🏚️', group: 'capex' },
+  { id: 'gudang', name: 'Gudang (silo & dingin)', emoji: '🏚️', group: 'capex' },
   { id: 'pabrik', name: 'Pabrik', emoji: '🏭', group: 'capex' },
   { id: 'bibit_pohon', name: 'Bibit pohon', emoji: '🌳', group: 'capex' },
   { id: 'rumah_kaca', name: 'Rumah kaca', emoji: '🏠', group: 'capex' },

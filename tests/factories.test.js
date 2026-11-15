@@ -11,7 +11,7 @@ function withMill(seed = 1, wheat = 50) {
   const g = newGame(seed);
   g.state.level = 11;
   g.state.money = 1e6;
-  g.state.siloCapacity = 1000;
+  g.state.storageUpgrades.silo = 4; // 1350 t
   assert.equal(g.buyFactory('mill').ok, true);
   g.state.silo.wheat = wheat;
   return g;
@@ -73,7 +73,7 @@ test('blocked when inputs are missing (feed reserve kept) or the silo is full', 
   const blocked = [];
   g.on((e) => e.type === 'factory_blocked' && blocked.push(e));
   assert.equal(g.startBatch('mill', 1).ok, true);
-  g.state.silo.corn = g.siloInfo().free; // fill the silo while milling
+  g.state.silo.corn = g.storageInfo('silo').free; // fill the silo while milling
   g.advance(12);
   assert.equal(g.state.silo.flour ?? 0, 0);
   assert.equal(blocked.length, 1, 'blocked emitted once');
@@ -142,7 +142,7 @@ test('palm mill: TBS → CPO + kernel, kernel → PKO, CPO → cooking oil', () 
   assert.ok(palm.unlockLevel >= crop.unlockLevel);
   const g = newGame(9);
   g.state.money = 1e6;
-  g.state.siloCapacity = 1000;
+  g.state.storageUpgrades.silo = 4; // 1350 t
   g.state.level = palm.unlockLevel - 1;
   assert.equal(g.buyFactory('palm_mill').ok, false);
   g.state.level = palm.unlockLevel;

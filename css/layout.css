@@ -127,6 +127,7 @@
 .link-card:hover { background: #e5f1d8; }
 .link-card-icon { font-size: 1.5rem; flex: none; }
 .link-card-main { flex: 1; min-width: 0; }
+.link-card .progress { margin: 4px 0; }
 .link-card-go { flex: none; font-weight: 800; color: var(--green-d); white-space: nowrap; }
 
 /* ---------- Settings ---------- */

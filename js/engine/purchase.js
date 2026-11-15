@@ -1,7 +1,7 @@
 // Buying crops from the market (animal feed or stock).
 import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
-import { roomFor } from './silo.js';
+import { roomFor } from './storage.js';
 import { breedingMods } from './breeding.js';
 
 export const BUY_MARKUP = 1.2;
@@ -16,7 +16,7 @@ export function buyProduct(game, productId, qty, category = 'pembelian_produk') 
   if (!game.idx.crops.has(productId)) return fail(`${p.name} tidak bisa dibeli.`);
   qty = round2(Number(qty));
   if (!(qty > 0)) return fail('Jumlah tidak valid.');
-  const full = roomFor(game, productId, qty);
+  const full = roomFor(game, { [productId]: qty });
   if (full) return fail(full);
   const cost = round2(qty * buyPriceOf(game, productId));
   if (!game.spend(cost, category)) return fail('Uang tidak cukup.');

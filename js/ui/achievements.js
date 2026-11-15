@@ -15,7 +15,7 @@ const LOG_ICON = {
   task_done: '✅', crop_ready: '🌾', wither: '🥀', achievement: '🏆', level_up: '⭐', weather: '🌦️',
   low_feed: '⚠️', sale: '💰', purchase: '🛒', field_bought: '📍', machine_bought: '🚜', barn: '🏗️',
   contract_offer: '📋', contract_done: '🤝', contract_failed: '❌',
-  season_change: '🍂', event_start: '📣', event_end: '🏁', pest: '🐛', silo_overflow: '🏚️',
+  season_change: '🍂', event_start: '📣', event_end: '🏁', pest: '🐛', silo_overflow: '🏚️', cold_overflow: '❄️', silo_upgraded: '🏗️', cold_upgraded: '🏗️',
   machine_breakdown: '🔧', wages_unpaid: '💸', worker_hired: '👷',
   mission_done: '🎯', missions_new: '🎯', mission_streak: '🔥', rank_up: '🏅',
   delivery_start: '🚚', delivery_done: '🚚', truck_returned: '🚚', research_unlocked: '🔬', research_reset: '🔬',

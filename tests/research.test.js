@@ -82,14 +82,15 @@ test('perks: feed, animal production, births', () => {
   assert.ok(eb > ea, `${eb} > ${ea}`);
 });
 
-test('perks: wages, loan interest, contract price, silo capacity, wear', () => {
+test('perks: wages, loan interest, contract price, silo + cold storage capacity, wear', () => {
   const g0 = at(30), g1 = at(30, ['bisnis_gaji', 'bisnis_bunga', 'bisnis_gudang', 'bisnis_kontrak', 'mesin_bbm1', 'mesin_aus']);
   const before = (g) => g.state.ledger.total.gaji || 0;
   const w0 = before(g0), w1 = before(g1);
   g0.advance(24); g1.advance(24);
   near((before(g1) - w1) / (before(g0) - w0), 0.9, 1e-3);
   near(g1.loanInfo().dailyRate, g0.loanInfo().dailyRate * 0.75);
-  near(g1.siloInfo().capacity, g0.siloInfo().capacity * 1.1, 0.01);
+  near(g1.storageInfo('silo').capacity, g0.storageInfo('silo').capacity * 1.1, 0.01);
+  near(g1.storageInfo('cold').capacity, g0.storageInfo('cold').capacity * 1.1, 0.01);
   const c0 = g0.state.contracts.filter((c) => c.status === 'offer'), c1 = g1.state.contracts.filter((c) => c.status === 'offer');
   assert.ok(c0.length && c1.length);
   for (const c of c1) assert.ok(c.price < g1.state.market[c.productId] * 1.2);

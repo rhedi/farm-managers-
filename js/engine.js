@@ -17,7 +17,7 @@ import * as upgrades from './engine/upgrades.js';
 import * as eco from './engine/economy.js';
 import * as purchase from './engine/purchase.js';
 import * as views from './engine/views.js';
-import * as silo from './engine/silo.js';
+import * as storage from './engine/storage.js';
 import * as workers from './engine/workers.js';
 import * as wear from './engine/wear.js';
 import * as factories from './engine/factories.js';
@@ -187,8 +187,9 @@ export class Game {
   paintMachine(uid, color) { return upgrades.paintMachine(this, uid, color); }
   /** Global setting: auto-repair machines that finish a task below 30% condition (if affordable). */
   setAutoRepair(on) { this.state.autoRepair = !!on; return { ok: true, autoRepair: this.state.autoRepair }; }
-  siloInfo() { return silo.siloInfo(this); }
-  upgradeSilo() { return silo.upgradeSilo(this); }
+  /** kind: 'silo' (t goods) | 'cold' (Gudang dingin, animal products). */
+  storageInfo(kind) { return storage.storageInfo(this, kind); }
+  upgradeStorage(kind) { return storage.upgradeStorage(this, kind); }
   workersView() { return workers.workersView(this); }
   workerCandidates() { return workers.candidatesView(this); }
   hireWorker(candidateId) { return workers.hireWorker(this, candidateId); }
@@ -280,7 +281,7 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
     fields: {}, machines: [], silo: {}, animals: {}, weather: {}, market: {}, priceHistory: {},
     stats: { ...newStats(), level: 1 },
     achievements: [], log: [], history: [], contracts: [], feedReserve: {}, forecast: {}, events: [], nextEventId: 1,
-    siloCapacity: silo.siloStart({ data }), workers: [], autoRepair: false, factories: {}, ledger: ledger.newLedger(1),
+    storageUpgrades: { silo: 0, cold: 0 }, workers: [], autoRepair: false, factories: {}, ledger: ledger.newLedger(1),
     shipments: [], nextTripId: 1, research: { unlocked: [], respecs: 0 },
   };
   const game = new Game(state, data);

@@ -4,7 +4,7 @@ import { sfx } from './sfx.js';
 import { floatText, confetti, vibrate } from './fx.js';
 import { app } from './app.js';
 
-const WARN = new Set(['wither', 'pest', 'low_feed', 'silo_overflow', 'machine_breakdown', 'wages_unpaid', 'contract_failed']);
+const WARN = new Set(['wither', 'pest', 'low_feed', 'silo_overflow', 'cold_overflow', 'machine_breakdown', 'wages_unpaid', 'contract_failed']);
 
 function fieldEl(fieldId) {
   if (fieldId == null) return null;

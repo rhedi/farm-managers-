@@ -48,8 +48,10 @@ export const TREES = [
   { id: 'durian', name: 'Durian', emoji: '🍈', perennial: true, plantCostPerHa: 40000, maturityDays: 80, harvestEveryDays: 8, baseYield: 2.6, lifespanDays: 800, idealPh: [5.0, 6.5], waterNeed: 'high', unlockLevel: 26, seasons: ['summer', 'autumn', 'wet'], minTemp: 20, nutrientUse: 0.2 },
 ];
 
-// category: 'crop' (field and orchard harvest, stored in the silo), 'animal' (livestock products),
+// category: 'crop' (field and orchard harvest, stored in the silo), 'animal' (livestock products, Gudang dingin),
 // 'processed' (factory goods). Groups the Gudang/Pasar UI; ledger.saleCategory books sales the same way.
+// Storage (js/engine/storage.js): unit 't' → silo; animal products → Gudang dingin at 1 kg per L/kg or kgPerUnit
+// per pcs; processed goods in kg take no space.
 export const PRODUCTS = [
   { id: 'wheat', name: 'Gandum', emoji: '🌾', basePrice: 220, unit: 't', category: 'crop', volatility: 0.04 },
   { id: 'barley', name: 'Barley', emoji: '🌿', basePrice: 200, unit: 't', category: 'crop', volatility: 0.04 },
@@ -66,7 +68,7 @@ export const PRODUCTS = [
   { id: 'strawberry', name: 'Stroberi', emoji: '🍓', basePrice: 280, unit: 't', category: 'crop', volatility: 0.12 },
   { id: 'vanilla', name: 'Vanili', emoji: '🌸', basePrice: 13000, unit: 't', category: 'crop', volatility: 0.1 },
   { id: 'milk', name: 'Susu', emoji: '🥛', basePrice: 2.2, unit: 'L', category: 'animal', volatility: 0.03 },
-  { id: 'eggs', name: 'Telur', emoji: '🥚', basePrice: 0.9, unit: 'pcs', category: 'animal', volatility: 0.02 },
+  { id: 'eggs', name: 'Telur', emoji: '🥚', basePrice: 0.9, unit: 'pcs', kgPerUnit: 0.06, category: 'animal', volatility: 0.02 },
   { id: 'wool', name: 'Wol', emoji: '🧶', basePrice: 32, unit: 'kg', category: 'animal', volatility: 0.06 },
   { id: 'pork', name: 'Daging Babi', emoji: '🥩', basePrice: 9.5, unit: 'kg', category: 'animal', volatility: 0.05 },
   { id: 'cheese', name: 'Keju Kambing', emoji: '🧀', basePrice: 48, unit: 'kg', category: 'animal', volatility: 0.05 },
@@ -89,7 +91,7 @@ export const PRODUCTS = [
   { id: 'grape', name: 'Anggur', emoji: '🍇', basePrice: 900, unit: 't', category: 'crop', volatility: 0.08 },
   { id: 'lavender', name: 'Lavender', emoji: '💜', basePrice: 2400, unit: 't', category: 'crop', volatility: 0.08 },
   { id: 'saffron', name: 'Saffron', emoji: '🌺', basePrice: 400000, unit: 't', category: 'crop', volatility: 0.12 },
-  { id: 'duck_eggs', name: 'Telur Bebek', emoji: '🪺', basePrice: 1.6, unit: 'pcs', category: 'animal', volatility: 0.03 },
+  { id: 'duck_eggs', name: 'Telur Bebek', emoji: '🪺', basePrice: 1.6, unit: 'pcs', kgPerUnit: 0.07, category: 'animal', volatility: 0.03 },
   { id: 'buffalo_milk', name: 'Susu Kerbau', emoji: '🍼', basePrice: 4.5, unit: 'L', category: 'animal', volatility: 0.04 },
   { id: 'alpaca_wool', name: 'Wol Alpaka', emoji: '🧶', basePrice: 75, unit: 'kg', category: 'animal', volatility: 0.06 },
   // Palm oil chain (Pabrik Kelapa Sawit, Lv 19)
@@ -380,8 +382,15 @@ export const BALANCE = {
   limeCostPerHa: 90, pestTreatPerHa: 40, yearDays: 40,
   events: { chancePerDay: 0.25, weights: { pest: 3, storm: 2, heatwave: 2, boom: 2, crash: 2, subsidy: 1, perfect: 2 },
     pestYield: 0.75, subsidyPerHa: 60, subsidyMin: 800, perfectGrowth: 1.25 },
-  // F8–F10 operations (stream O). silo: tons of 't' products; overflow is force-sold at overflowRate × market.
-  silo: { start: 150, step: 200, upgradeCost: 3000, costGrowth: 1.2, overflowRate: 0.7 },
+  // Storage (js/engine/storage.js): silo = tons of 't' products, cold = Gudang dingin for animal products (t, by weight).
+  // Upgrade n+1 adds max(minStep, niceCeil(stepRate × capacity)) t (nice = 1/1.2/1.5/2/2.5/3/4/5/6/8 × 10^k) for
+  // step × costPerT × costGrowth^n. What doesn't fit is force-sold at overflowRate × market. Sim (land bought with
+  // ~30% of revenue, average crop mix fertilized): holding 1.5 harvest cycles costs ≈ 9–17% of the land's price;
+  // the cold store starts at ≈ 17 days of one cow + one chicken barn; ≈ 2–3% of herd spend buys a week of output.
+  storage: {
+    silo: { start: 150, minStep: 200, stepRate: 0.5, costPerT: 15, costGrowth: 1.05, overflowRate: 0.7 },
+    cold: { start: 10, minStep: 10, stepRate: 0.5, costPerT: 500, costGrowth: 1.05, overflowRate: 0.7 },
+  },
   // workers: wage = wageBase + wagePerSkill·skill (± $10) per day; skill 1 = tasks 20% faster.
   workers: { candidates: 3, skillMin: 0.1, skillMax: 0.9, wageBase: 60, wagePerSkill: 140, starterSkill: 0.3, skillPerTask: 0.01 },
   // wear: condition −perHour per working hour; < slowBelow ⇒ ×1.25 hours; < breakdownBelow ⇒ breakdownChance of ×1.5.

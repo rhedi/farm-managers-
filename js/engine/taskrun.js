@@ -4,7 +4,7 @@ import { TASK_NAMES, fmtMoney, fmtNum } from './defs.js';
 import { resetCropCycle } from './fields.js';
 import { sellProduct, sellableStock } from './economy.js';
 import { applyLime, onFertilize, onHarvest } from './soil.js';
-import { storeHarvest } from './silo.js';
+import { storeProduct } from './storage.js';
 import { onTaskDone } from './workers.js';
 import { wearMachines, conditionOf, repairCost, repairMachine } from './wear.js';
 import { isTree, plantOrchard, afterOrchardHarvest, clearOrchard } from './orchard.js';
@@ -101,7 +101,7 @@ export function completeTask(game, fieldId) {
       extra.cropId = f.cropId;
       extra.tons = tons;
       if (tons > 0) {
-        ({ stored } = storeHarvest(game, f.cropId, tons));
+        ({ stored } = storeProduct(game, f.cropId, tons));
         state.stats.harvests++;
         state.stats.tonsHarvested = round2(state.stats.tonsHarvested + tons);
         const base = idx.products.get(f.cropId)?.basePrice ?? 0;

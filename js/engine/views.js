@@ -3,8 +3,12 @@ import { round2 } from './rng.js';
 import { loanCap, loanRate, machineResale } from './economy.js';
 import { conditionOf, repairCost } from './wear.js';
 import { effectiveStats, upgradesOf, upgradeSpent } from './upgrades.js';
+import { kindOf, tonsPerUnit } from './storage.js';
 
-/** Silo items. `reserve` = feed reserve (t) that sellProduct keeps; `isFeed` = an owned herd eats it. */
+/**
+ * Stock items. `reserve` = feed reserve (t) that sellProduct keeps; `isFeed` = an owned herd eats it;
+ * `storage` = 'silo' | 'cold' | null (store it fills), `tons` = space it takes there.
+ */
 export function siloView(game) {
   const s = game.state;
   const feed = new Set(game.data.ANIMALS.filter((a) => (s.animals?.[a.id]?.count || 0) > 0).flatMap((a) => a.feedCrops));
@@ -12,8 +16,9 @@ export function siloView(game) {
     const p = game.idx.products.get(id) || { id, name: id, emoji: '', unit: '' };
     const price = s.market[id] ?? 0;
     const reserve = Math.min(qty, s.feedReserve?.[id] || 0);
+    const storage = kindOf(game.idx.products.get(id));
     return { id, name: p.name, emoji: p.emoji, unit: p.unit, category: p.category ?? 'crop', qty, price, value: round2(qty * price),
-      reserve, sellable: round2(qty - reserve), isFeed: feed.has(id) };
+      reserve, sellable: round2(qty - reserve), isFeed: feed.has(id), storage, tons: storage ? Math.round(qty * tonsPerUnit(p) * 1000) / 1000 : 0 };
   });
   return { items, totalValue: round2(items.reduce((sum, i) => sum + i.value, 0)) };
 }

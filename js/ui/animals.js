@@ -1,4 +1,4 @@
-// Ternak tab: link to Gudang › Peternakan, own herds (production, feed, quality first; "Kelola" and breeding
+// Ternak tab: Gudang Dingin card (fill bar, link to Gudang › Peternakan), own herds (production, feed, quality first; "Kelola" and breeding
 // folded), herds to start (barn), locked herds folded, feed reserves.
 import { h, mount, fmtMoney, fmtNum, fmtPct, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
@@ -133,19 +133,26 @@ function startRow(a) {
       `🏗️ Bangun kandang ${fmtMoney(a.barnCost)} (+${a.barnCapacity} ekor)`))));
 }
 
-/** Summary + link to the animal-products storage (Gudang › Peternakan). */
+/** Gudang Dingin fill bar + stock summary, linking to Gudang › Peternakan (upgrades live there). */
 function storageLink(game) {
   const items = stockByCategory(game).animal;
+  const info = game.storageInfo('cold');
+  const frac = info.capacity > 0 ? info.used / info.capacity : 1;
   const text = items.length ? items.slice(0, 3).map((it) => `${it.emoji} ${fmtAmt(it.qty, it.unit)}`).join(' · ') + (items.length > 3 ? ' …' : '')
     : 'Belum ada produk ternak.';
   return h('button.link-card', { type: 'button', onclick: () => goTo('silo', 'animal') },
     h('span.link-card-icon', '❄️'),
-    h('span.link-card-main', h('b', 'Gudang ternak'), h('div.small.muted', text)),
+    h('span.link-card-main', h('b', `Gudang dingin Lv ${info.level}`),
+      h('div.small', `${fmtNum(info.used, 1)} / ${fmtNum(info.capacity)} t · sisa ${fmtNum(info.free, 1)} t`),
+      progressBar(frac, frac >= 0.9 ? 'ops-red' : frac >= 0.7 ? 'gold' : ''),
+      frac >= 0.9 ? h('div.small.ops-bad', '⚠️ Hampir penuh — perbesar agar produksi tidak dijual paksa.') : null,
+      h('div.small.muted', text)),
     h('span.link-card-go', items.length ? `${fmtMoney(groupValue(items))} ›` : '›'));
 }
 
 function computeSig(game) {
-  return `${game.day}|${game.state.level}|${Math.floor(game.state.money / 500)}|${reserveSig(game)}|`
+  const cold = game.storageInfo('cold');
+  return `${game.day}|${game.state.level}|${Math.floor(game.state.money / 500)}|${reserveSig(game)}|${cold.used}:${cold.capacity}|`
     + game.animalsView().map((a) => `${a.count}:${a.barns}:${a.feedStock}:${a.quality}:${breedingSig(a)}:`
       + [3, 7].map((d) => game.feedQuote(a.id, d)?.affordable).join(':')).join(',');
 }

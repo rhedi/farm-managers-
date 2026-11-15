@@ -78,7 +78,7 @@ function candidates(game, base) {
     const need = Object.entries(s.animals).reduce((t, [id, h]) => t + h.count * (game.idx.animals.get(id)?.feedPerDay ?? 0), 0);
     const price = Math.min(...feedIds.map((id) => s.market[id] * BUY_MARKUP));
     const target = Math.ceil(Math.max(1, need, (0.75 * base) / price) * 2) / 2;
-    if (target <= (game.siloInfo?.().free ?? Infinity)) out.push({ type: 'feed', weight: 2, make: () => ({ target }) });
+    if (target <= (game.storageInfo?.('silo').free ?? Infinity)) out.push({ type: 'feed', weight: 2, make: () => ({ target }) });
   }
   if ((s.contracts || []).some((c) => c.status === 'active')) out.push({ type: 'contract', weight: 2, make: () => ({ target: 1 }) });
   const ownsFactory = typeof game.factoriesView === 'function'

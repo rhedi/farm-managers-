@@ -4,7 +4,7 @@
 //   progress: work hours done on it, blocked: Indonesian reason or null.
 import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
-import { roomFor } from './silo.js';
+import { roomFor } from './storage.js';
 import { sellableStock } from './economy.js';
 
 export const SPEED_PER_LEVEL = 1.25;
@@ -39,11 +39,8 @@ export function missingInput(game, recipe) {
   return '';
 }
 
-/** Output in t that won't fit the silo, as a reason; '' when it all fits. */
-export function noRoom(game, recipe) {
-  const tons = Object.entries(recipe.outputs).filter(([id]) => unit(game, id) === 't').reduce((s, [, q]) => s + q, 0);
-  return tons > 0 ? roomFor(game, Object.keys(recipe.outputs).find((id) => unit(game, id) === 't'), tons) : '';
-}
+/** Outputs that won't fit their store (t goods: silo), as a reason; '' when it all fits. */
+export const noRoom = (game, recipe) => roomFor(game, recipe.outputs);
 
 function setBlocked(game, id, f, reason) {
   if (f.blocked === reason) return;

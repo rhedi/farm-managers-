@@ -1,6 +1,7 @@
 // Bottom-nav badges: only counts of things the player can act on now. Red = something is going wrong.
 import { needsAction } from './farm.js';
 import { deliverableCount } from './contracts.js';
+import { nearlyFull } from './silo.js';
 
 const last = {};
 const WORN = 0.2;
@@ -51,11 +52,12 @@ export function updateBadges(game) {
   setBadge('animals', hungry.length ? '⚠️' : '',
     hungry.length ? `Pakan hampir habis: ${hungry.map((a) => a.name).join(', ')}` : '', true);
 
-  const info = game.siloInfo?.();
-  const full = info && info.capacity > 0 && info.used / info.capacity >= 0.9;
+  const siloFull = nearlyFull(game.storageInfo('silo')), coldFull = nearlyFull(game.storageInfo('cold'));
   const blocked = (game.factoriesView?.() ?? []).filter((f) => f.owned && f.blocked).length;
-  setBadge('silo', full || blocked ? String(blocked + (full ? 1 : 0)) : '',
-    [full ? 'Silo hampir penuh' : '', blocked ? `${blocked} pabrik terhenti` : ''].filter(Boolean).join(' · '), true);
+  const n = blocked + (siloFull ? 1 : 0) + (coldFull ? 1 : 0);
+  setBadge('silo', n ? String(n) : '',
+    [siloFull ? 'Silo hampir penuh' : '', coldFull ? 'Gudang dingin hampir penuh' : '', blocked ? `${blocked} pabrik terhenti` : '']
+      .filter(Boolean).join(' · '), true);
 
   const claimable = game.missionsView?.().claimable ?? 0;
   const points = game.researchPoints?.().available ?? 0;

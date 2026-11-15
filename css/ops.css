@@ -1,4 +1,4 @@
-/* Stream O (operations): silo capacity (F8), workers (F9), machine wear (F10). */
+/* Stream O (operations): silo + Gudang Dingin capacity (F8), workers (F9), machine wear (F10). */
 .progress.ops-red > .bar { background: linear-gradient(90deg, var(--red-d, #a33), var(--red, #d55)); }
 .ops-bad { color: var(--red-d, #a33); }
 .ops-nowrap { white-space: nowrap; }
@@ -21,6 +21,11 @@
 /* Gudang */
 .ops-silo { margin-bottom: 10px; }
 .ops-silo-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; margin-bottom: 6px; }
+.ops-silo-head .stock-tag { margin-right: 4px; }
+.store-up { flex-direction: column; gap: 1px; }
+.store-up-detail { font-weight: 600; font-size: .8125rem; }
+.cold-mix { display: flex; flex-wrap: wrap; gap: 0 10px; margin-top: 4px; }
+.cold-mix > span { white-space: nowrap; }
 
 
 /* Garasi › Mesin: compact rows, tap to expand specs and actions */
