@@ -118,16 +118,14 @@ function shopCard(m) {
       h('div.card-icon', TYPE_ICON[m.type] ?? '⚙️'),
       h('div.card-main',
         h('div.card-title', m.name),
-        h('div.card-sub', specs(m))),
-      m.owned ? h('span.badge.badge-green', `Punya ${m.owned}`) : null),
-    warn ? h('div.small.eco-warn', warn) : null,
-    h('div.card-actions',
-      h('span.small.muted', reason ?? m.brand),
-      h('span.spacer'),
-      h(`button.btn.btn-small.${warn || reason ? 'btn-secondary' : 'btn-primary'}`, {
+        h('div.card-sub', specs(m)),
+        m.owned || reason ? h('div.shop-note', m.owned ? h('span.badge.badge-green', `Punya ${m.owned}`) : null,
+          reason ? h('span.small.muted', reason) : null) : null),
+      h(`button.btn.btn-small.shop-buy.${warn || reason ? 'btn-secondary' : 'btn-primary'}`, {
         disabled: !!reason, title: reason ?? warn,
         onclick: () => buyFlow(m, warn),
-      }, `Beli ${fmtMoney(m.price)}`)));
+      }, `Beli ${fmtMoney(m.price)}`)),
+    warn ? h('div.small.eco-warn', warn) : null);
 }
 
 function computeSig(game) {

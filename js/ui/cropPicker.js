@@ -173,10 +173,8 @@ export function cropPicker(game, sel, fields, rerender, label = 'Pilih tanaman')
   const locked = crops.filter((c) => c.unlockLevel > level);
   const ha = list.reduce((s, f) => s + f.sizeHa, 0);
   const gh = allGreenhouse(list);
-  // Best expected profit first (unknown profits last, in data order).
-  const ranked = open.map((c) => ({ c, o: cropOutlook(game, list, c) }))
-    .sort((a, b) => (b.o.profit ?? -Infinity) - (a.o.profit ?? -Infinity));
-  const bestId = ranked[0]?.o.profit != null ? ranked[0].c.id : null;
+  const ranked = rankCrops(game, list, open);
+  const bestId = ranked[0]?.o.profit != null && !ranked[0].cold ? ranked[0].c.id : null;
   return h('div.field-group', h('label', `${label} · untung terbesar di atas`),
     gh ? h('p.small.gh-note', '🏠 Rumah kaca: musim dan suhu dingin tidak memperlambat tanaman, hasil +20%.') : null,
     ...cropChoices(ranked, sel, (c, o) => {
@@ -194,14 +192,18 @@ export function cropPicker(game, sel, fields, rerender, label = 'Pilih tanaman')
     treeSection(game, sel, list, rerender));
 }
 
-/** Unlocked crop with the best expected profit on these fields (falls back to the first unlocked). */
+/**
+ * Crops ranked for these fields: ones that can grow now first (too cold = growth stops, unless every field is a
+ * greenhouse), then by expected profit (unknown profits last, in data order).
+ */
+function rankCrops(game, fields, crops) {
+  const gh = allGreenhouse(fields);
+  return crops.map((c) => ({ c, o: cropOutlook(game, fields, c), cold: !gh && seasonOutlook(game, fields, c)?.fit === 'cold' }))
+    .sort((a, b) => Number(a.cold) - Number(b.cold) || (b.o.profit ?? -Infinity) - (a.o.profit ?? -Infinity));
+}
+
+/** Unlocked crop ranked first by rankCrops (falls back to the first unlocked). */
 export function bestCropId(game, fields) {
   const open = game.data.CROPS.filter((c) => c.unlockLevel <= game.state.level);
-  let best = open[0]?.id ?? null;
-  let bestProfit = -Infinity;
-  for (const c of open) {
-    const p = cropOutlook(game, fields, c).profit;
-    if (p != null && p > bestProfit) { bestProfit = p; best = c.id; }
-  }
-  return best;
+  return rankCrops(game, fields, open)[0]?.c.id ?? open[0]?.id ?? null;
 }

@@ -47,7 +47,7 @@
 /* ---------- Filter chips (inside a sub-tab) ---------- */
 .chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -12px 12px; padding: 2px 12px; scrollbar-width: none; }
 .chip {
-  flex: none; min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-strong);
+  flex: 1 0 auto; min-height: 44px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line-strong);
   background: var(--surface); color: var(--ink-soft); font-weight: 700; font-size: .875rem; cursor: pointer; white-space: nowrap;
 }
 .chip.active { background: var(--green); border-color: var(--green-d); color: #fff; }
@@ -197,3 +197,7 @@
 .rs-branches .fold { margin-bottom: 0; }
 .rs-branches .fold > .fold-body { margin-top: 0; }
 #tabs .tab.coach-target::after { right: auto; left: calc(50% + 14px); bottom: auto; top: -14px; }
+@media (max-width: 380px) {
+  .chips { gap: 4px; }
+  .chip { flex: 1 1 auto; min-width: 0; padding: 6px 6px; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; }
+}

@@ -122,5 +122,5 @@ export function financeCard(game) {
     h('div.kv', h('span', 'Pemasukan 7 hari'), h('span.num', fmtMoney(r.income.total)),
       h('span', 'Biaya operasional'), h('span.num', fmtMoney(r.opex.total)),
       h('span', 'Laba operasional'), h(`span.num.${r.operatingProfit >= 0 ? 'pos' : 'neg'}`, fmtMoney(r.operatingProfit))),
-    h('div.card-actions', h('button.btn.btn-small.btn-primary', '📊 Buka laporan keuangan')));
+    h('div.card-actions', h('button.btn.btn-small.btn-secondary', '📊 Buka laporan keuangan')));
 }

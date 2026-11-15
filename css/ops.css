@@ -37,3 +37,9 @@
 .mach-status { flex: none; display: block; max-width: 38%; overflow: hidden; text-overflow: ellipsis; }
 .mach-body { padding: 4px 12px 12px; display: grid; gap: 6px; }
 .mach-body .ops-actions { margin-top: 2px; }
+
+/* Garasi › Toko: buy button beside the name */
+.shop-card .card-head { align-items: flex-start; margin-bottom: 0; }
+.shop-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
+.shop-buy { flex: none; align-self: center; }
+.shop-card .eco-warn { margin-top: 8px; }
