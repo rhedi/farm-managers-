@@ -1,51 +1,18 @@
-// Silo tab: stock, value at market price, sell with confirmation; feed reserves are never sold.
-import { h, mount, fmtMoney, fmtPrice, fmtNum, progressBar } from './dom.js';
+// Gudang tab: 🌾 Pertanian (silo capacity + crop/fruit stock) | 🐄 Peternakan (animal products, no silo space)
+// | 🏭 Olahan (factory goods + 🏭 Pabrik). Groups follow PRODUCTS[].category; feed reserves are never sold.
+import { h, mount, fmtMoney, fmtNum, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
-import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { factoriesSection, factoriesSig } from './factories.js';
+import { subTabBar, getSub, goTo } from './subtabs.js';
+import { CATEGORIES, stockByCategory, groupValue, sellGroup, stockRow } from './stock.js';
 
+const SUBS = CATEGORIES.map((c) => c.sub);
 let sig = '';
-
-const sellable = (it) => it.sellable ?? it.qty;
-
-async function sellOne(item) {
-  const qty = sellable(item);
-  const value = qty * item.price;
-  const ok = await confirmModal({
-    title: `Jual ${item.name}?`,
-    message: `${fmtAmt(qty, item.unit)} ${item.emoji} ${item.name} dijual ≈ ${fmtMoney(value)}.`
-      + (item.reserve > 0 ? ` ${fmtAmt(item.reserve, item.unit)} tetap dicadangkan untuk pakan.` : '')
-      + (item.isFeed && !(item.reserve > 0) ? ' ⚠️ Ini pakan ternakmu — atur cadangan di tab Ternak.' : ''),
-    confirmLabel: 'Jual', danger: item.isFeed,
-  });
-  if (!ok) return;
-  act(app.game.sellProduct(item.id), (r) => `Terjual ${item.emoji} ${item.name} senilai ${fmtMoney(r.earned)}.`);
-}
-
-async function sellAll(view) {
-  const items = view.items.filter((it) => sellable(it) > 0);
-  const total = items.reduce((s, it) => s + sellable(it) * it.price, 0);
-  const feedRisk = items.some((it) => it.isFeed && !(it.reserve > 0));
-  const ok = await confirmModal({
-    title: 'Jual semua isi gudang?',
-    message: `Semua produk dijual dengan harga pasar saat ini, total ≈ ${fmtMoney(total)}.`
-      + (feedRisk ? ' Ternak tidak akan punya pakan!' : ' Cadangan pakan tetap disimpan.'),
-    confirmLabel: 'Jual semua', danger: true,
-  });
-  if (!ok) return;
-  let earned = 0;
-  for (const it of items) {
-    const r = app.game.sellProduct(it.id);
-    if (!r.ok) return act(r);
-    earned += r.earned;
-  }
-  act({ ok: true }, `Gudang dijual senilai ${fmtMoney(earned)}.`);
-}
 
 function computeSig(game) {
   const info = game.siloInfo?.();
-  return game.siloView().items.map((i) => `${i.id}:${i.qty}:${i.price}:${i.reserve ?? 0}:${i.isFeed ? 1 : 0}`).join(',')
+  return `${getSub('silo', SUBS)}|` + game.siloView().items.map((i) => `${i.id}:${i.qty}:${i.price}:${i.reserve ?? 0}:${i.isFeed ? 1 : 0}`).join(',')
     + (info ? `|${info.capacity}:${info.nextUpgradeCost <= game.state.money ? 1 : 0}` : '') + `|${factoriesSig(game)}`;
 }
 
@@ -62,63 +29,75 @@ async function upgradeFlow(info) {
 let needEl = null;
 const needText = (cost, money) => `💰 Butuh ${fmtMoney(cost)} (uangmu ${fmtMoney(Math.floor(money))})`;
 
-/** Capacity bar (F8): only crops (t) take space; overflow at harvest is sold at 70% of market. */
-function capacityCard(game) {
+const tonsOf = (items) => items.filter((it) => it.unit === 't').reduce((s, it) => s + it.qty, 0);
+
+/** Silo capacity (F8): crops and processed goods in t share it; overflow at harvest is sold at 70% of market. */
+function capacityCard(game, groups) {
   needEl = null;
   const info = game.siloInfo?.();
   if (!info) return null;
   const frac = info.capacity > 0 ? info.used / info.capacity : 1;
   const color = frac >= 0.9 ? 'ops-red' : frac >= 0.7 ? 'gold' : '';
   const poor = info.nextUpgradeCost > game.state.money;
+  const olahan = tonsOf(groups.processed);
   if (poor) needEl = h('div.small.ops-bad.silo-need', needText(info.nextUpgradeCost, game.state.money));
   return h('div.card.ops-silo',
-    h('div.ops-silo-head', h('strong', `${fmtNum(info.used, 1)} / ${fmtNum(info.capacity)} t`),
+    h('div.ops-silo-head', h('span', '🏚️ Silo '), h('strong', `${fmtNum(info.used, 1)} / ${fmtNum(info.capacity)} t`),
       h('span.small.muted', `· sisa ${fmtNum(info.free, 1)} t`)),
     progressBar(frac, color),
+    h('div.small.muted', olahan > 0
+      ? `Pertanian ${fmtNum(tonsOf(groups.crop), 1)} t + olahan ${fmtNum(olahan, 1)} t. Produk ternak tidak memakai silo.`
+      : 'Hanya hasil panen dan olahan bersatuan ton yang memakai silo.'),
     frac >= 1 ? h('div.small.ops-bad', '⛔ Silo penuh — hasil panen berikutnya dijual paksa 70% harga pasar.')
       : frac >= 0.9 ? h('div.small.ops-bad', '⚠️ Silo hampir penuh — kelebihan panen dijual paksa 70% harga pasar.') : null,
     h('div.card-actions',
-      h('span.small.muted', 'Hanya hasil panen (t) yang memakai ruang silo.'),
       h('span.spacer'),
-      h('button.btn.btn-small.btn-primary', { disabled: poor, title: poor ? 'Uang tidak cukup' : null,
-        onclick: () => upgradeFlow(info) }, `+${fmtNum(info.step)} t · ${fmtMoney(info.nextUpgradeCost)}`)),
+      h(`button.btn.btn-small.${frac >= 0.9 ? 'btn-primary' : 'btn-secondary'}`, { disabled: poor, title: poor ? 'Uang tidak cukup' : null,
+        onclick: () => upgradeFlow(info) }, `🏗️ Perbesar +${fmtNum(info.step)} t · ${fmtMoney(info.nextUpgradeCost)}`)),
     needEl);
 }
 
-/** Stock row: name over amount · price (+ reserve) on the left; value and the sell button on the right (below on narrow rows). */
-function row(it) {
-  return h('div.ops-stock',
-    h('div.ops-stock-main',
-      h('div.ops-stock-name', h('span', `${it.emoji} ${it.name}`), it.isFeed ? h('span.small.muted', ' · pakan') : null),
-      h('div.small.muted.ops-stock-meta',
-        h('span', fmtAmt(it.qty, it.unit)), ' · ', h('span', `${fmtPrice(it.price)}/${it.unit}`),
-        it.reserve > 0 ? [' · ', h('span.eco-reserve', `🔒 ${fmtAmt(it.reserve, it.unit)}`)] : null)),
-    h('div.ops-stock-side',
-      h('strong.ops-nowrap', fmtMoney(it.value)),
-      h('button.btn.btn-small.btn-primary', { disabled: !(sellable(it) > 0),
-        title: sellable(it) > 0 ? null : 'Semua stok dicadangkan untuk pakan', onclick: () => sellOne(it) }, 'Jual')));
+/** Storage note for groups that don't use the silo (or only partly). */
+function storeNote(cat, items) {
+  if (cat.id === 'animal') return h('div.store-note.card', h('span', '❄️'), h('span', 'Gudang ternak: susu, telur, wol, daging dan madu tidak memakai kapasitas silo.'));
+  const t = tonsOf(items);
+  return h('div.store-note.card', h('span', '🏚️'), h('span', t > 0
+    ? `Produk olahan bersatuan ton (${fmtNum(t, 1)} t) memakai ruang silo; produk kg tidak.`
+    : 'Produk olahan bersatuan ton memakai ruang silo; produk kg tidak.'));
+}
+
+function stockGroup(cat, items) {
+  const value = groupValue(items);
+  if (!items.length) {
+    const tip = cat.id === 'crop' ? 'Panen ladangmu dulu!' : cat.id === 'animal' ? 'Produk ternak masuk ke sini setiap hari.' : 'Hasil pabrik masuk ke sini.';
+    return h('div.empty.compact', h('span.big', cat.icon), `Belum ada ${cat.long.toLowerCase()}. ${tip}`);
+  }
+  return h('section.section',
+    h('div.stock-summary',
+      h('div.stock-summary-main', h('div.small.muted', `${cat.long} · ${items.length} produk`), h('div.stock-summary-value', fmtMoney(value))),
+      h('button.btn.btn-secondary', { type: 'button', onclick: () => sellGroup(items, cat.long) }, 'Jual semua…')),
+    h('div.stock-list', items.map((it) => stockRow(it))));
 }
 
 export function renderSilo(root) {
   const game = app.game;
   sig = computeSig(game);
-  const view = game.siloView();
-  if (!view.items.length) {
-    mount(root, h('section.section', h('div.section-title', '🏚️ Gudang'), capacityCard(game),
-      h('div.empty', h('div.big', '🏚️'), 'Gudang masih kosong. Panen ladangmu dulu!')), factoriesSection(game));
-    return;
-  }
+  const groups = stockByCategory(game);
+  const sub = getSub('silo', SUBS);
+  const cat = CATEGORIES.find((c) => c.sub === sub);
+  const info = game.siloInfo?.();
+  const full = info && info.capacity > 0 && info.used / info.capacity >= 0.9;
+  const blocked = (game.factoriesView?.() ?? []).filter((f) => f.owned && f.blocked).length;
   mount(root,
-    h('section.section',
-      h('div.section-title', '🏚️ Gudang', h('span.spacer'), h('span.small.muted', `Nilai ${fmtMoney(view.totalValue)}`)),
-      capacityCard(game),
-      h('div.card',
-        h('div.ops-stock-list', view.items.map(row)),
-        h('div.card-actions',
-          h('span.small.muted', 'Jual sebagian atau penuhi kontrak di tab Pasar.'),
-          h('span.spacer'),
-          h('button.btn.btn-small.btn-danger', { onclick: () => sellAll(view) }, 'Jual semua')))),
-    factoriesSection(game));
+    subTabBar('silo', CATEGORIES.map((c) => ({
+      id: c.sub, icon: c.icon, label: c.label,
+      badge: c.id === 'crop' && full ? '!' : c.id === 'processed' && blocked ? blocked : null,
+      warn: true,
+    })), sub),
+    cat.id === 'crop' ? capacityCard(game, groups) : storeNote(cat, groups[cat.id]),
+    stockGroup(cat, groups[cat.id]),
+    cat.id === 'animal' ? h('button.btn.btn-secondary.btn-block', { type: 'button', onclick: () => goTo('animals') }, '🐄 Kelola ternak & pakan') : null,
+    cat.id === 'processed' ? factoriesSection(game) : null);
 }
 
 export function updateSilo(root) {

@@ -1,8 +1,9 @@
-// Gudang tab: 🏭 Pabrik section (stream B). Buy, pick a recipe, run batches or auto mode, upgrade.
+// Gudang › 🏭 Olahan: Pabrik section (stream B): owned first, then for sale, locked ones folded. Buy, pick a recipe, run batches or auto mode, upgrade.
 import { h, fmtMoney, fmtHours, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
+import { fold } from './subtabs.js';
 
 /** Re-render key: ownership, level, recipe, progress, blocked state and input availability. */
 export function factoriesSig(game) {
@@ -97,8 +98,15 @@ export function factoriesSection(game) {
   if (!game.factoriesView) return null;
   const list = game.factoriesView();
   if (!list.length) return null;
-  const owned = list.filter((f) => f.owned).length;
+  const money = game.state.money;
+  const owned = list.filter((f) => f.owned);
+  const buyable = list.filter((f) => !f.owned && f.unlocked);
+  const locked = list.filter((f) => !f.unlocked);
   return h('section.section.fac-section',
-    h('div.section-title', '🏭 Pabrik', h('span.spacer'), h('span.small.muted', `${owned}/${list.length} dimiliki`)),
-    h('div.cards', list.map((f) => factoryCard(f, game.state.money))));
+    h('div.section-title', '🏭 Pabrik', h('span.small.muted', `${owned.length}/${list.length} dimiliki`)),
+    owned.length ? h('div.cards', owned.map((f) => factoryCard(f, money)))
+      : h('p.hint', 'Pabrik mengolah hasil panen dan ternak menjadi produk bernilai 30–55% lebih tinggi.'),
+    buyable.length ? h('div.cards', buyable.map((f) => factoryCard(f, money))) : null,
+    locked.length ? fold('factories-locked', '🔒 Pabrik terkunci', { meta: `${locked.length} · Lv ${locked[0].unlockLevel}+` },
+      h('div.cards', locked.map((f) => factoryCard(f, money)))) : null);
 }
