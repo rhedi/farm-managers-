@@ -18,10 +18,6 @@
 
 /* ---- research ---- */
 .level-tap { cursor: pointer; position: relative; }
-.rs-dot {
-  flex: none; padding: 1px 6px; border-radius: 999px; background: var(--wheat); color: #3a2c00;
-  font-size: .72rem; font-weight: 700; line-height: 1.4;
-}
 .rs-summary { display: grid; gap: 4px; }
 .rs-points { display: flex; align-items: baseline; gap: 2px; font-weight: 600; }
 .rs-points-num { font-size: 1.6rem; color: var(--green-d); font-variant-numeric: tabular-nums; }
@@ -30,13 +26,15 @@
 @media (min-width: 720px) { .rs-branches { grid-template-columns: 1fr 1fr; } }
 .rs-nodes { display: grid; gap: 6px; margin-top: 8px; }
 .rs-node { padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface); display: grid; gap: 3px; }
-.rs-node-head { display: flex; align-items: center; gap: 6px; }
-.rs-node-emoji { flex: none; }
-.rs-node-name { flex: 1; min-width: 0; font-weight: 600; font-size: .92rem; }
+.rs-node-head { display: flex; align-items: center; gap: 8px; }
+.rs-node-emoji { flex: none; font-size: 1.15rem; }
+.rs-node-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rs-node-name { font-weight: 700; font-size: .95rem; }
 .rs-cost { flex: none; }
 .rs-node-status { flex: none; }
 .rs-effect { color: var(--ink-soft); }
-.rs-unlock { justify-self: start; margin-top: 4px; }
+.rs-unlock { flex: none; }
+.rs-respec { margin-top: 12px; }
 .rs-unlocked { border-color: var(--green); background: var(--green-l); }
 .rs-ready { border-color: var(--wheat); box-shadow: inset 0 0 0 1px var(--wheat); }
 .rs-locked { opacity: .6; }

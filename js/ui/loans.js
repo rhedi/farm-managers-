@@ -1,7 +1,6 @@
-// Pasar → 🏦 Keuangan: loan status, interest hint, quick borrow/repay buttons (U7).
+// Prestasi › 💰 Keuangan → 🏦 Pinjaman: loan status, interest hint, quick borrow/repay buttons (U7).
 import { h, fmtMoney, fmtNum } from './dom.js';
 import { app, act } from './app.js';
-import { openFinanceReport } from './finance.js';
 
 let loanInput = '';
 const QUICK = [5000, 25000];
@@ -30,8 +29,7 @@ export function loansPanel() {
   const monthly = (1 + li.dailyRate) ** 30 - 1;
   const payable = Math.min(li.loan, Math.max(0, game.state.money));
   return h('section.section.eco-loans',
-    h('div.section-title', '🏦 Keuangan', h('span.spacer'),
-      h('span.small.muted', `Pinjaman ${fmtMoney(li.loan)} / ${fmtMoney(li.cap)}`)),
+    h('div.section-title', '🏦 Pinjaman', h('span.small.muted', `${fmtMoney(li.loan)} / ${fmtMoney(li.cap)}`)),
     h('div.card',
       h('div.kv',
         h('span', 'Bunga'), h('span.num', `${fmtNum(li.dailyRate * 100, 2)}%/hari ≈ ${fmtNum(monthly * 100, 0)}%/bulan`),
@@ -55,9 +53,7 @@ export function loansPanel() {
           `Pinjam maks ${fmtMoney(room)}`),
         h('span.spacer'),
         h('button.btn.btn-small.btn-primary', { disabled: payable <= 0, onclick: () => repay(game) },
-          `Bayar maks ${fmtMoney(payable)}`)),
-      h('div.card-actions',
-        h('button.btn.btn-small.btn-secondary', { onclick: () => openFinanceReport() }, '📊 Laporan pemasukan & pengeluaran'))));
+          `Bayar maks ${fmtMoney(payable)}`))));
 }
 
 /** Render signature for the loans panel (re-render when these change). */

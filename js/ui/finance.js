@@ -1,5 +1,5 @@
-// 📊 Laporan Keuangan: income vs operating cost per period (game.financeReport), opened from the topbar money,
-// Prestasi tab and Pasar › Keuangan. Full-height modal; re-renders only when the numbers change.
+// 📊 Laporan Keuangan: income vs operating cost per period (game.financeReport), opened from the topbar money
+// and Prestasi › Keuangan. Full-height modal; re-renders only when the numbers change.
 import { h, mount, fmtMoney, fmtPct } from './dom.js';
 import { openModal } from './modal.js';
 import { app } from './app.js';
@@ -11,11 +11,11 @@ let period = '7d';
 const TIPS = {
   gaji: 'Gaji paling besar: pecat pekerja yang sering menganggur, atau tambah ladang supaya semua pekerja sibuk.',
   sewa_pemanen: 'Sewa pemanen mahal: beli pemanen sendiri di Garasi, biasanya balik modal setelah beberapa panen.',
-  bunga_pinjaman: 'Bunga pinjaman menggerus laba: lunasi pinjaman di Pasar › Keuangan.',
+  bunga_pinjaman: 'Bunga pinjaman menggerus laba: lunasi pinjaman di Prestasi › Keuangan.',
   bbm: 'BBM tinggi: upgrade efisiensi mesin atau pakai traktor/alat yang lebih besar supaya tugas cepat selesai.',
   benih: 'Benih mahal: tanam yang harga jualnya tinggi dan cocok dengan musim wilayahnya.',
   pupuk_kapur_irigasi: 'Pupuk, kapur dan irigasi: pakai hanya saat menaikkan hasil (lihat rincian hasil di ladang).',
-  pakan: 'Beli pakan di pasar mahal (+20%): tanam pakan sendiri dan pasang cadangan pakan di Gudang.',
+  pakan: 'Beli pakan di pasar mahal (+20%): tanam pakan sendiri dan pasang cadangan pakan di tab Ternak.',
   perbaikan: 'Perbaikan sering: ganti mesin yang sudah aus atau kurangi pemakaian mesin tua.',
   semprot_hama: 'Hama: semprot segera; ladang yang dirawat (pupuk, kapur) lebih tahan.',
   penalti_kontrak: 'Denda kontrak: terima kontrak hanya jika stok bisa terpenuhi sebelum tenggat.',
@@ -113,7 +113,7 @@ export function openFinanceReport(initial) {
   });
 }
 
-/** Compact card for the Prestasi tab: last 7 days at a glance + open button. */
+/** Compact card for Prestasi › Keuangan: last 7 days at a glance + open button. */
 export function financeCard(game) {
   const r = game.financeReport('7d');
   const v = verdict(r);

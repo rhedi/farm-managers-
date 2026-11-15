@@ -1,14 +1,16 @@
-// Achievements tab: research tree, missions, achievement list, stats, event log, settings (reset).
+// Prestasi tab: 🎯 Misi (daily missions + leaderboard) | 🔬 Riset | 🏆 Prestasi (achievements, stats, log)
+// | 💰 Keuangan (report summary, loans, net worth). Settings live in the top-bar ⚙️ dialog.
 import { h, mount, fmtMoney, fmtNum, progressBar } from './dom.js';
-import { confirmModal } from './modal.js';
 import { app } from './app.js';
 import { netWorthCard } from './netWorthChart.js';
 import { financeCard } from './finance.js';
-import { sfxEnabled, setSfxEnabled, onSfxChange, sfx } from './sfx.js';
+import { loansPanel, loansSig } from './loans.js';
 import { missionsCard, leaderboardCard, missionsSig, updateMissionsCountdown } from './missions.js';
-import { installControl } from './pwa.js';
 import { researchSection, researchSig } from './research.js';
+import { subTabBar, getSub, fold } from './subtabs.js';
 
+const SUBS = ['missions', 'research', 'trophies', 'finance'];
+const NEXT_SHOWN = 5; // closest achievements shown; the rest are folded
 const LOG_ICON = {
   task_done: '✅', crop_ready: '🌾', wither: '🥀', achievement: '🏆', level_up: '⭐', weather: '🌦️',
   low_feed: '⚠️', sale: '💰', purchase: '🛒', field_bought: '📍', machine_bought: '🚜', barn: '🏗️',
@@ -25,8 +27,8 @@ function achievementCard(a) {
   const frac = Math.min(1, (a.value || 0) / target);
   return h(`div.card.achievement${a.unlocked ? '.done' : ''}`,
     h('div.card-head',
-      h('div.card-icon', a.unlocked ? '🏆' : '🔒'),
-      h('div', { style: { flex: '1', minWidth: '0' } },
+      h('div.card-icon', a.unlocked ? '🏆' : '🎖️'),
+      h('div.card-main',
         h('div.card-title', a.name),
         h('div.card-sub', a.desc)),
       h(`span.badge${a.unlocked ? '.badge-gold' : ''}`, `+${fmtMoney(a.reward)}`)),
@@ -42,28 +44,6 @@ function logList(log) {
     h('span.small.muted', { style: { whiteSpace: 'nowrap' } }, `H${e.day} ${String(e.hour).padStart(2, '0')}:00`))));
 }
 
-const sfxLabel = (on) => (on ? '🔊 Suara: aktif' : '🔇 Suara: mati');
-
-function sfxToggle() {
-  const btn = h('button.btn.btn-small', { 'aria-pressed': String(sfxEnabled()) }, sfxLabel(sfxEnabled()));
-  btn.addEventListener('click', () => { setSfxEnabled(!sfxEnabled()); sfx('coin'); });
-  const off = onSfxChange((on) => {
-    if (!btn.isConnected) { off(); return; }
-    btn.textContent = sfxLabel(on);
-    btn.setAttribute('aria-pressed', String(on));
-  });
-  return btn;
-}
-
-async function resetFlow() {
-  const ok = await confirmModal({
-    title: 'Mulai ulang permainan?',
-    message: 'Semua kemajuan (uang, ladang, mesin, ternak) akan dihapus permanen. Lanjutkan?',
-    confirmLabel: 'Hapus & mulai baru', danger: true,
-  });
-  if (ok) app.resetGame();
-}
-
 function statsCard(game) {
   const s = game.state.stats;
   const rows = [
@@ -76,40 +56,63 @@ function statsCard(game) {
   return h('div.card', h('div.kv', rows.flatMap(([k, v]) => [h('span', k), h('span.num', v)])));
 }
 
+function missionsPane(game) {
+  return [
+    h('section.section',
+      h('div.section-title', '🎯 Misi harian', h('span.small.muted', `Hari ${game.day}`)),
+      missionsCard(game)),
+    h('section.section', h('div.section-title', '🏅 Papan peringkat'), leaderboardCard(game)),
+  ];
+}
+
+function trophiesPane(game) {
+  const list = game.achievementsView();
+  const done = list.filter((a) => a.unlocked);
+  const todo = list.filter((a) => !a.unlocked)
+    .sort((a, b) => (b.value || 0) / b.condition.gte - (a.value || 0) / a.condition.gte);
+  return [
+    h('section.section',
+      h('div.section-title', '🎖️ Target berikutnya', h('span.small.muted', `${done.length}/${list.length} tercapai`)),
+      todo.length ? h('div.cards', todo.slice(0, NEXT_SHOWN).map(achievementCard)) : h('div.empty.compact', '🏆 Semua prestasi tercapai!')),
+    todo.length > NEXT_SHOWN ? fold('trophies-more', '🎖️ Target lainnya', { meta: String(todo.length - NEXT_SHOWN) },
+      h('div.cards', todo.slice(NEXT_SHOWN).map(achievementCard))) : null,
+    done.length ? fold('trophies-done', '🏆 Sudah tercapai', { meta: String(done.length) }, h('div.cards', done.map(achievementCard))) : null,
+    fold('trophies-stats', '📊 Statistik', { open: false }, statsCard(game)),
+    fold('trophies-log', '📜 Catatan kejadian', { meta: String(game.state.log.length) }, logList(game.state.log)),
+  ];
+}
+
+function financePane(game) {
+  return [
+    h('section.section', h('div.section-title', '📊 Laporan keuangan', h('span.small.muted', '7 hari terakhir')), financeCard(game)),
+    loansPanel(),
+    h('section.section', h('div.section-title', '📈 Kekayaan bersih'), netWorthCard(game)),
+  ];
+}
+
 function computeSig(game) {
   const log = game.state.log;
-  return `${game.state.achievements.length}|${log.length}|${log[log.length - 1]?.msg ?? ''}|${game.day}|${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}`;
+  return `${getSub('achievements', SUBS)}|${game.state.achievements.length}|${log.length}|${log[log.length - 1]?.msg ?? ''}|${game.day}|`
+    + `${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}|${loansSig(game)}`;
 }
 
 export function renderAchievements(root) {
   const game = app.game;
   sig = computeSig(game);
-  const list = game.achievementsView();
-  const done = list.filter((a) => a.unlocked).length;
+  const sub = getSub('achievements', SUBS);
+  const claimable = game.missionsView?.().claimable ?? 0;
+  const points = game.researchPoints?.().available ?? 0;
   mount(root,
-    researchSection(game),
-    h('section.section',
-      h('div.section-title', '🎯 Misi harian', h('span.spacer'), h('span.small.muted', `Hari ${game.day}`)),
-      missionsCard(game)),
-    h('section.section', h('div.section-title', '🏆 Papan peringkat'), leaderboardCard(game)),
-    h('section.section', h('div.section-title', '📊 Laporan Keuangan', h('span.spacer'), h('span.small.muted', '7 hari terakhir')),
-      financeCard(game)),
-    h('section.section',
-      h('div.section-title', '🏆 Prestasi', h('span.spacer'), h('span.small.muted', `${done}/${list.length}`)),
-      h('div.cards', [...list].sort((a, b) => Number(b.unlocked) - Number(a.unlocked)).map(achievementCard))),
-    h('section.section', h('div.section-title', '📈 Kekayaan'), netWorthCard(game)),
-    h('section.section', h('div.section-title', '📊 Statistik'), statsCard(game)),
-    h('section.section', h('div.section-title', '📜 Catatan kejadian'), logList(game.state.log)),
-    h('section.section',
-      h('div.section-title', '⚙️ Pengaturan'),
-      h('div.card',
-        h('p.small.muted', 'Permainan tersimpan otomatis di peramban ini setiap 10 detik.'),
-        installControl(),
-        h('div.card-actions',
-          sfxToggle(),
-          h('button.btn.btn-small.btn-secondary', { onclick: () => app.saveNow(true) }, '💾 Simpan sekarang'),
-          h('span.spacer'),
-          h('button.btn.btn-small.btn-danger', { onclick: resetFlow }, '🗑️ Reset game')))));
+    subTabBar('achievements', [
+      { id: 'missions', icon: '🎯', label: 'Misi', badge: claimable || null },
+      { id: 'research', icon: '🔬', label: 'Riset', badge: points || null },
+      { id: 'trophies', icon: '🏆', label: 'Prestasi' },
+      { id: 'finance', icon: '💰', label: 'Keuangan' },
+    ], sub),
+    sub === 'missions' ? missionsPane(game)
+      : sub === 'research' ? researchSection(game)
+        : sub === 'trophies' ? trophiesPane(game)
+          : financePane(game));
 }
 
 export function updateAchievements(root) {
