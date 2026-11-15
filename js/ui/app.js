@@ -9,6 +9,8 @@ export const app = {
   resetGame: () => {},
   /** Save immediately (main.js wires this). */
   saveNow: () => {},
+  /** Switch the bottom-nav tab (main.js wires this). */
+  setTab: () => {},
 };
 
 /**

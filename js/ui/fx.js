@@ -34,8 +34,11 @@ export function floatText(anchor, text, kind = '') {
   setTimeout(() => el.remove(), 2000);
 }
 
+/** Lowest edge of the top chrome (top bar, sticky sub-tab bar, visible toasts) so floats never cover their buttons. */
 function belowChrome() {
   let y = document.getElementById('topbar')?.getBoundingClientRect().bottom ?? 0;
+  const sub = document.querySelector('#view .subtabs')?.getBoundingClientRect();
+  if (sub?.height && sub.top <= y + 1) y = Math.max(y, sub.bottom);
   for (const t of document.querySelectorAll('#toast-root .toast:not(.leaving)')) y = Math.max(y, t.getBoundingClientRect().bottom);
   return y + 6;
 }

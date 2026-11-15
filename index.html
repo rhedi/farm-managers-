@@ -23,17 +23,15 @@
   <link rel="stylesheet" href="css/finance.css">
   <link rel="stylesheet" href="css/logistics.css">
   <link rel="stylesheet" href="css/orchard.css">
+  <link rel="stylesheet" href="css/layout.css">
 </head>
 <body>
   <header id="topbar">
     <div class="topbar-row">
       <div class="stat stat-money" title="Uang — ketuk untuk laporan keuangan">💰 <span id="money">0</span></div>
       <div class="stat stat-level" title="Level">
-        <span class="lv">⭐ Lv <span id="level">1</span></span>
-        <div class="xp-wrap">
-          <div class="progress progress-xp"><div class="bar" id="xpbar" style="width:0%"></div></div>
-          <span class="xp-text" id="xptext"></span>
-        </div>
+        <div class="lv-row"><span class="lv">⭐ <span class="lv-word">Lv </span><span id="level">1</span></span><span class="xp-text" id="xptext"></span></div>
+        <div class="progress progress-xp"><div class="bar" id="xpbar" style="width:0%"></div></div>
       </div>
       <div class="stat stat-weather" id="weather" title="Cuaca"><span id="weather-now">☀️</span><span class="season-chip" id="season-chip"></span></div>
     </div>
@@ -45,7 +43,7 @@
         <button class="speed-btn" id="speed-2" data-speed="2" title="Cepat">2×</button>
         <button class="speed-btn" id="speed-5" data-speed="5" title="Sangat cepat">5×</button>
       </div>
-      <button class="sfx-btn" id="sfx-toggle" type="button" title="Suara aktif" aria-label="Suara" aria-pressed="true">🔊</button>
+      <button class="top-btn" id="settings-btn" type="button" title="Pengaturan" aria-label="Pengaturan">⚙️</button>
     </div>
   </header>
 

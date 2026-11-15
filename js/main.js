@@ -18,7 +18,7 @@ import { notifyEvent } from './ui/notify.js';
 import { backupSave, loadTab, saveTab, trackTopbarHeight } from './ui/shell.js';
 import { feedbackEvent, initClickSounds } from './ui/feedback.js';
 import { tickMoneyFx, resetMoneyFx } from './ui/fx.js';
-import { sfxEnabled, setSfxEnabled, onSfxChange } from './ui/sfx.js';
+import { openSettings } from './ui/settings.js';
 import { initPwa } from './ui/pwa.js';
 
 const VIEWS = {
@@ -148,6 +148,7 @@ app.requestRender = () => {
   renderView();
 };
 app.saveNow = save;
+app.setTab = setTab;
 app.resetGame = () => {
   closeModal();
   try { storage?.removeItem(SAVE_KEY); } catch { /* ignore */ }
@@ -175,16 +176,7 @@ document.addEventListener('visibilitychange', () => {
 trackTopbarHeight();
 initClickSounds();
 initPwa();
-const sfxBtn = document.getElementById('sfx-toggle');
-const syncSfxBtn = (on) => {
-  if (!sfxBtn) return;
-  sfxBtn.textContent = on ? '🔊' : '🔇';
-  sfxBtn.title = on ? 'Suara aktif' : 'Suara mati';
-  sfxBtn.setAttribute('aria-pressed', String(on));
-};
-sfxBtn?.addEventListener('click', () => setSfxEnabled(!sfxEnabled()));
-onSfxChange(syncSfxBtn);
-syncSfxBtn(sfxEnabled());
+document.getElementById('settings-btn')?.addEventListener('click', openSettings);
 window.addEventListener('pagehide', () => save());
 setInterval(() => save(), AUTOSAVE_MS);
 Object.defineProperty(window, '__game', { get: () => app.game, configurable: true });

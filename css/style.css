@@ -6,12 +6,13 @@
   --surface-2: #f3f1e4;
   --ink: #2a2a1f;
   --ink-soft: #5d5a48;
-  --ink-mute: #8a8672;
+  --ink-mute: #6f6b58; /* ≥ 4.6:1 on --bg and --surface */
   --line: #d8d4bd;
+  --line-strong: #c4bea0;
   --header: #24301f;
   --header-2: #33432b;
-  --green: #4f8a2e;
-  --green-d: #3c6d21;
+  --green: #477f28; /* white text ≥ 4.8:1 */
+  --green-d: #3a6a1f;
   --green-l: #d7ebc4;
   --brown: #8a5a2b;
   --brown-d: #6b431d;
@@ -49,7 +50,7 @@ h3 { font-size: 1.05rem; }
 p { margin: 0 0 .6em; }
 button { font: inherit; color: inherit; }
 .muted { color: var(--ink-mute); }
-.small { font-size: .85em; }
+.small { font-size: .875em; }
 .num { font-variant-numeric: tabular-nums; }
 .pos { color: var(--green-d); }
 .neg { color: var(--red); }
@@ -58,15 +59,15 @@ button { font: inherit; color: inherit; }
 .spacer { flex: 1; }
 .hidden { display: none !important; }
 
-/* ---------- Top bar ---------- */
+/* ---------- Top bar: money · level/XP · weather / clock · speed · settings ---------- */
 #topbar {
   position: sticky;
   top: 0;
   z-index: 30;
   background: linear-gradient(180deg, var(--header-2), var(--header));
   color: #f2f0df;
-  padding: 8px 12px 6px;
-  padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  padding: 6px 12px;
+  padding-top: calc(6px + env(safe-area-inset-top, 0px));
   box-shadow: 0 2px 10px rgba(0, 0, 0, .25);
 }
 .topbar-row {
@@ -76,28 +77,41 @@ button { font: inherit; color: inherit; }
   align-items: center;
   gap: 10px;
 }
-.topbar-row + .topbar-row { margin-top: 6px; }
-.stat { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.stat-money { font-size: 1.05rem; color: #ffe08a; }
-.stat-level { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: .9rem; }
-.progress-xp { flex: 1; max-width: 160px; height: 8px; background: rgba(255, 255, 255, .15); }
+.topbar-row + .topbar-row { margin-top: 4px; }
+.stat { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stat-money { flex: none; font-size: 1.1rem; color: #ffe08a; padding: 4px 6px; margin-left: -6px; }
+.stat-level { flex: 1 1 auto; min-width: 0; max-width: 260px; display: flex; flex-direction: column; gap: 3px; font-size: .95rem; padding: 2px 0; }
+.lv-row { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; min-width: 0; }
+.stat-level .lv { flex: none; }
+.progress-xp { width: 100%; height: 8px; background: rgba(255, 255, 255, .15); }
 .progress-xp > .bar { background: linear-gradient(90deg, #ffd34d, #ffb321); }
-.stat-weather { font-size: .9rem; }
-.stat-clock { flex: 1; font-size: .85rem; color: #cfd6bd; font-weight: 500; }
-.speed-group { display: flex; background: rgba(0, 0, 0, .25); border-radius: 999px; padding: 2px; }
+.xp-text { min-width: 0; font-size: .72rem; font-weight: 600; line-height: 1; color: #e9e3c2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-weather { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.1; font-size: .95rem; }
+#topbar .season-chip {
+  font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.35;
+  padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #e9e3c2;
+}
+#topbar .season-chip[hidden] { display: none; }
+.stat-clock { flex: 1; min-width: 0; font-size: .9rem; color: #dfe5cd; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.speed-group { flex: none; display: flex; gap: 2px; background: rgba(0, 0, 0, .28); border-radius: 999px; padding: 3px; }
 .speed-btn {
   border: 0;
   background: transparent;
   color: #dfe5cd;
-  min-width: 38px;
-  height: 28px;
+  min-width: 44px;
+  height: 36px;
   border-radius: 999px;
-  font-size: .85rem;
-  font-weight: 700;
+  font-size: .95rem;
+  font-weight: 800;
   cursor: pointer;
 }
 .speed-btn:hover { background: rgba(255, 255, 255, .08); }
 .speed-btn.active { background: var(--wheat); color: #2b2410; }
+.top-btn {
+  flex: none; width: 42px; height: 42px; border: 0; border-radius: 50%;
+  background: rgba(0, 0, 0, .28); color: inherit; font-size: 1.15rem; cursor: pointer;
+}
+.top-btn:focus-visible { outline: 3px solid rgba(226, 183, 67, .7); outline-offset: 2px; }
 
 /* ---------- Main view ---------- */
 #view {
@@ -135,6 +149,7 @@ button { font: inherit; color: inherit; }
 .card.clickable:active { transform: scale(.985); }
 .card.locked { opacity: .6; filter: grayscale(.5); }
 .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.card-main { flex: 1; min-width: 0; }
 .card-icon {
   flex: none;
   width: 44px;
@@ -146,7 +161,7 @@ button { font: inherit; color: inherit; }
   background: var(--surface-2);
 }
 .card-title { font-weight: 700; font-size: 1rem; }
-.card-sub { color: var(--ink-mute); font-size: .82rem; }
+.card-sub { color: var(--ink-mute); font-size: .875rem; }
 .card-body { font-size: .9rem; color: var(--ink-soft); }
 .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: .88rem; }
@@ -159,7 +174,7 @@ button { font: inherit; color: inherit; }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 8px 14px;
   border-radius: var(--radius-s);
   border: 1px solid var(--line);
@@ -176,11 +191,14 @@ button { font: inherit; color: inherit; }
 .btn:focus-visible, .tab:focus-visible, .speed-btn:focus-visible { outline: 3px solid rgba(226, 183, 67, .7); outline-offset: 2px; }
 .btn-primary { background: var(--green); border-color: var(--green-d); color: #fff; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .15); }
 .btn-primary:hover { background: var(--green-d); }
-.btn-secondary { background: var(--brown); border-color: var(--brown-d); color: #fff; }
-.btn-secondary:hover { background: var(--brown-d); }
-.btn-danger { background: var(--red); border-color: var(--red-d); color: #fff; }
-.btn-danger:hover { background: var(--red-d); }
-.btn-small { min-height: 32px; padding: 4px 10px; font-size: .82rem; }
+/* One filled colour per screen: primary is green; secondary and danger are outlined (danger is filled only in confirmations). */
+.btn-secondary { background: var(--surface); border-color: var(--line-strong); color: var(--ink); }
+.btn-secondary:hover { background: var(--surface-2); }
+.btn-danger { background: var(--surface); border-color: #e0b4aa; color: var(--red-d); }
+.btn-danger:hover { background: #fbeae6; }
+.modal-actions .btn-danger, .btn-danger.btn-solid { background: var(--red); border-color: var(--red-d); color: #fff; }
+.btn-danger.btn-solid:hover { background: var(--red-d); }
+.btn-small { min-height: 44px; padding: 6px 12px; font-size: .875rem; }
 .btn-block { width: 100%; }
 .btn[disabled], .btn:disabled {
   opacity: .45;
@@ -197,7 +215,7 @@ button { font: inherit; color: inherit; }
   gap: 4px;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: .74rem;
+  font-size: .78rem;
   font-weight: 700;
   line-height: 1.5;
   background: var(--bg-2);
@@ -300,18 +318,13 @@ button { font: inherit; color: inherit; }
 
 /* ---------- Field states ---------- */
 .field-card { border-left: 6px solid #b8b49c; }
-.field-state { display: inline-flex; align-items: center; gap: 4px; }
 .st-idle { --st: #a7a38c; }
 .st-plowed { --st: #8a5a2b; }
-.st-fertilized { --st: #6c4a8e; }
-.st-seeded { --st: #b88a3a; }
 .st-growing { --st: #4f8a2e; }
 .st-ready { --st: #e2b743; }
 .st-busy { --st: #4b8fc4; }
-.field-card.st-idle, .field-card.st-plowed, .field-card.st-fertilized, .field-card.st-seeded,
-.field-card.st-growing, .field-card.st-ready, .field-card.st-busy { border-left-color: var(--st); }
-.badge.st-idle, .badge.st-plowed, .badge.st-fertilized, .badge.st-seeded,
-.badge.st-growing, .badge.st-ready, .badge.st-busy {
+.field-card.st-idle, .field-card.st-plowed, .field-card.st-growing, .field-card.st-ready, .field-card.st-busy { border-left-color: var(--st); }
+.badge.st-idle, .badge.st-plowed, .badge.st-growing, .badge.st-ready, .badge.st-busy {
   background: color-mix(in srgb, var(--st) 18%, white);
   color: color-mix(in srgb, var(--st) 75%, black);
 }
@@ -321,27 +334,16 @@ button { font: inherit; color: inherit; }
   margin: 6px 0 8px;
   background: #c9c4a8;
 }
-.field-plot.st-plowed { background: repeating-linear-gradient(90deg, #7a4f26 0 6px, #94653a 6px 12px); }
-.field-plot.st-fertilized { background: repeating-linear-gradient(90deg, #6d4623 0 6px, #8a5d33 6px 12px), #6d4623; box-shadow: inset 0 0 0 999px rgba(108, 74, 142, .12); }
-.field-plot.st-seeded { background: repeating-linear-gradient(90deg, #7a4f26 0 6px, #94653a 6px 9px, #8fb35a 9px 12px); }
-.field-plot.st-growing { background: repeating-linear-gradient(90deg, #5d9a35 0 6px, #78b24a 6px 12px); }
-.field-plot.st-ready { background: repeating-linear-gradient(90deg, #d7a92f 0 6px, #ecc65a 6px 12px); }
-.field-plot.st-busy { background: repeating-linear-gradient(135deg, #8a5a2b 0 10px, #9f6d3c 10px 20px); animation: busy-stripes 1s linear infinite; background-size: 28px 28px; }
-@keyframes busy-stripes { to { background-position: 28px 0; } }
 
 /* ---------- Tables / lists ---------- */
 .list { display: flex; flex-direction: column; gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .list-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--line); }
 .list-item:first-child { border-top: 0; }
-.table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-.table th, .table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; }
-.table th { color: var(--ink-mute); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
-.table td.num, .table th.num { text-align: right; }
 
 /* ---------- Forms ---------- */
 input[type="number"], input[type="text"], select {
   font: inherit;
-  min-height: 40px;
+  min-height: 44px;
   padding: 6px 10px;
   border-radius: var(--radius-s);
   border: 1px solid var(--line);
@@ -440,6 +442,8 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
   animation: toast-in .2s ease;
 }
 /* With a modal open, toasts sit over the dimmed topbar so they never cover the sheet header/✕. */
+/* Below the sticky sub-tab bar, so a toast's ✕ never sits on a sub-tab. */
+body:not(.modal-open):has(#view .subtabs) #toast-root { top: calc(var(--top-h, 84px) + 66px); }
 body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
 .toast-msg { flex: 1; min-width: 0; }
 .toast .btn { pointer-events: auto; flex: none; }
@@ -487,35 +491,19 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   color: var(--ink-mute);
   cursor: pointer;
   position: relative;
   padding: 4px 0;
 }
-.tab-icon { font-size: 1.35rem; line-height: 1; transition: transform .15s; }
-.tab-label { font-size: .68rem; font-weight: 700; letter-spacing: .01em; }
+.tab-icon {
+  display: grid; place-items: center; width: 54px; height: 30px; border-radius: 999px;
+  font-size: 1.3rem; line-height: 1; transition: background .15s;
+}
+.tab-label { font-size: .72rem; font-weight: 700; letter-spacing: .01em; }
 .tab.active { color: var(--green-d); }
-.tab.active .tab-icon { transform: translateY(-2px) scale(1.1); }
-.tab.active::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 25%;
-  right: 25%;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: var(--green);
-}
-.tab .dot {
-  position: absolute;
-  top: 6px;
-  right: calc(50% - 18px);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--red);
-}
+.tab.active .tab-icon { background: var(--green-l); box-shadow: inset 0 0 0 1px rgba(58, 106, 31, .25); }
 
 /* ---------- Misc ---------- */
 .empty {
@@ -543,27 +531,29 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
   body { font-size: 16px; }
   #view { padding: 18px 16px 24px; }
   .cards { grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .cards.cols-2 { grid-template-columns: repeat(2, 1fr); }
   .map { aspect-ratio: 16 / 9; }
   .map-pin { min-width: 40px; height: 40px; font-size: .85rem; }
   .tab-label { font-size: .75rem; }
 }
 @media (max-width: 380px) {
   body { font-size: 14px; }
-  .speed-btn { min-width: 32px; }
-  .tab-label { font-size: .62rem; }
+  .speed-btn { min-width: 40px; }
+  .stat-clock { font-size: .82rem; }
+  .top-btn { width: 38px; height: 38px; }
+  .tab-label { font-size: .68rem; }
+  .stat-money { font-size: 1rem; }
+  .lv-word { display: none; }
   .card { padding: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
-/* ---------- Shell: XP text, tab badges ---------- */
-.xp-text { font-size: .75rem; font-weight: 600; color: #e9e3c2; white-space: nowrap; }
+/* ---------- Shell: tab badges ---------- */
 .tab-badge {
   position: absolute;
-  top: 4px;
-  left: calc(50% + 8px);
+  top: 2px;
+  left: calc(50% + 10px);
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -617,24 +607,3 @@ body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; }
 .legend-dot.nw { background: #3f7d2a; }
 .legend-dot.cash { background: #e2b743; }
-
-/* ---------- Desktop: two-column farm (map sticky left, cards right) ---------- */
-@media (min-width: 1000px) {
-  :root { --wrap: 1240px; }
-  #view[data-tab="farm"] {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    column-gap: 18px;
-    align-items: start;
-  }
-  #view[data-tab="farm"] > * { grid-column: 2; }
-  #view[data-tab="farm"] > .section:has(.map) {
-    grid-column: 1;
-    grid-row: 1 / span 20;
-    position: sticky;
-    top: calc(var(--top-h, 84px) + 12px);
-  }
-  #view[data-tab="farm"] .map { width: min(100%, calc(60vh * 16 / 9)); margin: 0 auto; }
-  #view[data-tab="farm"] > :not(:has(.map)) .cards { grid-template-columns: minmax(0, 1fr); }
-  #coach { padding: 18px 16px 0; }
-}

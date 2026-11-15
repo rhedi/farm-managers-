@@ -1,5 +1,6 @@
-// Top bar: money (tap → Laporan Keuangan), level/XP (tap → 🔬 Riset), clock, season + weather (tap → forecast). Cheap: textContent / style only.
-import { fmtMoney, fmtClock, weatherEmoji, fmtNum } from './dom.js';
+// Top bar: money (tap → Laporan Keuangan), level/XP (tap → 🔬 Riset), clock, season + weather (tap → forecast).
+// Research points are announced by the Prestasi tab badge. Cheap: textContent / style only.
+import { fmtMoney, fmtClock, weatherEmoji, fmtNum, fmtCompact } from './dom.js';
 import { openForecastModal } from './forecast.js';
 import { openFinanceReport } from './finance.js';
 import { openResearchModal } from './research.js';
@@ -54,9 +55,7 @@ export function initTopbar(game, onSpeed) {
     levelStat.classList.add('level-tap');
     levelStat.addEventListener('click', () => openResearchModal());
     levelStat.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openResearchModal(); } });
-    els.rsDot = levelStat.appendChild(Object.assign(document.createElement('span'), { className: 'rs-dot', hidden: true }));
   }
-  els.rsDot ??= levelStat?.querySelector('.rs-dot');
   for (const k of Object.keys(last)) delete last[k];
   updateTopbar(game);
 }
@@ -74,9 +73,8 @@ export function updateTopbar(game) {
   const xpTitle = li.maxed ? `XP ${fmtNum(li.xp)} (maks)` : `XP ${fmtNum(li.xp)} / ${fmtNum(li.next)}`;
   const pts = game.researchPoints?.().available ?? 0;
   const lvlTitle = `${xpTitle}\n${pts > 0 ? `🔬 ${pts} poin riset tersedia — ` : ''}Ketuk untuk riset.`;
-  if (last.xpTitle !== lvlTitle) { last.xpTitle = lvlTitle; els.level.parentElement.parentElement.title = lvlTitle; }
-  if (els.rsDot && last.rsDot !== pts) { last.rsDot = pts; els.rsDot.hidden = pts <= 0; els.rsDot.textContent = `🔬${pts}`; }
-  if (els.xptext) setText(els.xptext, 'xpText', li.maxed ? 'MAKS' : `${fmtNum(li.xp)}/${fmtNum(li.next)}`);
+  if (last.xpTitle !== lvlTitle) { last.xpTitle = lvlTitle; els.level.closest('.stat-level').title = lvlTitle; }
+  if (els.xptext) setText(els.xptext, 'xpText', li.maxed ? 'XP MAKS' : `${fmtCompact(li.xp)}/${fmtCompact(li.next)}`.replace(/ /g, ''));
   const c = game.clock();
   setText(els.clock, 'clock', fmtClock(c.day, c.hour));
   if (last.speed !== c.speed) {

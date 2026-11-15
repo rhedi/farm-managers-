@@ -47,10 +47,11 @@ export function onboardingEvent(ev) {
 
 function dismiss() { tut.dismissed = true; persist(); render('farm', true); }
 
-/** Mark buttons in the view whose label matches the current step. */
+/** Mark buttons in the view whose label matches the current step ('tab:<id>' marks a bottom-nav tab). */
 function markTargets(label) {
   for (const b of document.querySelectorAll('.coach-target')) b.classList.remove('coach-target');
   if (!label) return;
+  if (label.startsWith('tab:')) { document.querySelector(`#tabs .tab[data-tab="${label.slice(4)}"]`)?.classList.add('coach-target'); return; }
   for (const b of document.querySelectorAll('#view button, #topbar .speed-btn')) {
     const t = b.textContent.trim();
     if (label === '5×' ? b.dataset.speed === '5' : t.includes(label) && t.length < 40) b.classList.add('coach-target');
@@ -83,7 +84,7 @@ export function updateOnboarding(game, tab) {
   let target = null;
   if (!tut.dismissed && tut.step < STEPS.length) {
     if (tut.step === 3) target = '5×';
-    else if (tut.step === 5) target = tab === 'silo' || tab === 'market' ? 'Jual' : null;
+    else if (tut.step === 5) target = tab === 'silo' || tab === 'market' ? 'Jual' : 'tab:silo';
     else if (tab === 'farm') target = STEPS[tut.step].label;
   }
   markTargets(target);

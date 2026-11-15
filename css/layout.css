@@ -1,0 +1,199 @@
+/* v9 layout: sub-tab bar, collapsible sections, compact rows, stock groups, wide/landscape layouts. Linked last. */
+
+/* ---------- Sub-tabs (sticky under the top bar) ---------- */
+.subtabs {
+  position: sticky;
+  top: var(--top-h, 90px);
+  z-index: 20;
+  display: flex;
+  gap: 4px;
+  margin: -12px -12px 12px;
+  padding: 6px 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 4px 10px -8px rgba(40, 35, 15, .35);
+}
+.subtab {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+}
+.subtab:hover { background: var(--bg-2); }
+.subtab.active { background: var(--header-2); color: #fff; box-shadow: 0 2px 6px rgba(36, 48, 31, .3); }
+.subtab-icon { font-size: 1.15rem; line-height: 1.15; }
+.subtab-label { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.subtab-badge {
+  position: absolute; top: 2px; left: calc(50% + 8px);
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--green); color: #fff; font-size: .7rem; line-height: 18px; text-align: center;
+}
+.subtab-badge.warn { background: var(--red); }
+.subtab:focus-visible { outline: 3px solid rgba(226, 183, 67, .7); outline-offset: 1px; }
+
+/* ---------- Filter chips (inside a sub-tab) ---------- */
+.chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -12px 12px; padding: 2px 12px; scrollbar-width: none; }
+.chip {
+  flex: none; min-height: 44px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--ink-soft); font-weight: 700; font-size: .875rem; cursor: pointer; white-space: nowrap;
+}
+.chip.active { background: var(--green); border-color: var(--green-d); color: #fff; }
+.chip-count { margin-left: 6px; font-size: .78rem; opacity: .85; }
+
+/* ---------- Collapsible sections ---------- */
+.fold { margin-bottom: 16px; }
+.fold > summary {
+  display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0 2px 6px;
+  font-size: 1.05rem; font-weight: 700; cursor: pointer; list-style: none; user-select: none;
+}
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::after {
+  content: "▾"; flex: none; width: 28px; height: 28px; display: grid; place-items: center; margin-left: 2px;
+  border-radius: 50%; background: var(--bg-2); color: var(--ink-soft); font-size: .85rem; transition: transform .15s;
+}
+.fold:not([open]) > summary::after { transform: rotate(-90deg); }
+.fold-title { flex: 1; min-width: 0; }
+.fold-meta { flex: none; color: var(--ink-mute); font-size: .875rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fold-body > * + * { margin-top: 10px; }
+.fold.boxed > .fold-body { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; }
+
+.count-chip {
+  display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px;
+  background: var(--bg-2); color: var(--ink-soft); font-size: .8rem; font-weight: 800;
+}
+.count-chip.hot { background: var(--wheat); color: #3a2d05; }
+.section-title > .count-chip { margin-right: auto; }
+.more-btn { margin-top: 8px; }
+.hint { color: var(--ink-mute); font-size: .875rem; margin: -4px 2px 10px; }
+
+/* ---------- Ladang ---------- */
+.field-card .plot { height: 40px; margin: 0 0 8px; }
+.fc-status { display: grid; gap: 4px; }
+.fc-status-text { font-size: .875rem; color: var(--ink-soft); font-weight: 600; }
+.field-card .card-actions { margin-top: 10px; }
+.field-card .card-actions .btn-primary { flex: 1 1 auto; }
+.buy-row {
+  width: 100%; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; cursor: pointer; min-height: 56px;
+}
+.buy-row:hover { background: var(--surface-2); }
+.buy-row-icon { font-size: 1.3rem; flex: none; }
+.buy-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.buy-row-price { flex: none; font-weight: 800; }
+.map-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 2px 0; font-size: .875rem; color: var(--ink-soft); }
+.map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.lg { width: 14px; height: 14px; border-radius: 4px; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .2); }
+.lg-owned { background: var(--green); }
+.lg-sale { background: #fff8e6; border: 2px dashed var(--brown); }
+.lg-lock { background: rgba(70, 70, 60, .55); border-style: dotted; }
+
+/* ---------- Stock lists (Gudang groups, Pasar › Jual) ---------- */
+.stock-summary {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; padding: 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.stock-summary-main { flex: 1 1 12em; min-width: 0; }
+.stock-summary-value { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stock-summary .progress { margin: 6px 0 4px; }
+.store-note { display: flex; align-items: center; gap: 8px; font-size: .875rem; color: var(--ink-soft); }
+.stock-list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.stock-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--line); min-height: 60px; }
+.stock-row:first-child { border-top: 0; }
+.stock-emoji { flex: none; width: 36px; height: 36px; display: grid; place-items: center; font-size: 1.35rem; border-radius: 10px; background: var(--surface-2); }
+.stock-main { flex: 1; min-width: 0; }
+.stock-name { font-weight: 700; overflow-wrap: anywhere; }
+.stock-meta { font-size: .875rem; color: var(--ink-mute); }
+.stock-meta > span { white-space: nowrap; }
+.stock-side { flex: none; display: flex; align-items: center; gap: 8px; }
+.stock-value { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.stock-tag { font-size: .75rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--bg-2); color: var(--ink-soft); white-space: nowrap; }
+.empty.compact { padding: 18px 12px; }
+.link-card {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit;
+  padding: 12px; margin-bottom: 14px; border-radius: var(--radius); border: 1px solid #c9dcb5; background: #eef6e4; box-shadow: var(--shadow);
+}
+.link-card:hover { background: #e5f1d8; }
+.link-card-icon { font-size: 1.5rem; flex: none; }
+.link-card-main { flex: 1; min-width: 0; }
+.link-card-go { flex: none; font-weight: 800; color: var(--green-d); white-space: nowrap; }
+
+/* ---------- Settings ---------- */
+.settings-list { display: grid; gap: 8px; margin-bottom: 10px; }
+.settings-list .pwa-install .btn { width: 100%; }
+.settings-danger { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+
+/* ---------- Wide screens: Ladang shows the field list and the map side by side ---------- */
+@media (min-width: 1000px) {
+  :root { --wrap: 1240px; }
+  #view[data-tab="farm"] > .subtabs { display: none; }
+  #view[data-tab="farm"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    column-gap: 18px;
+    align-items: start;
+  }
+  #view[data-tab="farm"] > .pane[hidden] { display: block; }
+  #view[data-tab="farm"] > .pane-map { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--top-h, 90px) + 12px); }
+  #view[data-tab="farm"] > .pane-fields { grid-column: 1; grid-row: 1; }
+  #view[data-tab="farm"] .map { width: min(100%, calc(60vh * 16 / 9)); margin: 0 auto; }
+  #view[data-tab="farm"] .pane-fields .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #coach { padding: 18px 16px 0; }
+}
+
+/* ---------- Phone in landscape: one-row top bar, slimmer nav ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  :root { --nav-h: 50px; }
+  #topbar { display: flex; align-items: center; gap: 14px; padding-top: calc(4px + env(safe-area-inset-top, 0px)); padding-bottom: 4px; }
+  .topbar-row { flex: 1 1 auto; margin: 0; }
+  .topbar-row + .topbar-row { margin-top: 0; flex: 0 1 auto; }
+  .stat-clock { flex: 0 1 auto; }
+  .tab { flex-direction: row; gap: 6px; }
+  .tab-icon { width: 40px; height: 30px; }
+  .subtabs { padding-top: 4px; padding-bottom: 4px; }
+  .subtab { flex-direction: row; gap: 6px; min-height: 40px; }
+  .subtab-badge { position: static; }
+}
+
+/* ---------- Pasar › Jual: expandable stock rows ---------- */
+.stock-detail { border-top: 1px solid var(--line); }
+.stock-detail:first-child { border-top: 0; }
+.stock-detail > summary { list-style: none; cursor: pointer; }
+.stock-detail > summary::-webkit-details-marker { display: none; }
+.stock-detail[open] > summary { background: var(--surface-2); }
+.stock-detail .stock-row { border-top: 0; }
+.stock-detail-body { padding: 4px 12px 12px 58px; display: grid; gap: 6px; }
+.stock-name .stock-tag { margin-left: 6px; vertical-align: 2px; }
+.trend { font-size: .8rem; font-weight: 700; white-space: nowrap; }
+
+/* ---------- Ternak ---------- */
+.herd-feedline { font-weight: 600; margin-bottom: 6px; }
+.herd-feedline.neg { color: var(--red-d); }
+.herd-meters { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+.herd-meter .small { display: flex; justify-content: space-between; margin-bottom: 2px; }
+.herd-card.herd-hungry { border-color: #e0b4aa; box-shadow: inset 4px 0 0 var(--red), var(--shadow); }
+.herd-start { align-items: flex-start; }
+.herd-start .card-actions { margin-top: 6px; }
+.list-item.locked { opacity: .7; }
+
+/* ---------- Folds inside dialogs (field detail) ---------- */
+.modal .fold { margin: 0; }
+.modal .fold:not(.orchard-section):not(.gh-section):not(.plan-section) { border-top: 1px solid var(--line); }
+.modal .fold > summary { margin: 0; min-height: 48px; font-size: .98rem; }
+.modal .fold > .fold-body { padding-bottom: 10px; }
+.modal .fold.orchard-section, .modal .fold.gh-section, .modal .fold.plan-section { margin: 10px 0; padding-top: 2px; padding-bottom: 2px; }
+.modal .kv + .fold { margin-top: 10px; }
+.rs-branches .fold { margin-bottom: 0; }
+.rs-branches .fold > .fold-body { margin-top: 0; }
+#tabs .tab.coach-target::after { right: auto; left: calc(50% + 14px); bottom: auto; top: -14px; }

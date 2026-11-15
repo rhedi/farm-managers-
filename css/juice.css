@@ -117,39 +117,46 @@
 @keyframes drift { from { left: -40%; } to { left: 110%; } }
 @keyframes pin-bob { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -58%); } }
 
-/* ---------- Events banner ---------- */
+/* ---------- Events banner (Ladangku) ---------- */
 .events-banner {
-  margin-bottom: 16px; padding: 8px 12px; border-radius: var(--radius);
+  margin-bottom: 14px; padding: 6px 12px; border-radius: var(--radius);
   background: linear-gradient(135deg, #fff5d8, #fde3c0); border: 1px solid #e6c48a; box-shadow: var(--shadow);
   animation: slide-up .35s ease-out;
 }
 .events-banner[hidden] { display: none; }
-.events-title { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--brown); }
-.event-item { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; row-gap: 6px; padding: 7px 0; border-top: 1px dashed rgba(138, 90, 43, .3); }
+.events-title {
+  display: flex; align-items: center; gap: 8px; min-height: 36px; cursor: pointer; list-style: none;
+  font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--brown-d);
+}
+.events-title::-webkit-details-marker { display: none; }
+.events-title::after { content: "▾"; margin-left: auto; font-size: .9rem; }
+.events-banner:not([open]) .events-title::after { content: "▸"; }
+.events-alert { padding: 1px 8px; border-radius: 999px; background: #f6d6cf; color: var(--red-d); letter-spacing: 0; text-transform: none; }
+.event-item { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 10px; padding: 6px 0; border-top: 1px dashed rgba(138, 90, 43, .3); }
 .events-title + .event-item { border-top: 0; }
-.event-emoji { font-size: 1.6rem; line-height: 1; animation: sway 2.6s ease-in-out infinite; }
+.event-emoji { font-size: 1.4rem; line-height: 1; animation: sway 2.6s ease-in-out infinite; }
 .event-text { min-width: 0; }
-.event-actions { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.event-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event-desc { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.event-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
 .event-actions:empty { display: none; }
 .event-name { font-weight: 700; font-size: .92rem; }
-.event-left { background: rgba(255, 255, 255, .7); color: var(--brown-d); }
+.event-left { color: var(--brown-d); }
 
-/* ---------- Floating feedback, confetti, sound button ---------- */
+/* ---------- Floating feedback, confetti ---------- */
 #fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
 .fx-float {
   position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font-weight: 800; color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, .45); animation: float-up 1.3s ease-out forwards;
 }
 .fx-float.harvest { padding: 2px 10px; border-radius: 999px; background: rgba(60, 109, 33, .92); font-size: .9rem; animation-name: float-plot; }
-.fx-float.top { animation-name: float-below; font-size: .75rem; padding: 2px 8px; border-radius: 999px; background: rgba(28, 38, 24, .92); box-shadow: 0 2px 8px rgba(0, 0, 0, .3); }
+.fx-float.top { animation-name: float-below; font-size: .85rem; padding: 2px 8px; border-radius: 999px; background: rgba(28, 38, 24, .92); box-shadow: 0 2px 8px rgba(0, 0, 0, .3); }
 .fx-float.gain { color: #ffe08a; }
 .fx-float.loss { color: #ffb4a6; font-size: .8rem; }
 .fx-float.xp { color: #bfe6ff; font-size: .8rem; }
 .fx-confetti { position: absolute; width: 0; height: 0; }
 .fx-confetti i { position: absolute; left: -5px; top: -7px; width: 9px; height: 13px; animation: confetti var(--d, .9s) cubic-bezier(.15, .7, .35, 1) forwards; }
 .stat-money.fx-bump { animation: bump .45s ease-out; }
-.sfx-btn { border: 0; border-radius: 999px; min-width: 36px; height: 32px; background: rgba(0, 0, 0, .25); color: inherit; cursor: pointer; font-size: 1rem; }
-.sfx-btn[aria-pressed="false"] { opacity: .7; }
 
 @keyframes float-up { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.7); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -260%); } }
 @keyframes float-below { 0% { opacity: 0; transform: translate(-50%, -6px) scale(.8); } 15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 10px); } }
@@ -160,31 +167,3 @@
   100% { transform: translate(calc(var(--dx) * 1.15), calc(var(--dy) + 150px)) rotate(var(--r)); opacity: 0; }
 }
 @keyframes bump { 40% { transform: scale(1.15); } }
-
-/* ---------- Topbar row 1: money · level + XP bar (text under bar) · weather + season chip ---------- */
-#topbar .topbar-row:first-child { gap: 10px; }
-.stat-money { flex: none; }
-.stat-level { flex: 1 1 auto; min-width: 0; gap: 6px; }
-.stat-level .lv { flex: none; }
-.xp-wrap { flex: 1 1 auto; min-width: 40px; max-width: 220px; display: flex; flex-direction: column; gap: 3px; }
-.xp-wrap .progress-xp { flex: none; width: 100%; max-width: none; height: 7px; }
-.xp-wrap .xp-text { font-size: .62rem; line-height: 1; opacity: .85; overflow: hidden; text-overflow: ellipsis; }
-.stat-weather { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.1; }
-#topbar .season-chip {
-  font-size: .58rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; line-height: 1.3;
-  padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #e9e3c2;
-}
-#topbar .season-chip[hidden] { display: none; }
-@media (max-width: 380px) {
-  #topbar .topbar-row:first-child { gap: 8px; }
-  .stat-money { font-size: .95rem; }
-  .stat-level, .stat-weather { font-size: .8rem; }
-}
-
-/* Market "Harga lainnya": triangle + label inline on the left. */
-.eco-others > summary.section-title { justify-content: flex-start; gap: 0; }
-@media (max-width: 340px) {
-  #topbar .topbar-row:first-child { gap: 6px; }
-  .stat-level { gap: 4px; }
-  .xp-wrap .xp-text { font-size: .55rem; letter-spacing: -.02em; }
-}

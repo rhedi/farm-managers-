@@ -52,6 +52,13 @@ const nf1 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 });
 const nf2 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 });
 
 export const fmtNum = (v, digits = 0) => (digits === 0 ? nf0 : digits === 1 ? nf1 : nf2).format(Number(v) || 0);
+/** Short count for tight spots: 950 · 74,5 rb · 1,2 jt. */
+export function fmtCompact(v) {
+  const n = Number(v) || 0, a = Math.abs(n);
+  if (a < 10000) return nf0.format(n);
+  if (a < 1e6) return `${nf1.format(n / 1000)} rb`;
+  return `${nf1.format(n / 1e6)} jt`;
+}
 export const fmtMoney = (v) => `${(Number(v) || 0) < 0 ? '-' : ''}$${nf0.format(Math.abs(Math.round(Number(v) || 0)))}`;
 /** Unit price: keeps decimals for cheap goods (eggs, milk). */
 export const fmtPrice = (v) => `$${(Math.abs(v) < 10 ? nf2 : nf0).format(Number(v) || 0)}`;
