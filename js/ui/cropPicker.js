@@ -1,6 +1,7 @@
 // Crop picker (U2): expected yield, revenue and profit per crop for one or more fields, pH fit, locked crops collapsed.
 // Trees (kebun buah) get their own "🌳 Pohon" section with the yearly outlook from game.orchardOutlook.
 import { h, fmtMoney, fmtTons, fmtPh, fmtNum, WATER_LABEL } from './dom.js';
+import { fold } from './subtabs.js';
 
 export const phFits = (field, crop) => field.ph >= crop.idealPh[0] && field.ph <= crop.idealPh[1];
 
@@ -138,10 +139,26 @@ function treeSection(game, sel, list, rerender) {
   const level = game.state.level;
   const open = trees.filter((t) => t.unlockLevel <= level);
   const locked = trees.filter((t) => t.unlockLevel > level);
-  return h('div.tree-section',
-    h('div.tree-head', '🌳 Pohon', h('span.small.muted', ' · tanam sekali, panen berkali-kali')),
-    open.length ? h('div.choice-list.crop-list', open.map((t) => treeChoice(game, sel, list, t, rerender))) : null,
-    lockedLine(locked, 'pohon'));
+  const picked = open.some((t) => t.id === sel.cropId);
+  const body = [open.length ? h('div.choice-list.crop-list', open.map((t) => treeChoice(game, sel, list, t, rerender))) : null,
+    lockedLine(locked, 'pohon')];
+  // Picking a tree keeps the fold open across re-renders; otherwise it is remembered like other folds.
+  return picked ? h('div.tree-section', h('div.tree-head', '🌳 Pohon', h('span.small.muted', ' · tanam sekali, panen berkali-kali')), body)
+    : fold('crop-trees', '🌳 Pohon (kebun buah)', { meta: open.length ? `${open.length} terbuka` : '🔒', cls: 'tree-section' },
+      h('p.small.muted', 'Tanam sekali, panen berkali-kali.'), body);
+}
+
+const TOP_CROPS = 5;
+
+/** The most profitable crops (plus the selected one) as a list; the rest in a remembered "Tanaman lain" fold. */
+function cropChoices(ranked, sel, build) {
+  const top = ranked.filter((r, i) => i < TOP_CROPS || r.c.id === sel.cropId);
+  const rest = ranked.filter((r) => !top.includes(r));
+  return [
+    h('div.choice-list.crop-list', top.map(({ c, o }) => build(c, o))),
+    rest.length ? fold('crop-more', '🌾 Tanaman lain', { meta: String(rest.length) },
+      h('div.choice-list.crop-list', rest.map(({ c, o }) => build(c, o)))) : null,
+  ];
 }
 
 /**
@@ -156,20 +173,23 @@ export function cropPicker(game, sel, fields, rerender, label = 'Pilih tanaman')
   const locked = crops.filter((c) => c.unlockLevel > level);
   const ha = list.reduce((s, f) => s + f.sizeHa, 0);
   const gh = allGreenhouse(list);
-  return h('div.field-group', h('label', label),
+  // Best expected profit first (unknown profits last, in data order).
+  const ranked = open.map((c) => ({ c, o: cropOutlook(game, list, c) }))
+    .sort((a, b) => (b.o.profit ?? -Infinity) - (a.o.profit ?? -Infinity));
+  const bestId = ranked[0]?.o.profit != null ? ranked[0].c.id : null;
+  return h('div.field-group', h('label', `${label} · untung terbesar di atas`),
     gh ? h('p.small.gh-note', '🏠 Rumah kaca: musim dan suhu dingin tidak memperlambat tanaman, hasil +20%.') : null,
-    h('div.choice-list.crop-list', open.map((c) => {
-      const o = cropOutlook(game, list, c);
+    ...cropChoices(ranked, sel, (c, o) => {
       const so = gh ? null : seasonOutlook(game, list, c);
       return h(`button.choice${sel.cropId === c.id ? '.selected' : ''}`,
         { type: 'button', onclick: () => { sel.cropId = c.id; rerender(); } },
         h('span.card-icon', c.emoji),
         h('div.crop-main',
-          h('div.card-title', c.name, ' ', phBadge(list, c, o), ' ', gh ? ghBadge() : seasonBadge(c, so)),
+          h('div.card-title', c.name, c.id === bestId ? h('span.best-tag', '⭐ Terbaik') : null, ' ', phBadge(list, c, o), ' ', gh ? ghBadge() : seasonBadge(c, so)),
           outlookLine(o),
           forecastHint(c, so),
           h('div.card-sub', `Benih ${fmtMoney(c.seedCostPerHa * ha)} · ${c.growDays} hari · air ${WATER_LABEL[c.waterNeed] ?? c.waterNeed}`)));
-    })),
+    }),
     lockedLine(locked),
     treeSection(game, sel, list, rerender));
 }

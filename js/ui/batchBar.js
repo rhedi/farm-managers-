@@ -1,4 +1,4 @@
-// "⚡ Aksi massal" bar (U3/F1): one tap starts a task on every field that can take it.
+// "⚡ Kerjakan sekaligus" (batch) bar (U3/F1): one tap starts a task on every field that can take it.
 import { h, mount, fmtMoney, TASK_ICON, TASK_LABEL, TASK_ING } from './dom.js';
 import { openModal, closeModal, toast } from './modal.js';
 import { app } from './app.js';
@@ -66,14 +66,15 @@ export function batchBar(owned) {
     const n = by[t].length;
     // Orchards in a harvest batch are picked by own tree shakers, else rented pickers (sewa_pemetik).
     const trees = t === 'harvest' ? by[t].filter((f) => f.orchard).length : 0;
-    const label = `${TASK_ICON[t]} ${TASK_LABEL[t]} semua${t === 'seed' ? '…' : ''} (${n}${trees ? ` · 🌳 ${trees} kebun` : ''})`;
+    const label = `${TASK_ICON[t]} ${TASK_LABEL[t]} ×${n}${trees ? ` (🌳 ${trees})` : ''}${t === 'seed' ? '…' : ''}`;
     const noWorker = t !== 'harvest' && free === 0;
     const onclick = t === 'seed' ? () => openSeedAll(by.seed)
       : () => run(t, t === 'harvest' ? { rent: true } : {});
     return h(`button.btn.btn-small.${t === 'harvest' ? 'btn-primary' : 'btn-secondary'}`,
-      { type: 'button', onclick, disabled: noWorker, title: noWorker ? 'Tidak ada pekerja bebas.' : null }, label);
+      { type: 'button', onclick, disabled: noWorker, title: noWorker ? 'Tidak ada pekerja bebas.' : `${TASK_LABEL[t]} semua (${n} ladang)` }, label);
   });
   if (!buttons.length) return null;
-  return h('div.batch-bar', h('span.batch-title', '⚡ Aksi massal'), h('div.batch-buttons', buttons),
-    ws ? h('span.small.muted.ops-free', `👷 ${free}/${ws.length} pekerja bebas`) : null);
+  return h('div.batch-bar',
+    h('div.batch-head', h('span.batch-title', '⚡ Kerjakan sekaligus'), ws ? h('span.small.muted', `👷 ${free}/${ws.length} pekerja bebas`) : null),
+    h('div.batch-buttons', buttons));
 }

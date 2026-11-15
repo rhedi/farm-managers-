@@ -1,4 +1,5 @@
-// Farm tab: stylized world map + owned field cards.
+// Ladang tab: 🌾 Ladangku (fields that need a step first, then running ones, fields for sale) | 🗺️ Peta.
+// Wide screens (≥1000 px) show both panes side by side.
 import { h, mount, fmtMoney, fmtPh, progressBar, STATE_LABEL, STATE_EMOJI } from './dom.js';
 import { app } from './app.js';
 import { openFieldModal, actionButton } from './fieldModal.js';
@@ -8,11 +9,22 @@ import { batchBar } from './batchBar.js';
 import { plotEl, updatePlot } from './plot.js';
 import { regionBoxes, mapFxLayers, updateMapFx } from './mapFx.js';
 import { eventsBanner, updateEventsBanner } from './eventsBanner.js';
+import { subTabBar, getSub, fold, setSub } from './subtabs.js';
 
+const SUBS = ['fields', 'map'];
+const FOR_SALE_SHOWN = 3;
 let sig = '';
 let live = new Map(); // fieldId → { bar, status, plot }
 let map = null; // { el, regions }
 let banner = null;
+
+/** A field the player should look at now: ready/idle/plowed without a running plan, pests, withering. */
+export function needsAction(f) {
+  if (!f.owned || f.state === 'busy') return false;
+  if (f.pest || f.withering) return true;
+  if (!['idle', 'plowed', 'ready'].includes(f.state)) return false;
+  return !f.plan || !!f.plan.blocked;
+}
 
 function pinLabel(f) {
   if (f.locked) return [h('span.pin-lock', '🔒'), h('span.pin-lv', `Lv ${f.unlockLevel}`)];
@@ -32,6 +44,7 @@ function renderMap(fields) {
       style: { left: `${f.x}%`, top: `${f.y}%` },
       title: f.owned ? `${f.name} — ${STATE_LABEL[f.state]}`
         : f.locked ? `${f.name} — terkunci sampai level ${f.unlockLevel}` : `${f.name} — ${fmtMoney(f.price)}`,
+      'aria-label': f.owned ? `${f.name}, ${STATE_LABEL[f.state]}` : f.locked ? `${f.name}, terkunci level ${f.unlockLevel}` : `${f.name}, dijual ${fmtMoney(f.price)}`,
       onclick: () => openFieldModal(f.id),
     }, pinLabel(f))),
     fx.clouds);
@@ -42,46 +55,91 @@ function renderMap(fields) {
 
 function fieldCard(f) {
   const st = f.state;
-  const bar = progressBar(f.progress, st === 'busy' ? 'blue' : st === 'ready' ? 'gold' : '');
-  const status = h('div.small.muted', fieldStatusText(f));
+  const bar = progressBar(f.progress, st === 'busy' ? 'thin.blue' : st === 'ready' ? 'thin.gold' : 'thin');
+  const status = h('div.fc-status-text', fieldStatusText(f));
   const plot = plotEl(f);
   live.set(f.id, { bar, status, plot });
+  const acts = (f.actions || []).filter((a) => a !== 'sell');
   return h(`div.card.clickable.field-card.st-${st}`, { dataset: { fieldId: f.id }, onclick: () => openFieldModal(f.id) },
     h('div.card-head',
       h('div.card-icon', f.crop ? f.crop.emoji : STATE_EMOJI[st]),
-      h('div', { style: { flex: '1', minWidth: '0' } },
+      h('div.card-main',
         h('div.card-title', f.name, f.greenhouse ? h('span.gh-chip', '🏠 Rumah kaca') : null),
         h('div.card-sub', `${f.region} · ${f.sizeHa} ha · pH ${fmtPh(f.ph)}`)),
       h(`span.badge.st-${st}`, STATE_LABEL[st])),
-    h('div.card-body', plot, bar, status, planChip(app.game, f)),
-    f.actions.length ? h('div.card-actions', f.actions.map((a) => actionButton(f, a))) : null);
+    plot,
+    h('div.fc-status', bar, status),
+    planChip(app.game, f),
+    acts.length ? h('div.card-actions', acts.map((a) => actionButton(f, a))) : null);
+}
+
+/** Cheapest unlocked fields for sale; a row opens the field dialog (Beli there). */
+function forSaleFold(fields) {
+  const sale = fields.filter((f) => !f.owned && !f.locked).sort((a, b) => a.price - b.price);
+  if (!sale.length) return null;
+  const money = app.game.state.money;
+  const row = (f) => h('button.list-item.buy-row', { type: 'button', dataset: { fieldId: f.id }, onclick: () => openFieldModal(f.id) },
+    h('span.buy-row-icon', '🏷️'),
+    h('span.buy-row-main', h('b', f.name), h('span.small.muted', `${f.region} · ${f.sizeHa} ha · pH ${fmtPh(f.ph)}`)),
+    h(`span.buy-row-price.num${f.price > money ? '.muted' : ''}`, fmtMoney(f.price)));
+  return fold('farm-forsale', '🛒 Ladang dijual', { open: true, meta: String(sale.length) },
+    h('div.list', sale.slice(0, FOR_SALE_SHOWN).map(row)),
+    h('button.btn.btn-secondary.btn-block.more-btn', { type: 'button', onclick: () => { setSub('farm', 'map'); app.requestRender(); window.scrollTo(0, 0); } },
+      `🗺️ Lihat semua di peta (${sale.length})`));
+}
+
+function fieldsPane(fields) {
+  const owned = fields.filter((f) => f.owned);
+  const todo = owned.filter(needsAction);
+  const running = owned.filter((f) => !needsAction(f));
+  banner = eventsBanner(app.game);
+  return h('div.pane.pane-fields',
+    banner,
+    owned.length ? null : h('div.empty', 'Belum punya ladang. Beli dari daftar di bawah atau dari peta.'),
+    todo.length ? h('section.section',
+      h('div.section-title', `⚡ Perlu tindakan`, h('span.count-chip.hot', String(todo.length))),
+      batchBar(owned),
+      h('div.cards', todo.map(fieldCard))) : null,
+    running.length ? fold('farm-running', '⏳ Sedang berjalan', { open: true, meta: String(running.length) },
+      todo.length ? null : batchBar(owned),
+      h('div.cards', running.map(fieldCard))) : null,
+    forSaleFold(fields));
+}
+
+function mapPane(fields) {
+  const owned = fields.filter((f) => f.owned).length;
+  const locked = fields.filter((f) => f.locked).length;
+  const forSale = fields.length - owned - locked;
+  return h('div.pane.pane-map',
+    h('section.section',
+      h('div.section-title', '🗺️ Peta', h('span.small.muted', `${owned} dimiliki · ${forSale} dijual${locked ? ` · 🔒 ${locked}` : ''}`)),
+      renderMap(fields),
+      h('div.map-legend',
+        h('span', h('i.lg.lg-owned'), 'Milikmu'),
+        h('span', h('i.lg.lg-sale'), 'Dijual'),
+        locked ? h('span', h('i.lg.lg-lock'), '🔒 Lv N') : null,
+        h('span.muted', 'Ketuk pin untuk detail'))));
 }
 
 function computeSig(fields) {
-  return fields.map((f) => fieldSignature(f) + (f.locked ? ':L' : '')).join('|');
+  return `${getSub('farm', SUBS)}|${fields.map((f) => fieldSignature(f) + (f.locked ? ':L' : '') + (f.pest ? ':P' : '')).join('|')}`;
 }
 
 export function renderFarm(root) {
   const fields = app.game.fieldsView();
-  const owned = fields.filter((f) => f.owned);
   sig = computeSig(fields);
   live = new Map();
-  const locked = fields.filter((f) => f.locked).length;
-  const forSale = fields.length - owned.length - locked;
-  banner = eventsBanner(app.game);
+  map = null;
+  const sub = getSub('farm', SUBS);
+  const todo = fields.filter(needsAction).length;
+  const panes = [fieldsPane(fields), mapPane(fields)];
+  panes[sub === 'map' ? 0 : 1].hidden = true;
   mount(root,
-    banner,
-    h('section.section',
-      h('div.section-title', '🗺️ Peta', h('span.spacer'),
-        h('span.small.muted', `${owned.length} dimiliki · ${forSale} dijual${locked ? ` · 🔒 ${locked}` : ''}`)),
-      renderMap(fields),
-      h('p.small.muted', `Ketuk pin untuk detail. Pin bergaris putus-putus = ladang yang dijual${locked ? ', 🔒 Lv N = terbuka di level N' : ''}.`)),
-    h('section.section',
-      h('div.section-title', '🌾 Ladangku'),
-      batchBar(owned),
-      owned.length
-        ? h('div.cards', owned.map(fieldCard))
-        : h('div.empty', 'Belum punya ladang. Beli dari peta.')));
+    subTabBar('farm', [
+      { id: 'fields', icon: '🌾', label: 'Ladangku', badge: todo || null },
+      { id: 'map', icon: '🗺️', label: 'Peta' },
+    ], sub),
+    panes);
 }
 
 /** Cheap periodic update: rebuild only when states/actions change. */
@@ -95,7 +153,6 @@ export function updateFarm(root) {
     const t = fieldStatusText(f);
     if (l.status.textContent !== t) l.status.textContent = t;
     updatePlot(l.plot, f);
-    map?.el.querySelector(`.map-pin[data-field-id="${CSS.escape(String(f.id))}"]`)?.classList.toggle('pest', !!f.pest);
   }
   if (map) updateMapFx(map.el, app.game, map.regions);
   updateEventsBanner(banner, app.game);

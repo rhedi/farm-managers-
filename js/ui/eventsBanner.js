@@ -1,6 +1,9 @@
-// Active random events banner on top of the Ladang tab. Hidden when there are none.
+// Active random events banner on top of Ladang › Ladangku (collapsible, remembered). Hidden when there are none.
 import { h, mount, fmtMoney } from './dom.js';
 import { app, act } from './app.js';
+import { foldOpen, setFoldOpen } from './subtabs.js';
+
+const FOLD_ID = 'farm-events';
 
 function activeEvents(game) {
   try { return typeof game.activeEvents === 'function' ? game.activeEvents() || [] : []; } catch { return []; }
@@ -38,11 +41,10 @@ function eventRow(game, ev) {
     h('span.event-emoji', ev.emoji ?? '📣'),
     h('div.event-text',
       h('div.event-name', ev.name ?? 'Kejadian', loc ? h('span.muted', ` · ${loc}`) : null),
-      ev.desc ? h('div.small.muted', ev.desc) : null),
+      h('div.small.muted.event-desc', left ? h('b.event-left', left) : null, left && ev.desc ? ' · ' : null, ev.desc ?? null)),
     h('div.event-actions',
-      left ? h('span.badge.event-left', left) : null,
       ev.type === 'pest' && ev.fieldId != null && typeof game.treatPest === 'function'
-        ? h('button.btn.btn-small.btn-danger', {
+        ? h('button.btn.btn-small.btn-danger.btn-solid', {
           disabled: cost != null && game.state.money < cost,
           onclick: (e) => { e.stopPropagation(); treat(ev.fieldId); },
         }, `🧴 Semprot${cost != null ? ` (${fmtMoney(cost)})` : ''}`)
@@ -56,7 +58,8 @@ function sigOf(game, list) {
 
 /** Banner element; call updateEventsBanner on it every view update. */
 export function eventsBanner(game) {
-  const el = h('section.events-banner', { 'aria-live': 'polite' });
+  const el = h('details.events-banner', { 'aria-live': 'polite', open: foldOpen(FOLD_ID, true),
+    ontoggle: (e) => setFoldOpen(FOLD_ID, e.target.open) });
   el.dataset.sig = '';
   updateEventsBanner(el, game);
   return el;
@@ -70,5 +73,7 @@ export function updateEventsBanner(el, game) {
   el.dataset.sig = sig;
   el.hidden = !list.length;
   if (!list.length) { el.replaceChildren(); return; }
-  mount(el, h('div.events-title', '📣 Kejadian aktif'), list.map((ev) => eventRow(game, ev)));
+  const pests = list.filter((ev) => ev.type === 'pest').length;
+  mount(el, h('summary.events-title', h('span', `📣 Kejadian aktif · ${list.length}`), pests ? h('span.events-alert', `🐛 ${pests} hama`) : null),
+    list.map((ev) => eventRow(game, ev)));
 }

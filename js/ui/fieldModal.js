@@ -10,6 +10,7 @@ import { yieldBreakdown, yieldFactorsSig } from './yieldBreakdown.js';
 import { planSection, planDraft, nextStepText } from './planEditor.js';
 import { seasonChip, forecastStrip, forecastHint } from './forecast.js';
 import { plotEl, updatePlot } from './plot.js';
+import { fold } from './subtabs.js';
 
 /** Ask, then sell an owned field. */
 export async function sellFieldFlow(f) {
@@ -21,9 +22,11 @@ export async function sellFieldFlow(f) {
   if (ok) act(app.game.sellField(f.id), `${f.name} terjual.`);
 }
 
+/** Task button; the field's next step (engine `nextStep`) is the one primary button, field selling is a quiet danger button. */
 export function actionButton(f, a, small = true) {
-  const cls = `button.btn${small ? '.btn-small' : ''}.${a === 'sell' ? 'btn-danger' : a === 'harvest' ? 'btn-primary' : 'btn-secondary'}`;
-  const label = a === 'sell' ? '💸 Jual'
+  const kind = a === 'sell' ? 'btn-danger' : a === f.nextStep ? 'btn-primary' : 'btn-secondary';
+  const cls = `button.btn${small ? '.btn-small' : ''}.${kind}`;
+  const label = a === 'sell' ? '💸 Jual ladang'
     : a === 'plow' && f.state === 'ready' ? `${TASK_ICON.plow} Bersihkan`
       : a === 'harvest' && f.orchard ? '🧺 Petik'
         : `${TASK_ICON[a] ?? ''} ${TASK_LABEL[a] ?? a}`;
@@ -67,11 +70,14 @@ function renderUnowned(body, footer, f, m) {
       onclick: () => act(game.buyField(f.id), `${f.name} dibeli!`) }, f.locked ? `🔒 Lv ${f.unlockLevel}` : `Beli ${fmtMoney(f.price)}`));
 }
 
-/** Season chip + 3-day forecast (+ irrigation hint) for the field's region (F5). */
-function worldSection(game, f) {
+/** Season chip + 3-day forecast (+ irrigation hint) for the field's region (F5); folded in the owned-field dialog. */
+function worldSection(game, f, folded = false) {
   const strip = forecastStrip(game, f.regionId);
   if (!strip && !f.season) return null;
   const hint = forecastHint(game, f);
+  if (folded) {
+    return fold('fm-forecast', '🌦️ Prakiraan 3 hari', { meta: game.seasonOf?.(f.regionId)?.name ?? null }, strip);
+  }
   return [h('div.section-title.row.between', h('span', '🌦️ Prakiraan 3 hari'), seasonChip(game, f.regionId)),
     strip, hint ? h('p.small.yf-hint', hint) : null];
 }
@@ -81,7 +87,7 @@ function pestAlert(game, f) {
   if (!f.pest) return null;
   const cost = f.pestCost ?? game.treatPestCost?.(f.id) ?? 0;
   return h('div.pest-alert', h('span', '🐛 Hama menyerang! Hasil −25% sampai disemprot.'),
-    h('button.btn.btn-small.btn-danger', {
+    h('button.btn.btn-small.btn-danger.btn-solid', {
       onclick: () => act(game.treatPest(f.id), `🐛 Hama disemprot (${fmtMoney(cost)}).`) }, `Semprot ${fmtMoney(cost)}`));
 }
 
@@ -106,8 +112,7 @@ function orchardSection(game, f) {
     : o.pruned ? '✅ Sudah dipangkas siklus ini (+15% hasil).'
       : !o.mature ? '✂️ Pangkas tersedia setelah pohon dewasa.'
         : f.state === 'ready' ? '✂️ Pangkas lagi setelah dipetik.' : `✂️ Pangkas: +15% hasil siklus ini (${fmtMoney(pruneCost)}).`;
-  return h('div.orchard-section',
-    h('div.section-title', `🌳 Kebun ${f.crop.name}`, h('span.spacer'), h(`span.badge.orch-${o.stage}`, STAGE_TEXT[o.stage] ?? o.stage)),
+  return fold('fm-orchard', `🌳 Kebun ${f.crop.name}`, { open: true, meta: STAGE_TEXT[o.stage] ?? o.stage, cls: 'orchard-section' },
     o.mature ? null : h('div.orch-maturity', h('span.small', `Menuju dewasa ${fmtPct(o.maturity)}`), progressBar(o.maturity, '')),
     kv([
       ['Umur', `${days(Math.floor(o.ageDays))} / produktif ${days(o.lifespanDays)}`],
@@ -153,8 +158,7 @@ function greenhouseSection(game, f) {
       confirmLabel: 'Bongkar', danger: true });
     if (ok) act(game.removeGreenhouse(f.id), (r) => `Rumah kaca dibongkar (+${fmtMoney(r.refund)}).`);
   };
-  return h(`div.gh-section${q.built ? '.built' : ''}`,
-    h('div.section-title', '🏠 Rumah kaca', h('span.spacer'), q.built ? h('span.badge.badge-green', 'Terpasang') : null),
+  return fold('fm-greenhouse', '🏠 Rumah kaca', { meta: q.built ? '✅ Terpasang' : q.ok ? fmtMoney(q.cost) : '🚫', cls: `gh-section${q.built ? '.built' : ''}` },
     kv([
       q.built ? ['Biaya bangun', fmtMoney(f.greenhouse?.cost ?? q.cost)] : ['Biaya bangun', `${fmtMoney(q.cost)} (${fmtMoney(C.costPerHa ?? 18000)}/ha)`],
       ['Listrik', `${fmtMoney(q.upkeepPerDay)}/hari`],
@@ -176,27 +180,28 @@ function renderOwned(body, footer, f, m, live, draft) {
   live.yield = h('span', yieldText(f));
   live.plot = plotEl(f);
   const next = !f.plan ? nextStepText(f) : null;
+  const hint = forecastHint(app.game, f);
   mount(body,
     h('div.row.between', h(`span.badge.st-${st}`, STATE_LABEL[st]), f.crop ? h('span', `${f.crop.emoji} ${f.crop.name}`) : null),
     live.plot,
     live.bar, live.status,
     next ? h('div.small.muted', next) : null,
     pestAlert(app.game, f),
+    hint ? h('p.small.yf-hint', hint) : null,
     kv([
       ['Perkiraan hasil', live.yield],
       ['Dipupuk', f.fertilized ? '✅ Ya' : '— Belum'],
       ['Diairi', f.irrigated ? '✅ Ya' : '— Belum'],
-      ['Hari kering / basah', `${f.dryDays ?? 0} / ${f.wetDays ?? 0}`],
       f.withering ? ['Layu', `hasil tinggal ${fmtPct(f.witherFactor)}`] : null,
       growthText(f),
     ]),
-    f.crop ? yieldBreakdown(f) : null,
     orchardSection(app.game, f),
-    greenhouseSection(app.game, f),
-    worldSection(app.game, f),
     planSection(app.game, f, draft, () => m.rerender()),
-    h('div.section-title', '📍 Lahan'),
-    kv(landInfo(f)));
+    f.crop ? fold('fm-yield', '📈 Faktor hasil', { meta: `${f.dryDays ?? 0} hari kering` },
+      kv([['Hari kering / basah', `${f.dryDays ?? 0} / ${f.wetDays ?? 0}`]]), yieldBreakdown(f)) : null,
+    greenhouseSection(app.game, f),
+    worldSection(app.game, f, true),
+    fold('fm-land', '📍 Lahan', { meta: `${SOIL_LABEL[f.soil] ?? f.soil} · pH ${fmtPh(f.ph)}` }, kv(landInfo(f))));
   const acts = f.actions.filter((a) => a !== 'sell' && a !== 'prune' && a !== 'clear').map((a) => actionButton(f, a, false));
   mount(footer,
     f.actions.includes('sell') ? actionButton(f, 'sell', false) : null,

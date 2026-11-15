@@ -48,7 +48,6 @@
 }
 .gh-section { border-color: #b8d5d7; background: #edf5f3; }
 .gh-section.built { border-style: solid; border-width: 2px; padding: 9px; }
-.orchard-section .section-title, .gh-section .section-title { margin-top: 0; flex-wrap: wrap; }
 .orchard-section .kv > *, .gh-section .kv > * { min-width: 0; overflow-wrap: anywhere; }
 .orch-maturity { margin: 4px 0 10px; }
 .orch-maturity > span { display: block; margin-bottom: 3px; }

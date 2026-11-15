@@ -1,6 +1,7 @@
 // Field plan (F2): "🔁 Rencana" editor for the field modal and the card chip.
 import { h, TASK_ICON, TASK_LABEL } from './dom.js';
 import { act } from './app.js';
+import { fold } from './subtabs.js';
 import { bestCropId, cropOutlook, phFits } from './cropPicker.js';
 
 export const plansSupported = (game) => typeof game.setFieldPlan === 'function';
@@ -103,8 +104,7 @@ export function planSection(game, f, draft, rerender) {
   const clear = () => act(game.setFieldPlan(f.id, null), 'Rencana dihapus.');
   const next = nextStepText(f);
   const tree = allCrops(game).find((c) => c.id === draft.cropId)?.perennial;
-  return h('div.plan-section',
-    h('div.section-title', '🔁 Rencana', h('span.spacer'), f.plan ? h('span.badge.badge-green', 'Aktif') : null),
+  return fold('fm-plan', '🔁 Rencana otomatis', { open: !!f.plan, meta: f.plan ? (f.plan.blocked ? '⏸ Tertahan' : '✅ Aktif') : 'Mati', cls: 'plan-section' },
     h('p.small.muted', tree
       ? 'Kebun buah dikerjakan otomatis: bajak → tanam bibit → pupuk/airi tiap siklus → petik, jika pekerja dan uang cukup.'
       : 'Ladang dikerjakan otomatis: bajak → pupuk → tanam → airi → panen, jika mesin, pekerja dan uang cukup.'),

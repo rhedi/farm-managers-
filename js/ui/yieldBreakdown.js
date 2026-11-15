@@ -50,7 +50,6 @@ export function yieldBreakdown(f) {
   if (low('age')) hints.push('🌳 Pohon melewati umur produktif: hasil terus turun. Tebang dan tanam baru.');
   if (f.orchard && !f.orchard.pruned && f.orchard.mature && (f.actions || []).includes('prune')) hints.push('✂️ Pangkas pohon untuk +15% hasil siklus ini.');
   return h('div.yield-breakdown',
-    h('div.small.muted', 'Faktor hasil'),
     h('div.yf-list', rows),
     hints.map((t) => h('p.small.yf-hint', t)));
 }
