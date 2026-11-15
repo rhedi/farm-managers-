@@ -5,7 +5,6 @@
 .ship-choice { flex-direction: column; align-items: flex-start; gap: 3px; }
 .ship-choice b { font-size: .92rem; }
 .ship-demand { display: flex; flex-wrap: wrap; gap: 4px; }
-.ship-demand .badge { font-size: .72rem; }
 .ship-cargo { display: grid; gap: 6px; margin-top: 4px; }
 .ship-cargo-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 0; border-top: 1px solid var(--line); }
 .ship-cargo-row:first-child { border-top: 0; }

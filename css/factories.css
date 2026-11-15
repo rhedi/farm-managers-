@@ -6,7 +6,7 @@
 .fac-recipes { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 8px; }
 .fac-recipe {
   border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); border-radius: 999px;
-  padding: 4px 12px; font: inherit; font-size: .82rem; cursor: pointer; min-height: 40px;
+  padding: 4px 12px; font: inherit; font-size: .875rem; cursor: pointer; min-height: 44px;
 }
 .fac-recipe.active { background: var(--green-l); border-color: var(--green); color: var(--green-d); font-weight: 600; }
 .fac-recipe:disabled { opacity: .5; cursor: default; }
@@ -25,7 +25,7 @@
 .fac-meta { grid-column: 1 / -1; }
 .fac-gain { color: var(--green-d); font-weight: 700; }
 .fac-status .progress { margin: 2px 0 4px; }
-.fac-auto { display: flex; align-items: center; gap: 6px; min-height: 40px; font-size: .88rem; white-space: nowrap; cursor: pointer; }
+.fac-auto { display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: .88rem; white-space: nowrap; cursor: pointer; }
 .fac-auto input { margin: 0; width: 20px; height: 20px; }
 .fac-card .card-actions { align-items: center; }
 /* Upgrade + run buttons stay together; on a narrow card they take their own full-width row. */
