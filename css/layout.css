@@ -12,10 +12,14 @@
   background: var(--bg);
   border-bottom: 1px solid var(--line);
   box-shadow: 0 4px 10px -8px rgba(40, 35, 15, .35);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
+.subtabs::-webkit-scrollbar { display: none; }
 .subtab {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 1 0 0; /* equal widths while they fit; never narrower than the label, so the bar scrolls instead */
+  min-width: max-content;
   min-height: 48px;
   display: flex;
   flex-direction: column;
@@ -33,7 +37,14 @@
   position: relative;
 }
 .subtab:hover { background: var(--bg-2); }
-.subtab.active { background: var(--subtab-on); color: #fff; box-shadow: 0 2px 6px rgba(36, 48, 31, .3); }
+.subtab.active { background: var(--subtab-on); color: #fff; box-shadow: 0 2px 6px rgba(36, 48, 31, .3); transition: color .2s; }
+/* Pill that slides to the active sub-tab (placed by js/ui/subtabs.js; until then the button paints its own). */
+.subtab-ind {
+  position: absolute; left: 0; top: 6px; width: 0; border-radius: 12px; pointer-events: none;
+  background: var(--subtab-on); box-shadow: 0 2px 6px rgba(36, 48, 31, .3);
+  transition: transform .3s cubic-bezier(.3, .7, .25, 1), width .3s cubic-bezier(.3, .7, .25, 1);
+}
+.subtabs.has-ind .subtab.active { background: transparent; box-shadow: none; }
 .subtab-icon { font-size: 1.15rem; line-height: 1.15; }
 .subtab-label { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .subtab-badge {
@@ -43,6 +54,13 @@
 }
 .subtab-badge.warn { background: var(--red-fill); }
 .subtab:focus-visible { outline: 3px solid rgba(226, 183, 67, .7); outline-offset: 1px; }
+
+/* Swipe between sub-tabs (js/ui/subtabs.js): the browser keeps vertical panning, JS gets the sideways moves. */
+#view { touch-action: pan-y pinch-zoom; overflow-x: clip; }
+.sub-in-next { animation: sub-in-next .26s ease-out; }
+.sub-in-prev { animation: sub-in-prev .26s ease-out; }
+@keyframes sub-in-next { from { transform: translateX(48px); opacity: 0; } }
+@keyframes sub-in-prev { from { transform: translateX(-48px); opacity: 0; } }
 
 /* ---------- Filter chips (inside a sub-tab) ---------- */
 .chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -12px 12px; padding: 2px 12px; scrollbar-width: none; }

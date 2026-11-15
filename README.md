@@ -67,6 +67,8 @@ Enam tab di bawah: **🗺️ Ladang**, **🚜 Garasi**, **📈 Pasar**, **🐄 T
 | Gudang | 🌾 Pertanian (silo) · 🐄 Peternakan (gudang dingin) · 🏭 Olahan (stok olahan + pabrik) |
 | Prestasi | 🎯 Misi · 🔬 Riset · 🏆 Prestasi · 💰 Keuangan (laporan, pinjaman, kekayaan) |
 
+Pindah sub-tab dengan mengetuk bilahnya atau **menggeser layar ke kiri/kanan** (minimal sekitar 60 px dan lebih mendatar daripada tegak); isi baru masuk dari arah geseran, dan penanda di bilah ikut bergeser. Menggulir ke atas/bawah tidak terganggu. Geseran yang dimulai di peta, grafik, kolom isian, atau deretan yang bisa digulir ke samping (misalnya filter Toko) tidak mengganti sub-tab, dan di sub-tab pertama/terakhir isi hanya memantul sedikit. Bila bilah sub-tab tidak muat (layar sempit atau huruf besar), bilahnya bisa digulir ke samping dan sub-tab aktif selalu terlihat. Petunjuk "← geser untuk pindah →" muncul sekali saat pertama kali mengetuk sub-tab di layar sentuh. Sub-tab terakhir tiap tab tetap diingat.
+
 Angka pada tab hanya muncul untuk hal yang bisa ditindaklanjuti: ladang yang perlu langkah, mesin yang hampir rusak, kontrak yang bisa dikirim, pakan hampir habis (⚠️), silo atau gudang dingin hampir penuh atau pabrik terhenti, dan hadiah misi (🔬 bila hanya ada poin riset). Bar atas: uang (ketuk → laporan keuangan), level dan XP (ketuk → riset), cuaca (ketuk → prakiraan), hari dan jam, kecepatan ⏸ 1× 2× 5×, dan ⚙️ Pengaturan (tema, suara, simpan, ulangi panduan, pasang aplikasi, reset).
 
 ### Tema

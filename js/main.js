@@ -21,6 +21,7 @@ import { tickMoneyFx, resetMoneyFx } from './ui/fx.js';
 import { openSettings } from './ui/settings.js';
 import { initPwa } from './ui/pwa.js';
 import { initTheme } from './ui/theme.js';
+import { initSubtabSwipe } from './ui/subtabs.js';
 
 const VIEWS = {
   farm: { render: renderFarm, update: updateFarm },
@@ -175,6 +176,7 @@ document.addEventListener('visibilitychange', () => {
   app.requestRender();
 });
 initTheme();
+initSubtabSwipe(viewEl);
 trackTopbarHeight();
 initClickSounds();
 initPwa();
