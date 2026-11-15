@@ -106,6 +106,22 @@
 .disp-prod .stepper-val { min-width: 3.4em; }
 .disp-note { margin: 0; }
 .disp-mgr .ops-actions { flex-wrap: wrap; }
+.disp-swap > summary .fold-title { display: grid; gap: 2px; }
+.disp-swap > .fold-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.disp-swap > .fold-body > * + * { margin-top: 0; }
+.disp-swap-why { margin: 0; font-weight: 600; color: var(--ink-soft); }
+.disp-swap .disp-cands { margin: 0 -4px; }
+.disp-swap-item .card-sub b { color: var(--ink); }
+.disp-swap-item { flex-wrap: wrap; }
+.disp-swap-item .disp-cand-body { flex: 1 1 12em; }
+.disp-swap-item .btn { flex: 1 1 100%; flex-direction: row; gap: 8px; }
+.disp-swap-item .btn .disp-cost { font-size: .875rem; }
+.nowrap { white-space: nowrap; }
+.disp-swap-change { display: block; padding: 2px 0; }
+.disp-swap-change:first-child { margin-bottom: 6px; }
+.disp-card.swapped .disp-avatar { animation: disp-swap .7s cubic-bezier(.3, 1.4, .6, 1); }
+.disp-card.working.swapped .disp-avatar { animation: disp-swap .7s cubic-bezier(.3, 1.4, .6, 1), disp-bob 2.4s ease-in-out .7s infinite; }
+@keyframes disp-swap { 0% { transform: scale(.4) rotate(-20deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
 
 /* Truck departure (fx.js truckDepart): drives across above the bottom tabs toward the city. */
 .fx-truck { position: absolute; left: 0; right: 0; height: 40px; pointer-events: none; }

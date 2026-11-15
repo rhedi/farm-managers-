@@ -267,6 +267,8 @@ export class Game {
   dispatcherView() { return dispatcher.dispatcherView(this); }
   /** Hire a tier from BALANCE.dispatcher.tiers → {ok, cost}; hire cost and the daily wage book to 'gaji'. */
   hireDispatcher(tierId) { return dispatcher.hireDispatcher(this, tierId); }
+  /** Switch the hired manager to another tier → {ok, cost, credit, from, to}; cost = hireCost − tradeIn × current hireCost. */
+  replaceDispatcher(tierId) { return dispatcher.replaceDispatcher(this, tierId); }
   fireDispatcher() { return dispatcher.fireDispatcher(this); }
   setDispatcherOn(on) { return dispatcher.setDispatcherOn(this, on); }
   /** Partial settings patch (groups, exclude, keepPct, minProfit, minMargin, blockedCities, reserveWorkers, maxTrucks). */

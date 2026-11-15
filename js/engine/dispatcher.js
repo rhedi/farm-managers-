@@ -76,7 +76,7 @@ function sanitize(game, x) {
 export function hireDispatcher(game, tierId) {
   const s = game.state, d = st(game), t = tierOf(game, tierId);
   if (!t) return fail('Calon manajer tidak ditemukan.');
-  if (d.hired) return fail('Sudah ada manajer logistik. Berhentikan dulu untuk mengganti.');
+  if (d.hired) return fail('Sudah ada manajer logistik. Pakai "Ganti / promosikan" untuk mengganti.');
   if (s.level < t.unlockLevel) return fail(`Butuh level ${t.unlockLevel}.`);
   if (!game.spend(t.hireCost, 'gaji')) return fail('Uang tidak cukup.');
   d.hired = { tierId: t.id, hiredDay: game.day };
@@ -85,6 +85,35 @@ export function hireDispatcher(game, tierId) {
   game.emit('dispatcher_hired', `🧑‍💼 ${t.name} (${t.title}) bergabung sebagai Manajer Logistik (${fmtMoney(t.wage)}/hari).`, { tierId: t.id, cost: t.hireCost });
   runDispatcher(game);
   return ok({ cost: t.hireCost });
+}
+
+/** Price of switching the hired manager to `t`: its hireCost − tradeIn × the current tier's hireCost, never < 0. */
+export function swapCost(game, t) {
+  const cur = st(game).hired && tierOf(game, st(game).hired.tierId);
+  const credit = cur ? round2(cur.hireCost * (cfg(game).tradeIn ?? 0.5)) : 0;
+  return { credit, cost: round2(Math.max(0, t.hireCost - credit)) };
+}
+
+/**
+ * Promote / replace the hired manager with another tier (up or down). Pays swapCost (ledger 'gaji'); settings, stats,
+ * recent dispatches, aktif/jeda and trips on the road stay; the new truck limit, radius and negotiation apply from the
+ * next planning pass (run at once when aktif). Trips already on the road keep the bonus they left with.
+ */
+export function replaceDispatcher(game, tierId) {
+  const s = game.state, d = st(game), t = tierOf(game, tierId), cur = d.hired && tierOf(game, d.hired.tierId);
+  if (!cur) return fail('Belum ada manajer logistik.');
+  if (!t) return fail('Calon manajer tidak ditemukan.');
+  if (t.id === cur.id) return fail(`${t.name} sudah menjadi manajermu.`);
+  if (s.level < t.unlockLevel) return fail(`Butuh level ${t.unlockLevel}.`);
+  const { cost, credit } = swapCost(game, t);
+  if (cost > 0 && !game.spend(cost, 'gaji')) return fail('Uang tidak cukup.');
+  d.hired = { tierId: t.id, hiredDay: game.day };
+  d.note = '';
+  const verb = t.skill > cur.skill ? 'dipromosikan' : 'diganti';
+  game.emit('dispatcher_replaced', `🧑‍💼 Manajer Logistik ${verb}: ${t.name} (${t.title}) menggantikan ${cur.name} · biaya ${fmtMoney(cost)} setelah tukar ${fmtMoney(credit)} · gaji ${fmtMoney(t.wage)}/hari.`,
+    { from: cur.id, to: t.id, cost });
+  runDispatcher(game);
+  return ok({ cost, credit, from: cur.id, to: t.id });
 }
 
 export function fireDispatcher(game) {
@@ -269,9 +298,14 @@ export function dispatcherView(game) {
   const hiredTier = d.hired ? tierOf(game, d.hired.tierId) : null;
   const tierView = (t) => ({ id: t.id, name: t.name, title: t.title, emoji: t.emoji, stars: t.skill, unlockLevel: t.unlockLevel,
     hireCost: t.hireCost, wage: t.wage, trucks: t.trucks, radiusKm: t.radiusKm, bonus: t.bonus });
-  const candidates = tiers.map((t) => ({ ...tierView(t), locked: s.level < t.unlockLevel,
-    reason: d.hired ? 'Sudah ada manajer.' : s.level < t.unlockLevel ? `Terbuka di level ${t.unlockLevel}.`
-      : s.money < t.hireCost ? 'Uang tidak cukup.' : null }));
+  const wagePaid = (t) => round2(t.wage * (1 - perk(game, 'wages')));
+  const candidates = tiers.map((t) => {
+    const locked = s.level < t.unlockLevel, current = t === hiredTier, swap = hiredTier ? swapCost(game, t) : null;
+    const price = swap ? swap.cost : t.hireCost;
+    return { ...tierView(t), locked, current, price, credit: swap?.credit ?? 0,
+      wageDiff: hiredTier ? round2(wagePaid(t) - wagePaid(hiredTier)) : 0,
+      reason: current ? 'Manajer saat ini.' : locked ? `Terbuka di level ${t.unlockLevel}.` : s.money < price ? 'Uang tidak cukup.' : null };
+  });
   const radius = hiredTier?.radiusKm ?? Math.max(0, ...tiers.map((t) => t.radiusKm));
   const cities = (game.data.CITIES ?? []).filter((c) => (c.unlockLevel ?? 1) <= s.level && routeOf(game, c)).map((c) => {
     const km = routeOf(game, c).km;
@@ -287,6 +321,7 @@ export function dispatcherView(game) {
   return {
     unlockLevel: Math.min(...tiers.map((t) => t.unlockLevel)), level: s.level,
     hired: hiredTier ? { ...tierView(hiredTier), hiredDay: d.hired.hiredDay, wagePaid: dispatcherWage(game) } : null,
+    tradeIn: cfg(game).tradeIn ?? 0.5,
     on: d.on, note: d.note, candidates, settings: structuredClone(set), steps: STEPS,
     stats: { ...d.stats }, today: { trips: today.trips, profit: today.profit }, onRoad: tripCount(game),
     recent: d.recent.map((r) => {

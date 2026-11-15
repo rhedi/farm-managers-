@@ -1,6 +1,6 @@
 // 🧑‍💼 Manajer Logistik (Pasar › Kirim, top; summary in Garasi › Pekerja): hire a tier, aktif/jeda, recent automatic
-// dispatches, and the planner settings. Engine: game.dispatcherView / hireDispatcher / fireDispatcher /
-// setDispatcherOn / setDispatcherSettings.
+// dispatches, 🔄 ganti / promosikan (another tier with a trade-in), and the planner settings. Engine:
+// game.dispatcherView / hireDispatcher / replaceDispatcher / fireDispatcher / setDispatcherOn / setDispatcherSettings.
 import { h, fmtMoney, fmtNum, fmtClock } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { confirmModal } from './modal.js';
@@ -11,13 +11,14 @@ import { CATEGORIES } from './stock.js';
 const stars = (n) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
 const pct = (v) => `${fmtNum(v * 100)}%`;
 let lastRecent = null; // newest dispatch already shown (the newest row slides in once)
+let lastTier; // hired tier last rendered (a new one pops in once after Ganti / promosikan)
 
 /** Changes whenever the card would render differently. */
 export function dispatcherSig(game) {
   if (!game.dispatcherView) return '';
   const d = game.state.dispatcher;
   return `D${d.hired?.tierId}|${d.on}|${d.note}|${d.stats.trips}|${JSON.stringify(d.settings)}|${game.state.level}|`
-    + `${Math.floor(game.state.money / 1000)}|${Object.keys(game.state.silo).length}|${game.trucksView?.().length}`;
+    + `${Math.floor(game.state.money / 500)}|${Object.keys(game.state.silo).length}|${game.trucksView?.().length}`;
 }
 
 const tierLine = (t) => `Mengatur ${t.trucks} truk · radius ${fmtNum(t.radiusKm)} km · negosiasi +${pct(t.bonus)}`;
@@ -37,10 +38,60 @@ function candidateItem(c) {
 async function fireFlow(v) {
   const ok = await confirmModal({
     title: `Berhentikan ${v.hired.name}?`,
-    message: `Gaji ${fmtMoney(v.hired.wage)}/hari berhenti. Truk yang sedang jalan tetap pulang; pengaturan tetap disimpan. Merekrut lagi membayar biaya rekrut lagi.`,
+    message: `Gaji ${fmtMoney(v.hired.wage)}/hari berhenti. Truk yang sedang jalan tetap pulang; pengaturan tetap disimpan. Merekrut lagi membayar biaya rekrut penuh; untuk naik tingkat lebih murah pakai 🔄 Ganti / promosikan.`,
     confirmLabel: 'Berhentikan', danger: true,
   });
   if (ok) act(app.game.fireDispatcher(), 'Manajer logistik diberhentikan.');
+}
+
+const signed = (v) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${fmtMoney(Math.abs(v))}`;
+const change = (label, from, to) => h('span.disp-swap-change', h('span.muted', `${label} `), from == null || from === to ? h('b', to) : [`${from} → `, h('b', to)]);
+
+async function swapFlow(v, c) {
+  const hd = v.hired, up = c.stars > hd.stars;
+  const ok = await confirmModal({
+    title: `${up ? 'Promosikan' : 'Ganti'} ke ${c.name}?`,
+    message: [
+      h('span.disp-swap-change', `${hd.emoji} ${hd.name} (${hd.title}) diganti ${c.emoji} ${c.name} (${c.title}).`),
+      change('Truk sekaligus:', `${hd.trucks}`, `${c.trucks}`),
+      change('Radius:', `${fmtNum(hd.radiusKm)} km`, `${fmtNum(c.radiusKm)} km`),
+      change('Negosiasi:', `+${pct(hd.bonus)}`, `+${pct(c.bonus)}`),
+      change('Gaji:', `${fmtMoney(hd.wagePaid)}/hari`, `${fmtMoney(hd.wagePaid + c.wageDiff)}/hari`),
+      change('Bayar sekarang:', null, c.price > 0 ? `${fmtMoney(c.price)} (${fmtMoney(c.hireCost)} − tukar ${fmtMoney(c.credit)})` : '$0 (gratis setelah tukar)'),
+      h('span.disp-swap-change.muted', 'Pengaturan, statistik, dan truk yang sedang jalan tetap.'),
+    ],
+    confirmLabel: `${up ? 'Promosikan' : 'Ganti'} · ${c.price > 0 ? fmtMoney(c.price) : 'Gratis'}`,
+  });
+  if (ok) act(app.game.replaceDispatcher(c.id), `🧑‍💼 ${c.name} sekarang ${c.title}!`);
+}
+
+function swapItem(v, c) {
+  const up = c.stars > v.hired.stars, nw = (t) => h('span.nowrap', t);
+  return h(`div.list-item.disp-cand.disp-swap-item${c.locked ? '.locked' : ''}`,
+    h('div.card-icon', c.emoji),
+    h('div.disp-cand-body',
+      h('div.card-title', `${c.name} `, h('span.ops-stars', stars(c.stars))),
+      h('div.card-sub', h('b', c.title), ` · ${tierLine(c)}`),
+      h('div.card-sub', nw(`Gaji ${fmtMoney(c.wage)}/hari`), ' ', h('b.nowrap', `(${signed(c.wageDiff)}/hari)`)),
+      h('div.card-sub', c.price > 0 ? [h('b.nowrap', `${fmtMoney(c.price)} setelah tukar`), ' ', nw(`(${fmtMoney(c.hireCost)} − ${fmtMoney(c.credit)})`)]
+          : [h('b.nowrap', 'Gratis setelah tukar'), ' ', nw(`(potongan ${fmtMoney(c.credit)} ≥ ${fmtMoney(c.hireCost)})`)],
+      !c.locked && c.reason ? h('span.disp-why', ` · ${c.reason}`) : null),
+      c.locked ? h('div.card-sub.disp-why', `🔒 Terbuka di Lv ${c.unlockLevel}`) : null),
+    h(`button.btn.btn-small.${up ? 'btn-primary' : 'btn-secondary'}`, { type: 'button', disabled: !!c.reason,
+      'aria-label': `${up ? 'Promosikan' : 'Ganti'} ke ${c.name} ${fmtMoney(c.price)}`, onclick: () => swapFlow(v, c) },
+    c.locked ? `🔒 Terbuka di Lv ${c.unlockLevel}` : up ? '⬆️ Promosikan' : '🔄 Ganti',
+    c.locked ? null : h('span.disp-cost', `· ${c.price > 0 ? fmtMoney(c.price) : 'Gratis'}`)));
+}
+
+function swapFold(v) {
+  const others = v.candidates.filter((c) => !c.current);
+  if (!others.length) return null;
+  const next = others.find((c) => c.stars > v.hired.stars && !c.locked);
+  const sum = next ? `Naik ke ${next.title}: ${fmtMoney(next.price)} setelah tukar` : `${others.length} tingkat lain · potongan tukar ${pct(v.tradeIn)}`;
+  return fold('disp-swap', [h('span.disp-fold-name', '🔄 Ganti / promosikan manajer'), h('span.disp-fold-sum', sum)], { cls: 'boxed disp-swap' },
+    h('p.small.disp-swap-why', 'Satu manajer mengatur semua truk; ganti ke tingkat lebih tinggi untuk truk & jangkauan lebih banyak.'),
+    h('p.small.muted.disp-note', `Harga = biaya rekrut tingkat baru − ${pct(v.tradeIn)} biaya rekrut ${v.hired.name} (tidak pernah di bawah $0). Pengaturan, statistik, dan truk di jalan tetap.`),
+    h('div.list.disp-cands', others.map((c) => swapItem(v, c))));
 }
 
 const set = (patch) => act(app.game.setDispatcherSettings(patch), null, { rerenderModal: false });
@@ -127,6 +178,7 @@ function hiredBody(v) {
       h('div.disp-stat', h('span.small.muted', 'Untung ekstra'), h('b.pos', `+${fmtMoney(v.stats.extraProfit)}`))),
     h('div.small.muted', `Gaji ${fmtMoney(hd.wagePaid)}/hari · ${tierLine(hd)} · ${v.onRoad} truk di jalan`),
     v.on ? statusLine(v) : null,
+    swapFold(v),
     v.sellPlans ? h('div.disp-warn', `⚠️ ${v.sellPlans} rencana ladang menjual otomatis saat panen, jadi hasilnya tidak sempat dikirim. Matikan 💰 Jual otomatis di rencana ladang.`) : null,
     v.recent.length ? h('div.disp-recent', h('div.disp-set-title', 'Kiriman terakhir'), v.recent.slice(0, 4).map((r, i) => recentRow(r, fresh && i === 0)))
       : h('p.small.muted', 'Belum ada kiriman otomatis. Untung = harga kota − jual lokal − BBM − sopir − aus truk.'),
@@ -141,9 +193,11 @@ export function dispatcherCard(game) {
   if (!game.dispatcherView) return null;
   const v = game.dispatcherView();
   const hd = v.hired;
+  const swapped = !!hd && lastTier !== undefined && lastTier !== null && lastTier !== hd.id;
+  lastTier = hd?.id ?? null;
   const status = hd ? (v.on ? h('span.badge.badge-green', 'Aktif') : h('span.badge', 'Jeda')) : h('span.badge', v.level < v.unlockLevel ? `🔒 Lv ${v.unlockLevel}` : 'Belum ada');
   return h('section.section.disp',
-    h(`div.card.disp-card${hd && v.on ? '.working' : ''}`,
+    h(`div.card.disp-card${hd && v.on ? '.working' : ''}${swapped ? '.swapped' : ''}`,
       h('div.card-head',
         h('div.card-icon.disp-avatar', hd?.emoji ?? '🧑‍💼'),
         h('div.card-main',

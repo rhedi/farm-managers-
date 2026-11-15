@@ -429,7 +429,9 @@ export const BALANCE = {
   // Manajer Logistik (js/engine/dispatcher.js): staff role, not a field worker. hireCost once + wage per day (both
   // ledger 'gaji'). skill = ★; trucks = most trucks it keeps on the road at once; radiusKm = farthest city it plans
   // for; bonus = negotiated extra city price on its own trips (crops still capped at cropCap). Sim (Lv 12, 3 trucks, 30 days): see README "Manajer Logistik".
+  // tradeIn: replacing the manager costs the new hireCost − tradeIn × the current tier's hireCost (never below 0).
   dispatcher: {
+    tradeIn: 0.5,
     tiers: [
       { id: 'magang', name: 'Dimas', title: 'Manajer Magang', emoji: '🧑‍💼', skill: 1, unlockLevel: 6, hireCost: 3000, wage: 150, trucks: 1, radiusKm: 100, bonus: 0 },
       { id: 'senior', name: 'Bu Ratna', title: 'Manajer Senior', emoji: '👩‍💼', skill: 2, unlockLevel: 9, hireCost: 12000, wage: 450, trucks: 3, radiusKm: 300, bonus: 0.02 },

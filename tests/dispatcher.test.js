@@ -272,3 +272,130 @@ test('negotiation bonus is paid on arrival for manager trips; crops stay below t
   near(sales[0].value, 5000 * price * cityMult(g, city, 'milk', tier('direktur').bonus), 1);
   for (const c of DATA.CITIES) for (const p of DATA.CROPS) assert.ok(cityMult(g, c, p.id, 0.04) < 1.2, `${c.id}/${p.id}`);
 });
+
+test('replace: promote pays the new hire cost minus 50% of the current one (ledger gaji, event, log)', () => {
+  const { g } = setup({ level: 9, silo: {} });
+  const M = tier('magang'), S = tier('senior'), D = tier('direktur');
+  assert.equal(DATA.BALANCE.dispatcher.tradeIn, 0.5);
+  assert.match(g.replaceDispatcher('senior').reason, /Belum ada/);
+  g.hireDispatcher('magang');
+  const v = g.dispatcherView();
+  const cand = (id) => v.candidates.find((c) => c.id === id);
+  assert.equal(cand('magang').current, true);
+  assert.equal(cand('magang').reason, 'Manajer saat ini.');
+  assert.equal(cand('senior').price, S.hireCost - M.hireCost / 2);
+  assert.equal(cand('senior').credit, M.hireCost / 2);
+  assert.equal(cand('senior').wageDiff, S.wage - M.wage);
+  assert.equal(cand('senior').reason, null);
+  assert.equal(cand('direktur').locked, true);
+  assert.match(cand('direktur').reason, /level 14/);
+  assert.equal(v.tradeIn, 0.5);
+
+  const evs = [];
+  g.on((e) => evs.push(e));
+  const money = g.state.money, gaji0 = g.state.ledger.total.gaji;
+  const r = g.replaceDispatcher('senior');
+  assert.equal(r.ok, true);
+  assert.equal(r.cost, 10500);
+  assert.equal(r.credit, 1500);
+  near(money - g.state.money, 10500);
+  near(g.state.ledger.total.gaji - gaji0, 10500);
+  const ev = evs.find((e) => e.type === 'dispatcher_replaced');
+  assert.deepEqual({ from: ev.from, to: ev.to, cost: ev.cost }, { from: 'magang', to: 'senior', cost: 10500 });
+  assert.equal(g.state.log.at(-1).type, 'dispatcher_replaced');
+  assert.match(g.state.log.at(-1).msg, /Bu Ratna/);
+  const h = g.dispatcherView().hired;
+  assert.equal(h.id, 'senior');
+  assert.equal(h.hiredDay, g.day);
+  // from senior the director costs 30 000 − 6 000 once unlocked
+  g.state.level = 14;
+  assert.equal(g.dispatcherView().candidates.find((c) => c.id === 'direktur').price, D.hireCost - S.hireCost / 2);
+});
+
+test('replace: downgrade is never negative, the cheaper wage applies from the next rollover', () => {
+  const { g } = setup({ level: 14, silo: {} });
+  g.hireDispatcher('direktur');
+  const money = g.state.money, gaji0 = g.state.ledger.total.gaji;
+  const r = g.replaceDispatcher('senior'); // 12 000 − 15 000 → $0
+  assert.equal(r.ok, true);
+  assert.equal(r.cost, 0);
+  assert.equal(g.state.money, money);
+  assert.equal(g.state.ledger.total.gaji, gaji0);
+  assert.equal(g.dispatcherView().candidates.find((c) => c.id === 'direktur').price, tier('direktur').hireCost - tier('senior').hireCost / 2);
+  assert.equal(g.dispatcherView().candidates.find((c) => c.id === 'magang').wageDiff, tier('magang').wage - tier('senior').wage);
+  const workerWages = g.state.workers.reduce((a, w) => a + w.wage, 0);
+  g.advance(24 - g.state.time % 24);
+  near(g.state.ledger.total.gaji - gaji0, workerWages + tier('senior').wage);
+  assert.equal(g.replaceDispatcher('magang').cost, 0);
+  assert.equal(g.dispatcherView().hired.id, 'magang');
+});
+
+test('replace: same tier, locked tier, unknown tier and not enough money are rejected without changes', () => {
+  const { g } = setup({ level: 9, silo: {} });
+  g.hireDispatcher('magang');
+  const snap = () => ({ money: g.state.money, gaji: g.state.ledger.total.gaji, d: JSON.stringify(g.state.dispatcher) });
+  const before = snap();
+  assert.match(g.replaceDispatcher('magang').reason, /sudah menjadi manajermu/);
+  assert.match(g.replaceDispatcher('direktur').reason, /Butuh level 14/);
+  assert.match(g.replaceDispatcher('nope').reason, /tidak ditemukan/);
+  g.state.money = 10499;
+  const before2 = snap();
+  assert.match(g.replaceDispatcher('senior').reason, /Uang tidak cukup/);
+  assert.equal(g.dispatcherView().candidates.find((c) => c.id === 'senior').reason, 'Uang tidak cukup.');
+  assert.deepEqual(snap(), before2);
+  assert.equal(before.d, before2.d);
+  g.state.money = 10500;
+  assert.equal(g.replaceDispatcher('senior').ok, true);
+  assert.equal(g.state.money, 0);
+});
+
+test('replace: settings, stats, recent and trips on the road stay; the new limits apply in the next pass', () => {
+  const { g } = setup({ level: 9, trucks: ['truk_elf', 'truk_elf', 'truk_elf', 'truk_elf'], workers: 5, silo: { rice: 60 },
+    settings: { keepPct: { rice: 10 }, blockedCities: ['jakarta'] } });
+  g.hireDispatcher('magang');
+  assert.equal(autoTrips(g).length, 1); // magang: 1 truck
+  const firstTrip = autoTrips(g)[0].id;
+  assert.equal(g.state.shipments.find((t) => t.id === firstTrip).bonus ?? 0, 0);
+  g.setDispatcherOn(false);
+  const settings = structuredClone(g.state.dispatcher.settings), held = structuredClone(g.state.dispatcher.held);
+  const stats = { ...g.state.dispatcher.stats }, recent = structuredClone(g.state.dispatcher.recent);
+  const inRange = (gg) => gg.dispatcherView().cities.filter((c) => c.inRange).map((c) => c.id);
+  const near100 = inRange(g);
+  assert.equal(g.replaceDispatcher('senior').ok, true);
+  // paused stays paused: nothing new yet, everything kept
+  assert.equal(g.state.dispatcher.on, false);
+  assert.deepEqual(autoTrips(g).map((t) => t.id), [firstTrip]);
+  assert.deepEqual(g.state.dispatcher.settings, settings);
+  assert.deepEqual(g.state.dispatcher.held, held);
+  assert.deepEqual(g.state.dispatcher.stats, stats);
+  assert.deepEqual(g.state.dispatcher.recent, recent);
+  assert.ok(inRange(g).length >= near100.length && near100.every((id) => inRange(g).includes(id)), 'radius 100 → 300 km');
+  // next pass: senior keeps 3 trucks on the road, with its +2% negotiation on the new trips
+  g.setDispatcherOn(true);
+  const trips = autoTrips(g);
+  assert.equal(trips.length, 3);
+  assert.ok(trips.some((t) => t.id === firstTrip));
+  for (const t of g.state.shipments.filter((x) => x.auto && x.id !== firstTrip)) assert.equal(t.bonus, tier('senior').bonus);
+  assert.equal(g.state.dispatcher.stats.trips, stats.trips + 2);
+  assert.ok(trips.every((t) => !t.cityName.includes('Jakarta')));
+  // downgrade with 3 on the road: they finish, no new trip until fewer than 1 is out
+  g.replaceDispatcher('magang');
+  assert.equal(autoTrips(g).length, 3);
+  assert.match(g.dispatcherView().note, /Semua 1 truk/);
+  g.advance(40);
+  assert.ok(autoTrips(g).length <= 1);
+});
+
+test('save/load after a replace keeps the new tier, settings, stats and road trips', () => {
+  const { g } = setup({ level: 9, seed: 7, trucks: ['truk_elf', 'truk_elf', 'truk_canter'], workers: 4, silo: { rice: 40 }, settings: { minProfit: 20 } });
+  g.hireDispatcher('magang');
+  g.advance(2);
+  g.replaceDispatcher('senior');
+  const l = loadGame(g.serialize());
+  assert.equal(l.state.dispatcher.hired.tierId, 'senior');
+  assert.deepEqual(l.dispatcherView(), g.dispatcherView());
+  assert.deepEqual(Object.keys(l.state.dispatcher).sort(), Object.keys(g.state.dispatcher).sort());
+  assert.ok(l.state.shipments.filter((t) => t.auto).length >= 2);
+  g.advance(30); l.advance(30);
+  assert.deepEqual(comparable(l), comparable(g));
+});

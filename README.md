@@ -213,7 +213,18 @@ Mulai **level 6** kamu bisa merekrut **🧑‍💼 Manajer Logistik** di **Pasar
 | Bu Ratna, Manajer Senior ★★ | 9 | $12.000 | $450 | 3 | 300 km | +2% |
 | Pak Hartono, Direktur Logistik ★★★ | 14 | $30.000 | $900 | 6 | 1.000 km | +4% |
 
-Biaya rekrut dan gaji harian masuk laporan keuangan sebagai **Gaji pekerja** (riset Bisnis yang memotong gaji juga berlaku); gaji yang tak terbayar ditambahkan ke pinjaman seperti gaji pekerja. **Radius** adalah kota terjauh yang direncanakan, dan **negosiasi** menaikkan harga kota pada kiriman manajer (tanaman tetap maksimal ×1,15, jadi beli-lalu-kirim tidak pernah untung). Hanya satu manajer sekaligus; **Berhentikan** menghentikan gaji, truk yang sedang jalan tetap pulang, dan pengaturan disimpan untuk manajer berikutnya. Garasi › 👷 Pekerja juga menampilkan manajer (status, gaji, jumlah trip) dengan tombol ke Pasar › Kirim.
+Biaya rekrut dan gaji harian masuk laporan keuangan sebagai **Gaji pekerja** (riset Bisnis yang memotong gaji juga berlaku); gaji yang tak terbayar ditambahkan ke pinjaman seperti gaji pekerja. **Radius** adalah kota terjauh yang direncanakan, dan **negosiasi** menaikkan harga kota pada kiriman manajer (tanaman tetap maksimal ×1,15, jadi beli-lalu-kirim tidak pernah untung). Hanya satu manajer sekaligus: satu manajer mengatur semua truk; **Berhentikan** menghentikan gaji, truk yang sedang jalan tetap pulang, dan pengaturan disimpan untuk manajer berikutnya. Garasi › 👷 Pekerja juga menampilkan manajer (nama, tingkat, status, gaji, jumlah trip) dengan tombol ke Pasar › Kirim.
+
+**🔄 Ganti / promosikan manajer.** Setelah direkrut, kartu manajer punya bagian lipat **🔄 Ganti / promosikan manajer** di bawah status, berisi tingkat lain (truk, radius, negosiasi, selisih gaji per hari, level buka, dan harga setelah tukar). Harga ganti = biaya rekrut tingkat baru − **50%** biaya rekrut manajer sekarang (potongan tukar), tidak pernah di bawah $0, dan masuk laporan sebagai **Gaji pekerja**:
+
+| Dari → ke | Harga |
+|---|---|
+| Magang → Senior | $12.000 − $1.500 = **$10.500** |
+| Magang → Direktur | $30.000 − $1.500 = **$28.500** |
+| Senior → Direktur | $30.000 − $6.000 = **$24.000** |
+| Turun tingkat (mis. Direktur → Senior) | **$0** (gaji lebih murah mulai pergantian hari berikutnya) |
+
+Tombol **Promosikan** (naik) atau **Ganti** (turun) membuka konfirmasi yang menampilkan perubahan truk, radius, negosiasi, gaji, dan harga. Level buka tetap berlaku ("Terbuka di Lv N"), dan memilih tingkat yang sama ditolak. Pengaturan, statistik (trip, untung ekstra, kiriman terakhir), sakelar Aktif/Jeda, dan truk yang sedang jalan tetap; jatah truk, radius, dan negosiasi baru berlaku mulai perencanaan berikutnya (langsung bila Aktif). Truk yang sudah berangkat tetap memakai negosiasi saat berangkat. Turun ke tingkat dengan jatah truk lebih kecil tidak memanggil truk pulang; manajer hanya menunggu sampai jumlah truk di jalan di bawah jatahnya.
 
 Setelah direkrut, kartu menampilkan sakelar **Aktif/Jeda**, trip hari ini, total trip, **untung ekstra** (perkiraan untung semua kiriman otomatis dibanding jual lokal), alasan bila manajer sedang menunggu (misalnya "Menunggu sopir" atau "Belum ada kiriman yang memenuhi untung minimum"), dan empat kiriman terakhir (kota, muatan, truk, jam, perkiraan untung). Kalau ada rencana ladang dengan **💰 Jual otomatis**, kartu mengingatkan bahwa hasil panen itu langsung terjual dan tidak sempat dikirim.
 
