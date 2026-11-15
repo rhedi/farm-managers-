@@ -1,9 +1,10 @@
-// Pasar tab: 💰 Jual (stock by category, price trend, partial sell) | 📋 Kontrak | 🚚 Kirim | 📊 Harga (every product, buy crops).
+// Pasar tab: 💰 Jual (stock by category, price trend, partial sell) | 📋 Kontrak | 🚚 Kirim (Manajer Logistik + manual) | 📊 Harga.
 import { h, mount, fmtMoney, fmtPrice } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { contractsPanel, contractsSig, deliverableCount } from './contracts.js';
 import { shippingPanel, shippingSig } from './shipping.js';
+import { dispatcherCard, dispatcherSig } from './dispatcher.js';
 import { subTabBar, getSub, fold } from './subtabs.js';
 import { CATEGORIES, stockByCategory, groupValue, sellGroup, stockRow, trendChip, sellableQty } from './stock.js';
 
@@ -144,7 +145,7 @@ function pricesPane(items) {
 }
 
 function computeSig(game) {
-  return `${getSub('market', SUBS)}|${game.day}|${contractsSig(game)}|${shippingSig(game)}|`
+  return `${getSub('market', SUBS)}|${game.day}|${contractsSig(game)}|${shippingSig(game)}|${dispatcherSig(game)}|`
     + game.marketView().map((p) => `${p.price}:${p.stock}:${p.reserve ?? 0}`).join(',');
 }
 
@@ -164,7 +165,7 @@ export function renderMarket(root) {
     ], sub),
     sub === 'sell' ? sellPane(game, byId)
       : sub === 'contracts' ? contractsPanel()
-        : sub === 'ship' ? shippingPanel()
+        : sub === 'ship' ? [dispatcherCard(game), shippingPanel()]
           : pricesPane(items));
 }
 

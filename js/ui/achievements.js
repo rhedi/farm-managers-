@@ -19,6 +19,7 @@ const LOG_ICON = {
   machine_breakdown: '🔧', wages_unpaid: '💸', worker_hired: '👷',
   mission_done: '🎯', missions_new: '🎯', mission_streak: '🔥', rank_up: '🏅',
   delivery_start: '🚚', delivery_done: '🚚', truck_returned: '🚚', research_unlocked: '🔬', research_reset: '🔬',
+  auto_dispatch: '🧑‍💼', dispatcher_hired: '🧑‍💼', dispatcher_fired: '🧑‍💼',
 };
 let sig = '';
 

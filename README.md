@@ -62,7 +62,7 @@ Enam tab di bawah: **🗺️ Ladang**, **🚜 Garasi**, **📈 Pasar**, **🐄 T
 |---|---|
 | Ladang | 🌾 Ladangku · 🗺️ Peta |
 | Garasi | 🚜 Mesin · 👷 Pekerja · 🛒 Toko (filter Traktor/Pemanen/Alat/Truk, mesin terkunci dilipat) |
-| Pasar | 💰 Jual · 📋 Kontrak · 🚚 Kirim · 📊 Harga |
+| Pasar | 💰 Jual · 📋 Kontrak · 🚚 Kirim (🧑‍💼 Manajer Logistik + kirim manual) · 📊 Harga |
 | Ternak | satu halaman: gudang dingin, kandangku, mulai beternak, ternak terkunci, cadangan pakan |
 | Gudang | 🌾 Pertanian (silo) · 🐄 Peternakan (gudang dingin) · 🏭 Olahan (stok olahan + pabrik) |
 | Prestasi | 🎯 Misi · 🔬 Riset · 🏆 Prestasi · 💰 Keuangan (laporan, pinjaman, kekayaan) |
@@ -156,7 +156,7 @@ Durasi tugas sama dengan luas ladang dibagi kapasitas alat (ha/jam), dikali kece
 
 ### Pekerja
 
-Setiap tugas ladang butuh satu pekerja bebas. Pengecualiannya panen dengan pemanen sewaan, karena sopirnya sudah termasuk. Kamu mulai dengan satu pekerja, Pak Budi. Di **Garasi › 👷 Pekerja** ada tiga calon yang berganti setiap minggu; merekrut mereka gratis. Pekerja yang lebih ahli menyelesaikan tugas sampai 20% lebih cepat, dan keahliannya naik sedikit demi sedikit setiap kali menyelesaikan tugas. Gaji dibayar setiap pergantian hari. Kalau uang kurang, kekurangannya ditambahkan ke pinjaman. Rencana ladang yang menunggu pekerja menampilkan "Tidak ada pekerja bebas."
+Setiap tugas ladang butuh satu pekerja bebas. Pengecualiannya panen dengan pemanen sewaan, karena sopirnya sudah termasuk. Kamu mulai dengan satu pekerja, Pak Budi. Di **Garasi › 👷 Pekerja** ada tiga calon yang berganti setiap minggu; merekrut mereka gratis. Pekerja yang lebih ahli menyelesaikan tugas sampai 20% lebih cepat, dan keahliannya naik sedikit demi sedikit setiap kali menyelesaikan tugas. Gaji dibayar setiap pergantian hari. Kalau uang kurang, kekurangannya ditambahkan ke pinjaman. Rencana ladang yang menunggu pekerja menampilkan "Tidak ada pekerja bebas." Di bawah daftar pekerja ada **🧑‍💼 Manajer Logistik** (lihat [Manajer Logistik](#manajer-logistik)).
 
 ### Gudang: silo dan gudang dingin
 
@@ -202,6 +202,45 @@ Setiap hari hewan makan tanaman pakan dari gudang. Misalnya sapi memakan gandum,
 ### Pengiriman ke kota (truk)
 
 Beli truk di **Garasi** (5 tingkat, mulai level 2: Isuzi Elf 4 t sampai Volvu 60 t). **Pasar › 🚚 Kirim**: pilih truk, kota tujuan, dan muatan dari gudang (cadangan pakan tidak ikut). Ada 8 kota (Bandung, Jakarta, Des Moines, München, Sapporo, Paris, Chicago, Cuiabá); kota hanya bisa dituju dari wilayah tempat kamu punya ladang dan terbuka di level tertentu. Tiap kota membayar harga pasar × pengali permintaan (badge kuning), tanaman maksimal +15%. BBM dibayar saat berangkat; truk dan satu pekerja bebas sibuk selama perjalanan pulang-pergi (`2 × km ÷ kecepatan`); muatan terjual saat tiba di kota. Kapasitas hanya dihitung dari produk bersatuan ton; susu, telur, dan barang kg ikut tanpa memakan kapasitas. Perkiraan menampilkan hasil di kota vs jual lokal, BBM, gaji sopir + aus truk, dan untung bersih. Upgrade mesin berlaku: Mesin = muatan, Transmisi = kecepatan, Efisiensi = BBM.
+
+### Manajer Logistik
+
+Mulai **level 6** kamu bisa merekrut **🧑‍💼 Manajer Logistik** di **Pasar › 🚚 Kirim** (kartu paling atas; pengiriman manual tetap ada di bawahnya). Manajer bukan pekerja ladang: ia tidak menyetir sendiri, tetapi memakai truk yang menganggur dan pekerja bebas sebagai sopir untuk menjual stok gudang di kota yang paling untung. Ada tiga calon:
+
+| Calon | Lv | Biaya rekrut | Gaji/hari | Truk sekaligus | Radius | Negosiasi |
+|---|---|---|---|---|---|---|
+| Dimas, Manajer Magang ★ | 6 | $3.000 | $150 | 1 | 100 km | +0% |
+| Bu Ratna, Manajer Senior ★★ | 9 | $12.000 | $450 | 3 | 300 km | +2% |
+| Pak Hartono, Direktur Logistik ★★★ | 14 | $30.000 | $900 | 6 | 1.000 km | +4% |
+
+Biaya rekrut dan gaji harian masuk laporan keuangan sebagai **Gaji pekerja** (riset Bisnis yang memotong gaji juga berlaku); gaji yang tak terbayar ditambahkan ke pinjaman seperti gaji pekerja. **Radius** adalah kota terjauh yang direncanakan, dan **negosiasi** menaikkan harga kota pada kiriman manajer (tanaman tetap maksimal ×1,15, jadi beli-lalu-kirim tidak pernah untung). Hanya satu manajer sekaligus; **Berhentikan** menghentikan gaji, truk yang sedang jalan tetap pulang, dan pengaturan disimpan untuk manajer berikutnya. Garasi › 👷 Pekerja juga menampilkan manajer (status, gaji, jumlah trip) dengan tombol ke Pasar › Kirim.
+
+Setelah direkrut, kartu menampilkan sakelar **Aktif/Jeda**, trip hari ini, total trip, **untung ekstra** (perkiraan untung semua kiriman otomatis dibanding jual lokal), alasan bila manajer sedang menunggu (misalnya "Menunggu sopir" atau "Belum ada kiriman yang memenuhi untung minimum"), dan empat kiriman terakhir (kota, muatan, truk, jam, perkiraan untung). Kalau ada rencana ladang dengan **💰 Jual otomatis**, kartu mengingatkan bahwa hasil panen itu langsung terjual dan tidak sempat dikirim.
+
+**⚙️ Pengaturan manajer** (bisa dilipat, tersimpan di simpanan game):
+
+- **Kelompok produk**: 🌾 Pertanian, 🐄 Peternakan, 🏭 Olahan (semua aktif secara bawaan).
+- **Kota tujuan**: semua kota yang sudah terbuka dan terjangkau aktif secara bawaan; kota di luar radius manajer ditandai "(jauh)".
+- **Untung minimum per trip** ($0–$5.000, bawaan $100) dan **minimal di atas jual lokal** (0–30%, bawaan 3%): keduanya harus terpenuhi.
+- **Sisakan pekerja bebas** (bawaan 1): manajer hanya mengambil sopir bila masih ada lebih dari N pekerja bebas, jadi tugas ladang tidak kehabisan pekerja. Rencana ladang selalu dijalankan lebih dulu tiap jam.
+- **Maks. truk dipakai**: batas tambahan di bawah jatah truk manajer ("Semua" = jatahnya).
+- **Produk**: per produk ✓ Kirim / 🚫 Tidak dan **Sisakan 0–90%**. "Sisakan X%" berlaku untuk setiap stok baru yang masuk: dari 40 t padi dengan sisakan 50%, 20 t tetap di gudang; panen 20 t berikutnya menambah 10 t yang disisakan.
+- Cadangan pakan dan sisa jumlah kontrak aktif selalu disisakan.
+
+**Cara manajer memilih.** Setiap jam game (dan setiap kali tugas ladang selesai atau truk pulang), untuk setiap truk yang bebas dan kondisinya ≥ 20%, mulai dari yang terbesar: untuk setiap kota yang boleh dan terjangkau, muatan diisi rakus — produk ton dengan selisih harga per ton terbesar dulu sampai truk penuh, produk kg/L/butir ikut seluruhnya karena tidak memakan kapasitas, dan hanya produk yang di kota itu lebih mahal dari pasar lokal. Untung = harga kota − nilai jual lokal − BBM − upah sopir selama perjalanan − aus truk (perkiraan yang sama dengan pengiriman manual). Kota dengan untung terbesar dipilih, dan truk berangkat lewat jalur pengiriman biasa bila untungnya memenuhi minimum. Muatan langsung keluar dari gudang saat berangkat, sehingga truk berikutnya tidak pernah merencanakan stok yang sama. Tidak ada unsur acak; waktu offline (maksimal 48 jam) disimulasikan dengan cara yang sama. Setiap kiriman memunculkan notifikasi gabungan "🧑‍💼 Manajer logistik mengirim N truk.", bunyi klakson, dan animasi truk yang melaju ke kota di atas bilah tab (dimatikan bila HP meminta gerak dikurangi).
+
+**Keseimbangan.** Simulasi 30 hari (rencana ladang dengan pupuk dan sewa pemanen; tanpa manajer semua hasil dijual lokal saat panen, dengan manajer sisa stok dijual manual tiap sore; angka bersih setelah gaji dan biaya rekrut):
+
+| Pertanian | Manajer | Pendapatan tanpa manajer | Tambahan bersih/hari | Biaya/hari |
+|---|---|---|---|---|
+| Lv 7, 36 ha (Jawa Barat + Bavaria), 1 Hinu 20 t | Magang | ≈ $6.800–8.000 | +$160–300 | $250 |
+| Lv 7, sama, 1 Canter 8 t | Magang | ≈ $6.800–8.000 | −$280 … +$150 | $250 |
+| Lv 14, 144 ha di 4 wilayah, Hinu + Canter | Senior | ≈ $29.600 | +$780–1.290 | $850 |
+| Lv 14, sama, Scanya + 2 Hinu | Magang | ≈ $29.800 | +$1.200–1.700 | $250 |
+| Lv 14, sama, Scanya + 2 Hinu | Senior | ≈ $29.800 | +$1.730–1.870 | $850 |
+| Lv 14, sama, Scanya + 2 Hinu | Direktur | ≈ $29.800 | +$1.770–2.260 | $1.900 |
+
+Manajer membayar dirinya sekitar 1,5–3× bila truknya cukup besar (keuntungan bersih ±2–7% dari pendapatan), tetapi dengan truk kecil atau ladang sedikit ia nyaris impas atau rugi. Biaya per hari di tabel = gaji + biaya rekrut dibagi 30 hari.
 
 ### Riset
 
@@ -253,7 +292,7 @@ Ladang di wilayah baru terkunci sampai levelnya tercapai (pin 🔒 Lv N di peta)
 
 ### Notifikasi
 
-Notifikasi muncul di bagian atas, di bawah bar atas dan bilah sub-tab, sehingga tidak menutupi tombol sub-tab maupun tombol di jendela aksi. Saat sebuah jendela terbuka, notifikasi pindah ke atas bar atas agar judul dan tombol ✕ jendela tetap terlihat. Paling banyak dua notifikasi tampil sekaligus. Kejadian yang sama digabung, misalnya "🌾 3 ladang siap panen.", dan setiap notifikasi bisa ditutup dengan ✕. Notifikasi muncul untuk tanaman siap panen, tanaman layu, prestasi, peringatan pakan, dan kontrak. Naik level ditampilkan dalam jendela tersendiri. Kejadian rutin seperti tugas selesai, penjualan, dan pembelian hanya dicatat di **Prestasi › 🏆 Prestasi** (📜 Catatan kejadian).
+Notifikasi muncul di bagian atas, di bawah bar atas dan bilah sub-tab, sehingga tidak menutupi tombol sub-tab maupun tombol di jendela aksi. Saat sebuah jendela terbuka, notifikasi pindah ke atas bar atas agar judul dan tombol ✕ jendela tetap terlihat. Paling banyak dua notifikasi tampil sekaligus. Kejadian yang sama digabung, misalnya "🌾 3 ladang siap panen.", dan setiap notifikasi bisa ditutup dengan ✕. Notifikasi muncul untuk tanaman siap panen, tanaman layu, prestasi, peringatan pakan, kontrak, muatan yang terjual di kota, dan kiriman otomatis Manajer Logistik. Naik level ditampilkan dalam jendela tersendiri. Kejadian rutin seperti tugas selesai, penjualan, dan pembelian hanya dicatat di **Prestasi › 🏆 Prestasi** (📜 Catatan kejadian).
 
 Di layar lebar (≥ 1000 px), tab **Ladang** menampilkan Ladangku dan Peta berdampingan: kartu ladang di kiri, peta di kanan (tetap terlihat saat menggulir). Di ponsel mendatar, bar atas menjadi satu baris.
 
@@ -272,7 +311,7 @@ css/factories.css   Gaya bagian Pabrik (Gudang › Olahan)
 css/missions.css    Gaya misi harian dan papan peringkat (Prestasi › Misi)
 css/breeding.css    Gaya panel pembiakan ternak dan dialog upgrade mesin
 css/finance.css     Gaya laporan keuangan
-css/logistics.css   Gaya pengiriman truk ke kota
+css/logistics.css   Gaya pengiriman truk ke kota, Manajer Logistik, dan riset
 css/orchard.css     Gaya kebun buah dan rumah kaca
 css/layout.css      Sub-tab, bagian yang bisa dilipat, daftar stok, tata letak layar lebar/mendatar
 js/data.js          Data game: tanaman, produk, mesin, hewan, wilayah, ladang, level, prestasi, BALANCE
@@ -281,7 +320,7 @@ js/engine/*         Modul engine: rng, defs, weather, market, fields, tasks, tas
                     animals, economy, purchase, contracts, plans, views, persist,
                     storage, workers, wear, seasons, events, soil, factories, factoryView,
                     missions, rivals, breeding, upgrades, ledger, orchard, greenhouse,
-                    logistics, logisticsView, research
+                    logistics, logisticsView, dispatcher, research
 js/ui/*             Komponen antarmuka per tab
 js/main.js          Titik masuk: memuat/membuat game, game loop, autosave, navigasi tab
 tests/              Tes engine (node:test)
@@ -317,6 +356,7 @@ Semua angka keseimbangan ada di `js/data.js`. Objek `BALANCE` mengatur:
 | `soilYield` | Pengali hasil per jenis tanah |
 | `xpPerTask`, `xpPerHarvestValue` | XP per tugas, dan XP per $ nilai hasil panen dan produksi ternak (dihitung dengan harga dasar) |
 | `loanDailyRate` | Bunga pinjaman per hari |
+| `logistics`, `dispatcher` | Truk (aus, batas harga tanaman di kota) dan tingkat Manajer Logistik (`tiers`: level buka, biaya rekrut, gaji, jumlah truk, radius, negosiasi) |
 
 Harga ladang, mesin, benih, harga dasar produk, volatilitas pasar, dan level buka bisa diubah langsung di array masing-masing (`FIELDS`, `MACHINES`, `CROPS`, `PRODUCTS`, `ANIMALS`). Modal awal dan biaya sewa mesin panen ada di `STARTING`.
 

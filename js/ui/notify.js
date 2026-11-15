@@ -27,6 +27,7 @@ const TOAST_EVENTS = {
   breed_improved: { kind: 'success', merged: (n) => `🧬 Genetika ternak membaik (${n}×).` },
   herd_full: { kind: 'warn', merged: (n) => `🏠 ${n} kandang penuh — kelahiran berhenti.` },
   delivery_done: { kind: 'success', merged: (n) => `🚚 ${n} muatan terjual di kota.` },
+  auto_dispatch: { kind: 'success', merged: (n) => `🧑‍💼 Manajer logistik mengirim ${n} truk.` },
 };
 
 /** Season changes only matter for regions where the player owns a field. */

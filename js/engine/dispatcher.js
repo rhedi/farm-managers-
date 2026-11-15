@@ -1,0 +1,298 @@
+// Manajer Logistik: a hired staff member (not a field worker) who sends idle trucks with silo stock to the city
+// that pays the most over selling locally. Runs every game hour and after tasks/trips finish (Game.advance),
+// deterministic (no RNG), and only through the normal shipToCity path (fuel, driver, wear, sale on arrival).
+// state.dispatcher = { hired: null | {tierId, hiredDay}, on, settings, held:{productId: qty}, seen:{productId: qty},
+//   stats:{trips, extraProfit, value}, today:{day, trips, profit}, recent:[≤ RECENT], note }
+// `held`/`seen`: the "sisakan X%" ledger: X% of every stock increase the manager sees stays in the silo.
+import { round2 } from './rng.js';
+import { fmtMoney, fmtNum } from './defs.js';
+import { sellableStock } from './economy.js';
+import { planShipment, shipToCity, routeOf, truckStats, shipments, cityMult } from './logistics.js';
+import { conditionOf, BREAKDOWN_BELOW } from './wear.js';
+import { perk } from './research.js';
+
+export const GROUPS = ['crop', 'animal', 'processed'];
+export const RECENT = 6;
+/** Stepper values offered by the UI (the engine accepts any value inside the limits). */
+export const STEPS = {
+  minProfit: [0, 50, 100, 200, 300, 500, 750, 1000, 1500, 2500, 5000],
+  minMargin: [0, 2, 3, 5, 8, 10, 15, 20, 30],
+  keepPct: [0, 10, 25, 50, 75, 90],
+};
+const LIMITS = { minProfit: [0, 1e6], minMargin: [0, 100], keepPct: [0, 90], reserveWorkers: [0, 20], maxTrucks: [0, 50] };
+export const defaultSettings = () => ({ groups: { crop: true, animal: true, processed: true }, exclude: [], keepPct: {},
+  minProfit: 100, minMargin: 3, blockedCities: [], reserveWorkers: 1, maxTrucks: 0 });
+
+const ok = (extra = {}) => ({ ok: true, ...extra });
+const fail = (reason) => ({ ok: false, reason });
+const floor2 = (v) => Math.floor(v * 100 + 1e-6) / 100;
+const clamp = (v, [lo, hi]) => Math.min(hi, Math.max(lo, Number(v) || 0));
+const cfg = (game) => game.data.BALANCE.dispatcher ?? { tiers: [] };
+export const tierOf = (game, id) => cfg(game).tiers.find((t) => t.id === id) ?? null;
+const st = (game) => game.state.dispatcher;
+const tripCount = (game) => shipments(game).filter((t) => t.auto).length;
+
+/** Trucks the manager may keep on the road: its tier's `trucks`, lowered by the "maks. truk" setting (0 = no extra cap). */
+const truckLimit = (game, tier) => Math.min(tier.trucks ?? Infinity, st(game).settings.maxTrucks || Infinity);
+
+/** Daily wage of the hired manager after the research perk 'wages' (0 when nobody is hired). */
+export function dispatcherWage(game) {
+  const t = st(game)?.hired && tierOf(game, st(game).hired.tierId);
+  return t ? round2(t.wage * (1 - perk(game, 'wages'))) : 0;
+}
+
+/** createGame / load migration: absent = not hired, default settings; unknown ids are dropped. */
+export function ensureDispatcher(game) {
+  const s = game.state;
+  const d = s.dispatcher = { hired: null, on: true, settings: {}, held: {}, seen: {}, stats: {}, today: {}, recent: [], note: '', ...(s.dispatcher || {}) };
+  if (d.hired && !tierOf(game, d.hired.tierId)) d.hired = null;
+  d.settings = sanitize(game, { ...defaultSettings(), ...d.settings, groups: { ...defaultSettings().groups, ...(d.settings.groups || {}) } });
+  d.stats = { trips: 0, extraProfit: 0, value: 0, ...d.stats };
+  d.today = { day: game.day, trips: 0, profit: 0, ...d.today };
+  d.held ||= {}; d.seen ||= {};
+  for (const k of ['held', 'seen']) for (const id of Object.keys(d[k])) if (!d.settings.keepPct[id]) delete d[k][id];
+  d.recent = (d.recent || []).slice(0, RECENT);
+}
+
+function sanitize(game, x) {
+  const products = game.idx.products, cities = game.idx.cities;
+  const keepPct = {};
+  for (const [id, v] of Object.entries(x.keepPct || {})) {
+    const pct = Math.round(clamp(v, LIMITS.keepPct));
+    if (products.has(id) && pct > 0) keepPct[id] = pct;
+  }
+  return {
+    groups: Object.fromEntries(GROUPS.map((g) => [g, x.groups?.[g] !== false])),
+    exclude: [...new Set((x.exclude || []).filter((id) => products.has(id)))].sort(),
+    keepPct,
+    minProfit: round2(clamp(x.minProfit, LIMITS.minProfit)),
+    minMargin: round2(clamp(x.minMargin, LIMITS.minMargin)),
+    blockedCities: [...new Set((x.blockedCities || []).filter((id) => cities.has(id)))].sort(),
+    reserveWorkers: Math.round(clamp(x.reserveWorkers, LIMITS.reserveWorkers)),
+    maxTrucks: Math.round(clamp(x.maxTrucks, LIMITS.maxTrucks)),
+  };
+}
+
+export function hireDispatcher(game, tierId) {
+  const s = game.state, d = st(game), t = tierOf(game, tierId);
+  if (!t) return fail('Calon manajer tidak ditemukan.');
+  if (d.hired) return fail('Sudah ada manajer logistik. Berhentikan dulu untuk mengganti.');
+  if (s.level < t.unlockLevel) return fail(`Butuh level ${t.unlockLevel}.`);
+  if (!game.spend(t.hireCost, 'gaji')) return fail('Uang tidak cukup.');
+  d.hired = { tierId: t.id, hiredDay: game.day };
+  d.on = true;
+  d.note = '';
+  game.emit('dispatcher_hired', `🧑‍💼 ${t.name} (${t.title}) bergabung sebagai Manajer Logistik (${fmtMoney(t.wage)}/hari).`, { tierId: t.id, cost: t.hireCost });
+  runDispatcher(game);
+  return ok({ cost: t.hireCost });
+}
+
+export function fireDispatcher(game) {
+  const d = st(game), t = d.hired && tierOf(game, d.hired.tierId);
+  if (!t) return fail('Belum ada manajer logistik.');
+  d.hired = null;
+  d.note = '';
+  game.emit('dispatcher_fired', `🧑‍💼 ${t.name} berhenti sebagai Manajer Logistik. Truk yang sedang jalan tetap pulang.`, { tierId: t.id });
+  return ok();
+}
+
+/** Aktif/jeda. Turning it on plans at once. */
+export function setDispatcherOn(game, on) {
+  const d = st(game);
+  if (!d.hired) return fail('Belum ada manajer logistik.');
+  d.on = !!on;
+  d.note = '';
+  if (d.on) runDispatcher(game);
+  return ok({ on: d.on });
+}
+
+/** Partial update (`groups` merges per key); values are clamped. A changed "sisakan %" restarts its ledger. */
+export function setDispatcherSettings(game, patch = {}) {
+  const d = st(game), old = d.settings;
+  const next = sanitize(game, { ...old, ...patch, groups: { ...old.groups, ...(patch.groups || {}) } });
+  for (const id of new Set([...Object.keys(old.keepPct), ...Object.keys(next.keepPct)])) {
+    if (old.keepPct[id] === next.keepPct[id]) continue;
+    const stock = game.state.silo[id] || 0;
+    if (next.keepPct[id]) { d.held[id] = round2(stock * next.keepPct[id] / 100); d.seen[id] = stock; } else { delete d.held[id]; delete d.seen[id]; }
+  }
+  d.settings = next;
+  if (d.hired && d.on) runDispatcher(game);
+  return ok({ settings: structuredClone(next) });
+}
+
+/** "Sisakan X%": X% of every increase since the last look stays held; selling shrinks the hold with the stock. */
+function updateHeld(game) {
+  const d = st(game), silo = game.state.silo;
+  for (const [id, pct] of Object.entries(d.settings.keepPct)) {
+    const stock = silo[id] || 0;
+    const inc = Math.max(0, stock - (d.seen[id] ?? 0));
+    d.held[id] = round2(Math.min(stock, (d.held[id] || 0) + inc * pct / 100));
+    d.seen[id] = stock;
+  }
+}
+
+/** Remaining quantity of active contracts per product (kept for delivery). */
+function contractNeed(game) {
+  const need = {};
+  for (const c of game.state.contracts || []) if (c.status === 'active') need[c.productId] = (need[c.productId] || 0) + Math.max(0, c.qty - c.delivered);
+  return need;
+}
+
+/** Stock the manager may load: silo − feed reserve − active contracts − "sisakan %", allowed groups/products only. */
+export function dispatchableStock(game) {
+  const s = game.state, set = st(game).settings, need = contractNeed(game);
+  updateHeld(game);
+  const out = new Map();
+  for (const id of Object.keys(s.silo).sort()) {
+    const p = game.idx.products.get(id);
+    if (!p || !set.groups[p.category ?? 'crop'] || set.exclude.includes(id) || !(s.market[id] > 0)) continue;
+    const q = floor2(sellableStock(game, id) - (need[id] || 0) - (st(game).held[id] || 0));
+    if (q > 0) out.set(id, q);
+  }
+  return out;
+}
+
+/**
+ * Greedy load for one city: only goods that sell above market there; ton goods by best gain per ton until the truck
+ * is full (divisible goods, fixed trip cost ⇒ greedy is optimal), kg/L/pcs goods ride along in full.
+ */
+function fillCargo(game, city, stock, capacity, bonus) {
+  const s = game.state, tons = [], cargo = {};
+  for (const [id, qty] of stock) {
+    const gain = (s.market[id] ?? 0) * (cityMult(game, city, id, bonus) - 1);
+    if (gain <= 1e-9) continue;
+    if (game.idx.products.get(id).unit === 't') tons.push({ id, qty, gain });
+    else cargo[id] = qty;
+  }
+  tons.sort((a, b) => b.gain - a.gain || (a.id < b.id ? -1 : 1));
+  let room = floor2(capacity);
+  for (const x of tons) {
+    if (room <= 0) break;
+    const q = floor2(Math.min(x.qty, room));
+    if (q > 0) { cargo[x.id] = q; room = floor2(room - q); }
+  }
+  return Object.keys(cargo).length ? cargo : null;
+}
+
+/** Best city for one truck: highest estimated profit (city − local − fuel − driver − wear) that passes the minimums. */
+function bestTrip(game, m, tier, stock) {
+  const s = game.state, set = st(game).settings, truck = truckStats(game, m);
+  let best = null;
+  for (const city of game.data.CITIES ?? []) {
+    if ((city.unlockLevel ?? 1) > s.level || set.blockedCities.includes(city.id)) continue;
+    const route = routeOf(game, city);
+    if (!route || route.km > tier.radiusKm) continue;
+    const cargo = fillCargo(game, city, stock, truck.capacity, tier.bonus);
+    if (!cargo) continue;
+    const plan = planShipment(game, m.uid, city.id, cargo, { bonus: tier.bonus });
+    if (!plan.ok || plan.profit < set.minProfit || plan.profit < plan.localValue * set.minMargin / 100) continue;
+    if (!best || plan.profit > best.plan.profit + 1e-9) best = { city, cargo, plan };
+  }
+  return best;
+}
+
+const cargoText = (game, cargo) => Object.entries(cargo).map(([id, q]) => {
+  const p = game.idx.products.get(id);
+  if (!p) return `${fmtNum(q, 1)} ${id}`;
+  return `${p.emoji} ${fmtNum(q, p.unit === 't' ? 1 : 0)} ${p.unit}`;
+}).join(', ');
+
+/**
+ * One planning pass: every idle truck (biggest first, condition ≥ breakdown limit) with a driver to spare gets the
+ * most profitable trip, if any passes the minimums. Stock leaves the silo at dispatch, so the next truck never
+ * plans the same goods. Returns the trips sent [{shipmentId, truckUid, cityId, cargo, estProfit}].
+ */
+export function runDispatcher(game) {
+  const d = st(game);
+  if (!d?.hired || !d.on) return [];
+  const s = game.state, set = d.settings, tier = tierOf(game, d.hired.tierId);
+  const trucks = s.machines.filter((m) => !m.busy && truckStats(game, m))
+    .sort((a, b) => truckStats(game, b).capacity - truckStats(game, a).capacity || (a.uid < b.uid ? -1 : 1));
+  const usable = trucks.filter((m) => conditionOf(m) >= (game.data.BALANCE.wear?.breakdownBelow ?? BREAKDOWN_BELOW));
+  const sent = [];
+  let note = !s.machines.some((m) => truckStats(game, m)) ? 'Belum punya truk. Beli di Garasi › Toko.'
+    : !trucks.length ? 'Semua truk sedang di jalan.'
+      : !usable.length ? 'Truk yang bebas hampir rusak (<20%). Perbaiki di Garasi.' : '';
+  const limit = truckLimit(game, tier);
+  for (const m of usable) {
+    if (tripCount(game) >= limit) { note = `Semua ${limit} truk jatah manajer sedang di jalan.`; break; }
+    const free = s.workers.filter((w) => !w.busy).length;
+    if (free <= set.reserveWorkers) {
+      note = free ? `Menunggu sopir: ${free} pekerja bebas disisakan untuk ladang.` : 'Menunggu sopir: tidak ada pekerja bebas.';
+      break;
+    }
+    const stock = dispatchableStock(game);
+    if (!stock.size) { note = 'Tidak ada stok yang boleh dikirim.'; break; }
+    const best = bestTrip(game, m, tier, stock);
+    if (!best) { note ||= 'Belum ada kiriman yang memenuhi untung minimum.'; continue; }
+    const r = shipToCity(game, m.uid, best.city.id, best.cargo, { auto: true, bonus: tier.bonus });
+    if (!r.ok) { note = r.reason; continue; }
+    note = '';
+    record(game, m, best, r.id);
+    sent.push({ shipmentId: r.id, truckUid: m.uid, cityId: best.city.id, cargo: best.cargo, estProfit: best.plan.profit });
+  }
+  if (sent.length && note === 'Belum ada kiriman yang memenuhi untung minimum.') note = '';
+  d.note = note;
+  if (sent.length) updateHeld(game); // the manager's own loads are not "new stock"
+  return sent;
+}
+
+function record(game, m, best, shipmentId) {
+  const d = st(game), { city, cargo, plan } = best, tier = tierOf(game, d.hired.tierId);
+  const truckName = game.idx.machines.get(m.defId)?.name ?? m.uid;
+  if (d.today.day !== game.day) d.today = { day: game.day, trips: 0, profit: 0 };
+  d.today.trips++;
+  d.today.profit = round2(d.today.profit + plan.profit);
+  d.stats.trips++;
+  d.stats.extraProfit = round2(d.stats.extraProfit + plan.profit);
+  d.stats.value = round2(d.stats.value + plan.value);
+  d.recent.unshift({ day: game.day, hour: game.hour, shipmentId, truckUid: m.uid, truckName, cityId: city.id, cargo,
+    tons: plan.tons, value: plan.value, estProfit: plan.profit });
+  d.recent.length = Math.min(d.recent.length, RECENT);
+  game.emit('auto_dispatch', `🧑‍💼 ${tier.name} mengirim ${truckName} ke ${city.name}: ${cargoText(game, cargo)} · perkiraan untung ${fmtMoney(plan.profit)}.`,
+    { truck: m.uid, truckName, city: city.id, cityName: city.name, cargo, estProfit: plan.profit, shipmentId });
+}
+
+/** Daily rollover: the manager's wage (ledger 'gaji'); a shortfall goes to the loan. */
+export function stepDispatcherDay(game) {
+  const d = st(game), wage = dispatcherWage(game);
+  if (d.today.day !== game.day) d.today = { day: game.day, trips: 0, profit: 0 };
+  if (!(wage > 0)) return;
+  const short = game.payOrBorrow(wage, 'gaji');
+  if (short > 0) game.emit('wages_unpaid', `Uang kurang untuk gaji manajer logistik: ${fmtMoney(short)} ditambahkan ke pinjaman.`, { amount: short });
+}
+
+/** Everything the Pasar › Kirim card and Garasi › Pekerja need. */
+export function dispatcherView(game) {
+  const s = game.state, d = st(game), set = d.settings;
+  const tiers = cfg(game).tiers;
+  const hiredTier = d.hired ? tierOf(game, d.hired.tierId) : null;
+  const tierView = (t) => ({ id: t.id, name: t.name, title: t.title, emoji: t.emoji, stars: t.skill, unlockLevel: t.unlockLevel,
+    hireCost: t.hireCost, wage: t.wage, trucks: t.trucks, radiusKm: t.radiusKm, bonus: t.bonus });
+  const candidates = tiers.map((t) => ({ ...tierView(t), locked: s.level < t.unlockLevel,
+    reason: d.hired ? 'Sudah ada manajer.' : s.level < t.unlockLevel ? `Terbuka di level ${t.unlockLevel}.`
+      : s.money < t.hireCost ? 'Uang tidak cukup.' : null }));
+  const radius = hiredTier?.radiusKm ?? Math.max(0, ...tiers.map((t) => t.radiusKm));
+  const cities = (game.data.CITIES ?? []).filter((c) => (c.unlockLevel ?? 1) <= s.level && routeOf(game, c)).map((c) => {
+    const km = routeOf(game, c).km;
+    return { id: c.id, name: c.name, emoji: c.emoji, km, allowed: !set.blockedCities.includes(c.id), inRange: km <= radius };
+  });
+  const ids = new Set([...Object.keys(s.silo).filter((id) => s.silo[id] > 0), ...set.exclude, ...Object.keys(set.keepPct)]);
+  const products = [...ids].map((id) => game.idx.products.get(id)).filter(Boolean).map((p) => ({
+    id: p.id, name: p.name, emoji: p.emoji, unit: p.unit, category: p.category ?? 'crop', qty: s.silo[p.id] || 0,
+    excluded: set.exclude.includes(p.id), keepPct: set.keepPct[p.id] || 0, held: d.held[p.id] || 0,
+    groupOn: set.groups[p.category ?? 'crop'] })).sort((a, b) => GROUPS.indexOf(a.category) - GROUPS.indexOf(b.category) || a.name.localeCompare(b.name));
+  const today = d.today.day === game.day ? d.today : { trips: 0, profit: 0 };
+  const sellPlans = Object.values(s.fields).filter((f) => f.plan?.sell).length;
+  return {
+    unlockLevel: Math.min(...tiers.map((t) => t.unlockLevel)), level: s.level,
+    hired: hiredTier ? { ...tierView(hiredTier), hiredDay: d.hired.hiredDay, wagePaid: dispatcherWage(game) } : null,
+    on: d.on, note: d.note, candidates, settings: structuredClone(set), steps: STEPS,
+    stats: { ...d.stats }, today: { trips: today.trips, profit: today.profit }, onRoad: tripCount(game),
+    recent: d.recent.map((r) => {
+      const c = game.idx.cities.get(r.cityId);
+      return { ...r, cityName: c?.name ?? r.cityId, cityEmoji: c?.emoji ?? '🏙️', cargoText: cargoText(game, r.cargo) };
+    }),
+    trucks: s.machines.filter((m) => truckStats(game, m)).length, workers: s.workers.length, cities, products, sellPlans,
+  };
+}

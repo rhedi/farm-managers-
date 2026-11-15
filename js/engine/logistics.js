@@ -1,7 +1,8 @@
 // Truck deliveries (logistics): load silo stock on a truck, drive to a city, sell there at
 // market × city demand on arrival (half-way), then drive back. A free worker drives (busy the whole trip).
 // state.shipments = [{ id, truckUid, workerId, cityId, regionId, km, cargo:{productId:qty}, hours, done,
-//   fuelCost, sold, value, departDay }], state.nextTripId. Truck/worker `busy` = the shipment id ('trip3').
+//   fuelCost, sold, value, departDay, auto?, bonus? }], state.nextTripId. Truck/worker `busy` = the shipment id ('trip3').
+// `auto` marks trips sent by the Manajer Logistik (dispatcher.js); `bonus` = its negotiated extra city price.
 import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { sellableStock } from './economy.js';
@@ -24,9 +25,12 @@ export const shipments = (game) => (game.state.shipments ||= []);
  */
 export const tonsPerUnit = (game, productId) => (game.idx.products.get(productId)?.unit === 't' ? 1 : 0);
 
-/** City price multiplier: demand (or base) × (1 + perk 'cityPrice'); crops never above cropCap (< BUY_MARKUP). */
-export function cityMult(game, city, productId) {
-  let m = (city.demand?.[productId] ?? city.base ?? 1) * (1 + perk(game, 'cityPrice'));
+/**
+ * City price multiplier: demand (or base) × (1 + perk 'cityPrice' + `bonus`); crops never above cropCap (< BUY_MARKUP).
+ * `bonus` = the Manajer Logistik's negotiation bonus on its own trips (0 for manual trips).
+ */
+export function cityMult(game, city, productId, bonus = 0) {
+  let m = (city.demand?.[productId] ?? city.base ?? 1) * (1 + perk(game, 'cityPrice') + bonus);
   if (game.idx.crops.has(productId)) m = Math.min(m, Math.min(cfg(game).cropCap, BUY_MARKUP - 0.01));
   return r4(m);
 }
@@ -53,7 +57,7 @@ export const freeDriver = (game) => game.state.workers.filter((w) => !w.busy).so
  * Validate and price a trip. Always fills the numbers it can: items, tons, capacity, km, hours, fuelCost,
  * value (city), localValue (market), gain, wageCost, wearCost, profit = gain − fuel − wage time − wear.
  */
-export function planShipment(game, truckUid, cityId, cargo = {}) {
+export function planShipment(game, truckUid, cityId, cargo = {}, { bonus = 0 } = {}) {
   const s = game.state, B = game.data.BALANCE;
   const m = s.machines.find((x) => x.uid === truckUid);
   const truck = truckStats(game, m);
@@ -70,7 +74,7 @@ export function planShipment(game, truckUid, cityId, cargo = {}) {
     if (!p) { bad ||= 'Produk tidak ditemukan.'; continue; }
     const stock = sellableStock(game, productId);
     if (qty > stock + 1e-9) bad ||= `Stok ${p.name} tidak cukup (tersedia ${fmtNum(stock)} ${p.unit}).`;
-    const price = s.market[productId] ?? 0, mult = cityMult(game, city, productId);
+    const price = s.market[productId] ?? 0, mult = cityMult(game, city, productId, bonus);
     items.push({ productId, name: p.name, emoji: p.emoji, unit: p.unit, qty, tons: round2(qty * tonsPerUnit(game, productId)),
       price, mult, cityPrice: round2(price * mult), value: round2(qty * price * mult), localValue: round2(qty * price) });
   }
@@ -99,9 +103,12 @@ export function planShipment(game, truckUid, cityId, cargo = {}) {
   return reason ? { ...plan, ok: false, reason } : plan;
 }
 
-/** Start a delivery: fuel booked now ('transportasi'), cargo leaves the silo, truck + driver busy. */
-export function shipToCity(game, truckUid, cityId, cargo) {
-  const plan = planShipment(game, truckUid, cityId, cargo);
+/**
+ * Start a delivery: fuel booked now ('transportasi'), cargo leaves the silo, truck + driver busy.
+ * `auto` (Manajer Logistik trips) marks the shipment and skips the `delivery_start` event (it emits `auto_dispatch`).
+ */
+export function shipToCity(game, truckUid, cityId, cargo, { auto = false, bonus = 0 } = {}) {
+  const plan = planShipment(game, truckUid, cityId, cargo, { bonus });
   if (!plan.ok) return { ok: false, reason: plan.reason };
   const s = game.state;
   if (!game.spend(plan.fuelCost, 'transportasi')) return fail('Uang tidak cukup untuk BBM.');
@@ -114,11 +121,12 @@ export function shipToCity(game, truckUid, cityId, cargo) {
   s.nextTripId = (s.nextTripId || 1) + 1;
   const id = `trip${s.nextTripId - 1}`;
   shipments(game).push({ id, truckUid, workerId: plan.workerId, cityId, regionId: plan.regionId, km: plan.km, cargo: load,
-    hours: Math.max(0.01, plan.hours), done: 0, fuelCost: plan.fuelCost, sold: false, value: 0, departDay: game.day });
+    hours: Math.max(0.01, plan.hours), done: 0, fuelCost: plan.fuelCost, sold: false, value: 0, departDay: game.day,
+    ...(auto ? { auto: true } : {}), ...(bonus ? { bonus } : {}) });
   s.machines.find((m) => m.uid === truckUid).busy = id;
   s.workers.find((w) => w.id === plan.workerId).busy = id;
   const city = game.idx.cities.get(cityId);
-  game.emit('delivery_start', `🚚 ${plan.workerName} berangkat ke ${city.name} (${fmtNum(plan.km)} km) membawa ${fmtNum(plan.tons)} t, BBM ${fmtMoney(plan.fuelCost)}.`,
+  if (!auto) game.emit('delivery_start', `🚚 ${plan.workerName} berangkat ke ${city.name} (${fmtNum(plan.km)} km) membawa ${fmtNum(plan.tons)} t, BBM ${fmtMoney(plan.fuelCost)}.`,
     { shipmentId: id, cityId });
   return { ok: true, id, hours: plan.hours, fuelCost: plan.fuelCost, estValue: plan.value };
 }
@@ -129,7 +137,7 @@ function arrive(game, t) {
   const split = {};
   let value = 0, local = 0;
   for (const [id, qty] of Object.entries(t.cargo)) {
-    const price = s.market[id] ?? 0, v = round2(qty * price * (city ? cityMult(game, city, id) : 1));
+    const price = s.market[id] ?? 0, v = round2(qty * price * (city ? cityMult(game, city, id, t.bonus || 0) : 1));
     const cat = saleCategory(game, id);
     split[cat] = round2((split[cat] || 0) + v);
     value += v; local += qty * price;

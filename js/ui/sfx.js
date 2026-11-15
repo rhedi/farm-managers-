@@ -74,6 +74,7 @@ const SOUNDS = {
   achievement: () => { note(784, 0, 0.12, { type: 'triangle', vol: 0.3 }); note(1175, 0.1, 0.35, { type: 'triangle', vol: 0.3 }); },
   warning: () => { note(440, 0, 0.14, { type: 'sawtooth', vol: 0.12 }); note(330, 0.15, 0.2, { type: 'sawtooth', vol: 0.12 }); },
   pop: () => note(420, 0, 0.09, { type: 'sine', vol: 0.3, slide: 500 }),
+  honk: () => { note(392, 0, 0.09, { type: 'square', vol: 0.1 }); note(392, 0.14, 0.14, { type: 'square', vol: 0.1 }); },
 };
 
 /** Play a named sound; silently no-ops when muted, before a gesture, or when spammed. */

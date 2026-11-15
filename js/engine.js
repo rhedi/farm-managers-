@@ -29,6 +29,7 @@ import * as orchard from './engine/orchard.js';
 import * as greenhouse from './engine/greenhouse.js';
 import * as logistics from './engine/logistics.js';
 import * as logView from './engine/logisticsView.js';
+import * as dispatcher from './engine/dispatcher.js';
 import * as research from './engine/research.js';
 import { SAVE_VERSION, MAX_CATCHUP_HOURS, HISTORY_SIZE, newStats, normalizeState, serializeState, parseSave,
   writeStorage, readStorage } from './engine/persist.js';
@@ -129,7 +130,8 @@ export class Game {
         factories.stepFactoriesHour(this);
         if (nextHour % 24 === 0) this.#dailyRollover();
         runPlans(this);
-      } else if (finished) runPlans(this);
+        dispatcher.runDispatcher(this); // after plans: field work gets the free workers first
+      } else if (finished) { runPlans(this); dispatcher.runDispatcher(this); }
     }
   }
   #dailyRollover() {
@@ -143,6 +145,7 @@ export class Game {
     eco.chargeInterest(this);
     greenhouse.stepGreenhouseDay(this); // rumah kaca upkeep (listrik_rumah_kaca)
     workers.stepWorkersDay(this);
+    dispatcher.stepDispatcherDay(this); // Manajer Logistik wage ('gaji')
     contracts.stepContractsDay(this);
     const h = this.state.history;
     h.push({ day: day - 1, money: this.state.money, netWorth: eco.netWorth(this) });
@@ -260,6 +263,16 @@ export class Game {
   /** Full trip estimate (numbers filled even when `ok` is false): hours, fuelCost, value, localValue, gain, profit… */
   estimateShipment(truckUid, cityId, cargo) { return logistics.planShipment(this, truckUid, cityId, cargo); }
   shipToCity(truckUid, cityId, cargo) { return logistics.shipToCity(this, truckUid, cityId, cargo); }
+  // ---- Manajer Logistik: automatic deliveries (js/engine/dispatcher.js) ----
+  dispatcherView() { return dispatcher.dispatcherView(this); }
+  /** Hire a tier from BALANCE.dispatcher.tiers → {ok, cost}; hire cost and the daily wage book to 'gaji'. */
+  hireDispatcher(tierId) { return dispatcher.hireDispatcher(this, tierId); }
+  fireDispatcher() { return dispatcher.fireDispatcher(this); }
+  setDispatcherOn(on) { return dispatcher.setDispatcherOn(this, on); }
+  /** Partial settings patch (groups, exclude, keepPct, minProfit, minMargin, blockedCities, reserveWorkers, maxTrucks). */
+  setDispatcherSettings(patch) { return dispatcher.setDispatcherSettings(this, patch); }
+  /** One planning pass now (also runs every game hour) → trips sent. */
+  runDispatcher() { return dispatcher.runDispatcher(this); }
   // ---- research tree (js/engine/research.js) ----
   researchView() { return research.researchView(this); }
   /** {earned, spent, available}: cheap points summary (topbar/badges). */
@@ -290,6 +303,7 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
   rollWeather(game, 1);
   initMarket(game);
   workers.ensureWorkers(game);
+  dispatcher.ensureDispatcher(game);
   eco.syncCounts(game);
   missions.ensureMissions(game);
   rivals.ensureRivals(game);
@@ -303,6 +317,7 @@ export function loadGame(json, { data = DEFAULT_DATA } = {}) {
   eco.syncCounts(game);
   workers.ensureWorkers(game);
   logistics.ensureLogistics(game); // after ensureWorkers: re-marks trucks/drivers on the road
+  dispatcher.ensureDispatcher(game); // old saves: no manager hired
   research.ensureResearch(game);
   missions.ensureMissions(game); // pre-missions saves: today's missions + rival ranks
   rivals.ensureRivals(game);

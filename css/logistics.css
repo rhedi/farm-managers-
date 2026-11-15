@@ -1,4 +1,4 @@
-/* 🚚 Pengiriman (Pasar) and 🔬 Riset (Prestasi / level modal). Mobile-first. */
+/* 🚚 Pengiriman + 🧑‍💼 Manajer Logistik (Pasar) and 🔬 Riset (Prestasi / level modal). Mobile-first. */
 
 /* ---- shipping ---- */
 .ship-form .choice-list { margin-top: 4px; }
@@ -41,3 +41,80 @@
 .ship-more { margin-top: 6px; }
 .ship-more summary { cursor: pointer; padding: 6px 0; }
 .ship .ship-form { margin-top: 10px; }
+
+/* ---- 🧑‍💼 Manajer Logistik (Pasar › Kirim, top) ---- */
+.disp-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.disp-card > .card-head { margin-bottom: 0; }
+.disp-card.working .disp-avatar { animation: disp-bob 2.4s ease-in-out infinite; }
+@keyframes disp-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-2px) rotate(-4deg); } }
+.disp-cands { margin: 0 -12px; }
+.disp-cand-body { flex: 1; min-width: 0; }
+.disp-cand .btn { flex: none; flex-direction: column; gap: 0; line-height: 1.15; min-width: 6.5em; }
+.disp-cost { font-size: .78rem; font-weight: 600; opacity: .9; }
+.disp-why { color: var(--warn-ink); }
+.disp-toggle-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.disp-toggle { gap: 10px; padding: 6px 14px 6px 8px; min-width: 8.5em; justify-content: flex-start; background: var(--surface-2); color: var(--ink-soft); font-weight: 700; }
+.disp-toggle.on { background: var(--green-l); border-color: var(--green); color: var(--green-d); }
+.disp-switch { position: relative; width: 44px; height: 26px; flex: none; border-radius: 999px; background: var(--line-strong); transition: background .2s; }
+.disp-toggle.on .disp-switch { background: var(--green); }
+.disp-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s cubic-bezier(.3, 1.4, .6, 1); }
+.disp-toggle.on .disp-knob { transform: translateX(18px); }
+.disp-toggle-hint { flex: 1 1 10em; }
+.disp-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.disp-stat { display: grid; gap: 2px; padding: 8px 10px; border-radius: var(--radius-s); background: var(--surface-2); min-width: 0; }
+.disp-stat b { font-size: 1rem; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.disp-wait, .disp-warn { padding: 8px 10px; border-radius: var(--radius-s); font-size: .875rem; }
+.disp-wait { background: var(--surface-2); color: var(--ink-soft); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.disp-warn { background: var(--orange-l); color: var(--warn-ink); }
+.disp-set-title { font-size: .8rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-mute); margin-top: 4px; }
+.disp-recent { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
+.disp-recent-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.disp-recent-row:first-of-type { border-top: 0; }
+.disp-recent-main { flex: 1; min-width: 0; }
+.disp-recent-row > .num { flex: none; font-weight: 700; font-size: .9rem; }
+.disp-recent-title { font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
+.disp-recent-main .small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.disp-recent-truck { flex: none; display: inline-block; transform: scaleX(-1); }
+.disp-recent-row.fresh { animation: disp-in .5s ease-out; }
+.disp-recent-row.fresh .disp-recent-truck { animation: disp-drive .9s ease-out; }
+@keyframes disp-in { from { opacity: 0; transform: translateY(-6px); background: var(--green-l); } }
+@keyframes disp-drive { from { transform: scaleX(-1) translateX(24px); opacity: 0; } 60% { opacity: 1; } }
+.disp-settings > .fold-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.disp-settings > .fold-body > * + * { margin-top: 0; }
+.disp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.disp-chip { flex: 0 1 auto; white-space: normal; text-align: left; line-height: 1.2; }
+.disp-chip:disabled { opacity: .55; cursor: not-allowed; }
+.disp-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.disp-step-label { display: grid; flex: 1 1 0; min-width: 8em; font-weight: 600; font-size: .92rem; line-height: 1.25; }
+.disp-step-label .small { font-weight: 400; }
+.stepper { display: inline-flex; align-items: center; flex: none; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); overflow: hidden; }
+.stepper-btn { min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 0; background: transparent; font-size: 1.25rem; font-weight: 800; color: var(--green-d); }
+.stepper-btn:disabled { color: var(--ink-mute); }
+.stepper-val { min-width: 4.8em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; font-size: .9rem; }
+.disp-prods { display: grid; }
+.disp-prod { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+.disp-prod:first-child { border-top: 0; }
+.disp-prod.off .disp-prod-name { opacity: .6; }
+.disp-prod-name { flex: 1 0 100%; font-weight: 600; font-size: .9rem; }
+.disp-prod .disp-chip { flex: none; min-width: 6.2em; }
+.disp-prod .disp-step { flex: 1 1 auto; }
+.disp-prod .disp-step-label { flex: 0 1 auto; min-width: 0; font-size: .85rem; font-weight: 400; color: var(--ink-soft); }
+.disp-prod .stepper-val { min-width: 3.4em; }
+.disp-note { margin: 0; }
+.disp-mgr .ops-actions { flex-wrap: wrap; }
+
+/* Truck departure (fx.js truckDepart): drives across above the bottom tabs toward the city. */
+.fx-truck { position: absolute; left: 0; right: 0; height: 40px; pointer-events: none; }
+.fx-truck::before { content: ""; position: absolute; left: 8px; right: 8px; bottom: 6px; border-bottom: 2px dashed var(--line-strong); opacity: 0; animation: fx-road 1.9s ease-out forwards; }
+.fx-truck-rig { position: absolute; bottom: 4px; left: 0; font-size: 1.9rem; line-height: 1; animation: fx-truck 1.8s cubic-bezier(.45, 0, .55, 1) forwards; }
+.fx-truck-rig::after { content: "💨"; position: absolute; right: -22px; bottom: 0; font-size: 1rem; animation: fx-puff .3s linear infinite alternate; }
+.fx-truck-goal { position: absolute; right: 10px; bottom: 6px; font-size: 1.6rem; line-height: 1; animation: fx-goal 1.9s ease-out forwards; }
+@keyframes fx-truck {
+  0% { transform: translateX(-48px) scaleX(-1); }
+  12% { transform: translateX(10px) scaleX(-1) rotate(-3deg); }
+  85% { transform: translateX(calc(100vw - 110px)) scaleX(-1); opacity: 1; }
+  100% { transform: translateX(calc(100vw - 60px)) scaleX(-1) scale(.4); opacity: 0; }
+}
+@keyframes fx-puff { from { transform: translateY(0) scale(.8); opacity: .9; } to { transform: translate(6px, -3px) scale(1.15); opacity: .5; } }
+@keyframes fx-goal { 0% { opacity: 0; transform: scale(.6); } 15% { opacity: 1; transform: scale(1); } 80% { opacity: 1; transform: scale(1); } 88% { transform: scale(1.35); } 100% { opacity: 0; transform: scale(1); } }
+@keyframes fx-road { 10% { opacity: .7; } 85% { opacity: .7; } 100% { opacity: 0; } }

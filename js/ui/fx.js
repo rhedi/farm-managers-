@@ -69,6 +69,30 @@ export function confetti(x = window.innerWidth / 2, y = window.innerHeight * 0.3
   setTimeout(() => box.remove(), 1100);
 }
 
+/**
+ * Manajer Logistik departure: a little truck with dust puffs drives across the screen above the bottom tabs toward
+ * the city emoji. One at a time (offline catch-up bursts and multi-truck dispatches don't stack).
+ */
+let truckBusyUntil = 0;
+export function truckDepart(cityEmoji = '🏙️') {
+  const now = Date.now();
+  if (reduced() || now < truckBusyUntil || document.hidden) return;
+  truckBusyUntil = now + 2000;
+  const tabs = document.getElementById('tabs')?.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'fx-truck';
+  el.style.bottom = `${Math.max(8, window.innerHeight - (tabs?.top ?? window.innerHeight)) + 6}px`;
+  const truck = document.createElement('span');
+  truck.className = 'fx-truck-rig';
+  truck.textContent = '🚚';
+  const goal = document.createElement('span');
+  goal.className = 'fx-truck-goal';
+  goal.textContent = cityEmoji;
+  el.append(truck, goal);
+  fxLayer().appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
 export function vibrate(pattern = 25) {
   try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
 }

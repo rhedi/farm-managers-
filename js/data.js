@@ -426,6 +426,16 @@ export const BALANCE = {
   // at departure), trucks wear wearPerHour on the road. Only 't' products fill the truck (capacity in t); kg/L/pcs
   // goods ride along without using capacity (like the silo). Crop city multipliers are capped at cropCap (< 1.2 buy markup).
   logistics: { wearPerHour: 0.0006, cropCap: 1.15 },
+  // Manajer Logistik (js/engine/dispatcher.js): staff role, not a field worker. hireCost once + wage per day (both
+  // ledger 'gaji'). skill = ★; trucks = most trucks it keeps on the road at once; radiusKm = farthest city it plans
+  // for; bonus = negotiated extra city price on its own trips (crops still capped at cropCap). Sim (Lv 12, 3 trucks, 30 days): see README "Manajer Logistik".
+  dispatcher: {
+    tiers: [
+      { id: 'magang', name: 'Dimas', title: 'Manajer Magang', emoji: '🧑‍💼', skill: 1, unlockLevel: 6, hireCost: 3000, wage: 150, trucks: 1, radiusKm: 100, bonus: 0 },
+      { id: 'senior', name: 'Bu Ratna', title: 'Manajer Senior', emoji: '👩‍💼', skill: 2, unlockLevel: 9, hireCost: 12000, wage: 450, trucks: 3, radiusKm: 300, bonus: 0.02 },
+      { id: 'direktur', name: 'Pak Hartono', title: 'Direktur Logistik', emoji: '👨‍💼', skill: 3, unlockLevel: 14, hireCost: 30000, wage: 900, trucks: 6, radiusKm: 1000, bonus: 0.04 },
+    ],
+  },
   // Research (js/engine/research.js): respec (reset all nodes, points back) costs respecPerLevel × level.
   research: { respecPerLevel: 1500 },
 };

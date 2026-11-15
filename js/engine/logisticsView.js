@@ -46,12 +46,12 @@ export function shipmentsView(game) {
       const p = game.idx.products.get(id);
       return { productId: id, name: p?.name ?? id, emoji: p?.emoji ?? '', unit: p?.unit ?? '', qty };
     });
-    const estValue = round2(cargo.reduce((a, c) => a + c.qty * (game.state.market[c.productId] ?? 0) * (city ? cityMult(game, city, c.productId) : 1), 0));
+    const estValue = round2(cargo.reduce((a, c) => a + c.qty * (game.state.market[c.productId] ?? 0) * (city ? cityMult(game, city, c.productId, t.bonus || 0) : 1), 0));
     return { id: t.id, truckUid: t.truckUid, truckName: game.idx.machines.get(m?.defId)?.name ?? t.truckUid,
       workerName: game.state.workers.find((w) => w.id === t.workerId)?.name ?? null,
       cityId: t.cityId, cityName: city?.name ?? t.cityId, cityEmoji: city?.emoji ?? '🏙️', regionName: regionName(game, t.regionId),
       km: t.km, hours: t.hours, done: t.done, progress: round2(t.done / t.hours), hoursLeft: round2(t.hours - t.done),
-      phase: t.sold ? 'pulang' : 'pergi', sold: t.sold, value: t.value, estValue, fuelCost: t.fuelCost, cargo,
+      phase: t.sold ? 'pulang' : 'pergi', auto: !!t.auto, sold: t.sold, value: t.value, estValue, fuelCost: t.fuelCost, cargo,
       tons: round2(cargo.reduce((a, c) => a + c.qty * tonsPerUnit(game, c.productId), 0)) };
   });
 }

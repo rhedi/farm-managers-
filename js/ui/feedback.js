@@ -1,7 +1,7 @@
 // Game event → sound + visual feedback (floating texts, confetti, vibration).
 import { fmtTons } from './dom.js';
 import { sfx } from './sfx.js';
-import { floatText, confetti, vibrate } from './fx.js';
+import { floatText, confetti, vibrate, truckDepart } from './fx.js';
 import { app } from './app.js';
 
 const WARN = new Set(['wither', 'pest', 'low_feed', 'silo_overflow', 'cold_overflow', 'machine_breakdown', 'wages_unpaid', 'contract_failed']);
@@ -24,6 +24,7 @@ export function feedbackEvent(ev) {
       break;
     case 'crop_ready': sfx('pop'); break;
     case 'sale': case 'contract_done': sfx('coin'); break;
+    case 'auto_dispatch': sfx('honk'); truckDepart(app.game?.idx.cities.get(ev.city)?.emoji ?? '🏙️'); break;
     case 'achievement': sfx('achievement'); confetti(window.innerWidth / 2, 90, 32); break;
     default:
       if (WARN.has(ev.type)) sfx('warning');
