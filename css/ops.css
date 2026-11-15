@@ -14,25 +14,26 @@
 .ops-hint { margin: -4px 0 8px; }
 .ops-sub { margin-top: 12px; }
 .ops-autorepair { margin: 0 0 8px; }
-.ops-autorepair-row { display: flex; align-items: center; gap: 6px; font-size: .9em; white-space: nowrap; }
-.ops-autorepair-row input { margin: 0; flex-shrink: 0; }
-.ops-autorepair-hint { margin: 2px 0 0 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ops-autorepair-row { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: .95em; white-space: nowrap; cursor: pointer; }
+.ops-autorepair-row input { margin: 0; flex-shrink: 0; width: 22px; height: 22px; accent-color: var(--green); }
+.ops-autorepair-hint { margin: -6px 0 0 30px; }
 
 /* Gudang */
 .ops-silo { margin-bottom: 10px; }
 .ops-silo-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; margin-bottom: 6px; }
-.ops-stock-list { display: flex; flex-direction: column; }
-/* Wraps: when a big value + Jual don't fit beside the name, they drop to their own right-aligned line. */
-.ops-stock {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
-  padding: 8px 2px; border-bottom: 1px solid var(--line, #e5e0d6);
-}
-.ops-stock:last-child { border-bottom: 0; }
-.ops-stock-main { flex: 1 1 10em; min-width: 0; }
-.ops-stock-name { font-weight: 600; overflow-wrap: anywhere; }
-.ops-stock-meta > span { white-space: nowrap; }
-.ops-stock-side { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-#view[data-tab="silo"] .btn-small { min-height: 40px; }
 
-/* Batch bar */
-.ops-free { margin-left: auto; white-space: nowrap; }
+
+/* Garasi › Mesin: compact rows, tap to expand specs and actions */
+.mach-row { border-top: 1px solid var(--line); }
+.mach-row:first-child { border-top: 0; }
+.mach-row > summary { display: flex; align-items: center; gap: 10px; padding: 10px 12px; min-height: 64px; cursor: pointer; list-style: none; }
+.mach-row > summary::-webkit-details-marker { display: none; }
+.mach-row[open] > summary { background: var(--surface-2); }
+.mach-row .card-icon { width: 40px; height: 40px; font-size: 1.4rem; }
+.mach-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.mach-main .card-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mach-cond { display: flex; align-items: center; gap: 8px; }
+.mach-cond .progress { flex: 1; max-width: 120px; }
+.mach-status { flex: none; display: block; max-width: 38%; overflow: hidden; text-overflow: ellipsis; }
+.mach-body { padding: 4px 12px 12px; display: grid; gap: 6px; }
+.mach-body .ops-actions { margin-top: 2px; }
