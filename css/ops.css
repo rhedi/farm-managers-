@@ -20,13 +20,19 @@
 
 /* Gudang */
 .ops-silo { margin-bottom: 10px; }
-.ops-silo-head { display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px; }
+.ops-silo-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; margin-bottom: 6px; }
 .ops-stock-list { display: flex; flex-direction: column; }
-.ops-stock { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--line, #e5e0d6); }
+/* Wraps: when a big value + Jual don't fit beside the name, they drop to their own right-aligned line. */
+.ops-stock {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  padding: 8px 2px; border-bottom: 1px solid var(--line, #e5e0d6);
+}
 .ops-stock:last-child { border-bottom: 0; }
-.ops-stock-main { flex: 1; min-width: 0; }
-.ops-stock-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ops-stock-side { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ops-stock-main { flex: 1 1 10em; min-width: 0; }
+.ops-stock-name { font-weight: 600; overflow-wrap: anywhere; }
+.ops-stock-meta > span { white-space: nowrap; }
+.ops-stock-side { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+#view[data-tab="silo"] .btn-small { min-height: 40px; }
 
 /* Batch bar */
 .ops-free { margin-left: auto; white-space: nowrap; }

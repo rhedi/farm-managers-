@@ -73,7 +73,7 @@ function capacityCard(game) {
   if (poor) needEl = h('div.small.ops-bad.silo-need', needText(info.nextUpgradeCost, game.state.money));
   return h('div.card.ops-silo',
     h('div.ops-silo-head', h('strong', `${fmtNum(info.used, 1)} / ${fmtNum(info.capacity)} t`),
-      h('span.small.muted', ` · sisa ${fmtNum(info.free, 1)} t`)),
+      h('span.small.muted', `· sisa ${fmtNum(info.free, 1)} t`)),
     progressBar(frac, color),
     frac >= 1 ? h('div.small.ops-bad', '⛔ Silo penuh — hasil panen berikutnya dijual paksa 70% harga pasar.')
       : frac >= 0.9 ? h('div.small.ops-bad', '⚠️ Silo hampir penuh — kelebihan panen dijual paksa 70% harga pasar.') : null,
@@ -85,14 +85,14 @@ function capacityCard(game) {
     needEl);
 }
 
-/** Compact stock row: name over amount · price (+ reserve) on the left; value and the sell button on the right. */
+/** Stock row: name over amount · price (+ reserve) on the left; value and the sell button on the right (below on narrow rows). */
 function row(it) {
   return h('div.ops-stock',
     h('div.ops-stock-main',
       h('div.ops-stock-name', h('span', `${it.emoji} ${it.name}`), it.isFeed ? h('span.small.muted', ' · pakan') : null),
-      h('div.small.muted.ops-nowrap',
-        `${fmtAmt(it.qty, it.unit)} · ${fmtPrice(it.price)}/${it.unit}`,
-        it.reserve > 0 ? h('span.eco-reserve', ` · 🔒 ${fmtAmt(it.reserve, it.unit)}`) : null)),
+      h('div.small.muted.ops-stock-meta',
+        h('span', fmtAmt(it.qty, it.unit)), ' · ', h('span', `${fmtPrice(it.price)}/${it.unit}`),
+        it.reserve > 0 ? [' · ', h('span.eco-reserve', `🔒 ${fmtAmt(it.reserve, it.unit)}`)] : null)),
     h('div.ops-stock-side',
       h('strong.ops-nowrap', fmtMoney(it.value)),
       h('button.btn.btn-small.btn-primary', { disabled: !(sellable(it) > 0),

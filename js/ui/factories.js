@@ -40,9 +40,9 @@ function recipePicker(f) {
 function recipeDetail(r) {
   return h('div.fac-flow',
     h('div.fac-io', r.inputs.map((it) => h(`span.fac-item${it.enough ? '' : '.short'}`,
-      `${it.emoji} ${amt(it)}`, h('span.fac-stock', ` (${fmtAmt(it.stock, it.unit)})`)))),
+      h('span.fac-amt', `${it.emoji} ${amt(it)}`), ' ', h('span.fac-stock', `(${fmtAmt(it.stock, it.unit)})`)))),
     h('div.fac-arrow', '→'),
-    h('div.fac-io', r.outputs.map((it) => h('span.fac-item.out', `${it.emoji} ${amt(it)} ${it.name}`))),
+    h('div.fac-io', r.outputs.map((it) => h('span.fac-item.out', h('span.fac-amt', `${it.emoji} ${amt(it)}`), ` ${it.name}`))),
     h('div.small.muted.fac-meta', `⏱ ${fmtHours(r.hours)} · ${fmtMoney(r.inValue)} → ${fmtMoney(r.outValue)} `,
       h('span.fac-gain', pct(r.valueAdd)), ' (harga dasar)'));
 }
@@ -72,12 +72,11 @@ function ownedCard(f, money) {
       h('label.fac-auto', h('input', { type: 'checkbox', checked: f.auto,
         onchange: (e) => act(app.game.setFactoryAuto(f.id, e.target.checked), e.target.checked ? '🔁 Produksi otomatis aktif.' : 'Produksi otomatis mati.') }),
       ' 🔁 Otomatis'),
-      h('span.spacer'),
-      f.upgradeCost != null ? h('button.btn.btn-small.btn-secondary', { disabled: f.upgradeCost > money,
+      h('div.fac-btns', f.upgradeCost != null ? h('button.btn.btn-small.btn-secondary', { disabled: f.upgradeCost > money,
         title: f.upgradeCost > money ? 'Uang tidak cukup' : null, onclick: () => upgradeFlow(f) }, `⬆ ${fmtMoney(f.upgradeCost)}`) : h('span.badge', 'Maks'),
       h('button.btn.btn-small.btn-primary', { disabled: !canRun, title: canRun ? null : 'Bahan kurang',
         onclick: () => act(app.game.startBatch(f.id, 1), f.running ? 'Ditambahkan ke antrean.' : `▶ ${r.name} diproses.`) },
-      f.running ? '+1 antre' : '▶ Proses')));
+      f.running ? '+1 antre' : '▶ Proses'))));
 }
 
 function factoryCard(f, money) {
