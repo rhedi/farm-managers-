@@ -85,16 +85,16 @@ export function fmtHours(hours) {
 export const fmtClock = (day, hour) => `Hari ${day}, ${String(hour).padStart(2, '0')}:00`;
 
 export const STATE_LABEL = {
-  unowned: 'Dijual', idle: 'Kosong', plowed: 'Dibajak', growing: 'Tumbuh', ready: 'Siap panen', busy: 'Dikerjakan',
+  unowned: 'Dijual', idle: 'Kosong', plowed: 'Dibajak', growing: 'Tumbuh', ready: 'Siap panen', busy: 'Dikerjakan', orchard: 'Kebun buah',
 };
-export const STATE_EMOJI = { unowned: '🏷️', idle: '🟫', plowed: '〰️', growing: '🌱', ready: '✅', busy: '🚜' };
-export const TASK_LABEL = { plow: 'Bajak', fertilize: 'Pupuk', seed: 'Tanam', irrigate: 'Airi', harvest: 'Panen', lime: 'Kapur' };
-export const TASK_ICON = { plow: '🪓', fertilize: '🧪', seed: '🌱', irrigate: '💧', harvest: '🌾', lime: '🪨' };
-export const TASK_ING = { plow: 'Membajak', fertilize: 'Memupuk', seed: 'Menanam', irrigate: 'Mengairi', harvest: 'Memanen', lime: 'Mengapur' };
+export const STATE_EMOJI = { unowned: '🏷️', idle: '🟫', plowed: '〰️', growing: '🌱', ready: '✅', busy: '🚜', orchard: '🌳' };
+export const TASK_LABEL = { plow: 'Bajak', fertilize: 'Pupuk', seed: 'Tanam', irrigate: 'Airi', harvest: 'Panen', lime: 'Kapur', prune: 'Pangkas', clear: 'Tebang' };
+export const TASK_ICON = { plow: '🪓', fertilize: '🧪', seed: '🌱', irrigate: '💧', harvest: '🌾', lime: '🪨', prune: '✂️', clear: '🪓' };
+export const TASK_ING = { plow: 'Membajak', fertilize: 'Memupuk', seed: 'Menanam', irrigate: 'Mengairi', harvest: 'Memanen', lime: 'Mengapur', prune: 'Memangkas', clear: 'Menebang kebun' };
 export const SOIL_LABEL = { loam: 'Lempung', clay: 'Liat', sand: 'Pasir', silt: 'Debu' };
 export const CONTAM_LABEL = { none: 'Tidak ada', low: 'Rendah', medium: 'Sedang' };
 export const WATER_LABEL = { low: 'Rendah', med: 'Sedang', high: 'Tinggi' };
-export const MACHINE_TYPE_LABEL = { tractor: 'Traktor', harvester: 'Pemanen', implement: 'Alat' };
+export const MACHINE_TYPE_LABEL = { tractor: 'Traktor', harvester: 'Pemanen', implement: 'Alat', truck: 'Truk' };
 
 export function weatherEmoji(w) {
   if (!w) return '❔';

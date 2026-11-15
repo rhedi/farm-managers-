@@ -8,7 +8,28 @@ function choice(selected, disabled, onclick, ...children) {
   return h(`button.choice${selected ? '.selected' : ''}`, { type: 'button', disabled, onclick }, ...children);
 }
 
-const MATERIAL_LABEL = { seed: 'Benih', fertilize: 'Pupuk', irrigate: 'Air', lime: 'Kapur' };
+const MATERIAL_LABEL = { seed: 'Benih', fertilize: 'Pupuk', irrigate: 'Air', lime: 'Kapur', prune: 'Pangkas', clear: 'Tebang' };
+
+const treeOf = (game, id) => (game.data.TREES || []).find((t) => t.id === id) ?? null;
+
+/** Orchard work done by hand (worker only): planting a tree, pruning, tebang. */
+const manualTask = (game, task, sel) => task === 'prune' || task === 'clear' || (task === 'seed' && !!treeOf(game, sel.cropId));
+
+/** Fruit harvest: own tractor + tree shaker (implement task 'pick') or rented pickers. */
+function pickPicker(game, sel, rerender) {
+  const av = game.availableMachinesFor('pick');
+  const own = av.tractors.length && av.implements.length;
+  const B = game.data.BALANCE.orchard || {};
+  return h('div.field-group', h('label', 'Pemetik buah'),
+    h('div.choice-list',
+      own ? choice(!sel.rent, false, () => { sel.rent = false; rerender(); },
+        h('span.card-icon', '🚜'), h('div', h('div.card-title', 'Traktor + pengguncang pohon'),
+          h('div.card-sub', av.implements.map((m) => `${m.name} ${fmtNum(m.haPerHour, 1)} ha/jam`).join(' · ')))) : null,
+      choice(sel.rent, false, () => { sel.rent = true; rerender(); },
+        h('span.card-icon', '🧺'), h('div', h('div.card-title', 'Sewa pemetik'),
+          h('div.card-sub', `${fmtMoney(B.pickerRentPerHa ?? 160)}/ha · ${fmtNum(B.pickerHaPerHour ?? 0.75, 2)} ha/jam · tanpa BBM`)))),
+    own ? null : h('div.small.muted', 'Pengguncang pohon bisa dibeli di Garasi.'));
+}
 
 /** Machine option; stats come from availableMachinesFor and already include upgrades (🔧 +N badge). */
 function machineChoice(m, selected, onPick, extra = '') {
@@ -20,12 +41,12 @@ function machineChoice(m, selected, onPick, extra = '') {
 }
 
 /** Who does the job and how worn the chosen machines are (F9/F10). */
-function opsNotes(game, est) {
+function opsNotes(game, est, rentLabel = 'Sopir sewaan') {
   const rows = [], warns = [];
   if (est.workerName) {
     const w = game.workersView?.().find((x) => x.id === est.workerId);
     rows.push(['Pekerja', w ? `${est.workerName} (${fmtPct(w.speedup)} lebih cepat)` : est.workerName]);
-  } else if (est.rentCost) rows.push(['Pekerja', 'Sopir sewaan']);
+  } else if (est.rentCost) rows.push(['Pekerja', rentLabel]);
   const ms = game.machinesView().filter((m) => est.machineUids?.includes(m.uid) && typeof m.condition === 'number');
   for (const m of ms) {
     if (m.condition < 0.2) warns.push(`🔧 ${m.name} sangat aus (${fmtPct(m.condition)}): lebih lambat dan bisa mogok. Perbaiki di Garasi.`);
@@ -34,7 +55,9 @@ function opsNotes(game, est) {
   return { rows, warns };
 }
 
-function rigPicker(game, task, sel, rerender) {
+function rigPicker(game, task, sel, rerender, field) {
+  if (manualTask(game, task, sel)) return h('p.small.manual-note', '👐 Dikerjakan tangan oleh pekerja, tanpa mesin dan BBM.');
+  if (task === 'harvest' && field?.orchard) return pickPicker(game, sel, rerender);
   const av = game.availableMachinesFor(task);
   if (task === 'harvest') {
     const auto = !sel.rent && !sel.harvesterId;
@@ -73,19 +96,19 @@ function estimatePanel(game, fieldId, task, sel) {
   if (est.hours > 0 && est.cost != null) {
     rows.push(['Durasi', fmtHours(est.hours)]);
     if (est.fuelCost) rows.push(['BBM', fmtMoney(est.fuelCost)]);
-    if (est.materialCost) rows.push([MATERIAL_LABEL[task] ?? 'Bahan', fmtMoney(est.materialCost)]);
+    if (est.materialCost) rows.push([task === 'seed' && treeOf(game, sel.cropId) ? 'Bibit pohon' : MATERIAL_LABEL[task] ?? 'Bahan', fmtMoney(est.materialCost)]);
     if (est.rentCost) rows.push(['Sewa', fmtMoney(est.rentCost)]);
     rows.push([est.payOnCompletion ? 'Total biaya (dibayar saat selesai)' : 'Total biaya', fmtMoney(est.cost)]);
   }
   if (task === 'seed' && sel.cropId) {
-    const crop = game.data.CROPS.find((c) => c.id === sel.cropId);
-    if (crop) rows.push(['Masa tumbuh', `${crop.growDays} hari`]);
+    const tree = treeOf(game, sel.cropId);
+    const crop = tree ?? game.data.CROPS.find((c) => c.id === sel.cropId);
+    if (tree) rows.push(['Mulai berbuah', `${tree.maturityDays} hari`], ['Panen', `tiap ${tree.harvestEveryDays} hari musim buah`]);
+    else if (crop) rows.push(['Masa tumbuh', `${crop.growDays} hari`]);
   }
-  if (task === 'harvest') {
-    const fv = game.getFieldView(fieldId);
-    if (fv?.predictedYield) rows.push(['Perkiraan hasil', `±${fmtTons(fv.predictedYield)}`]);
-  }
-  const ops = opsNotes(game, est);
+  const fv = task === 'harvest' ? game.getFieldView(fieldId) : null;
+  if (fv?.predictedYield) rows.push(['Perkiraan hasil', `±${fmtTons(fv.predictedYield)}`]);
+  const ops = opsNotes(game, est, fv?.orchard ? 'Pemetik sewaan' : undefined);
   rows.push(...ops.rows);
   return {
     est,
@@ -102,7 +125,11 @@ export function openTaskModal(fieldId, task) {
   if (!field) return;
   const sel = { cropId: null, tractorId: null, implementId: null, harvesterId: null, rent: false };
   if (task === 'seed') sel.cropId = bestCropId(game, [field]);
-  if (task === 'harvest') sel.rent = !game.availableMachinesFor('harvest').harvesters.some((m) => !m.busy);
+  if (task === 'harvest') {
+    const pick = field.orchard ? game.availableMachinesFor('pick') : null;
+    sel.rent = field.orchard ? !(pick.tractors.some((m) => !m.busy) && pick.implements.some((m) => !m.busy))
+      : !game.availableMachinesFor('harvest').harvesters.some((m) => !m.busy);
+  }
   let estBox = null;
   let confirmBtn = null;
 
@@ -114,14 +141,14 @@ export function openTaskModal(fieldId, task) {
   };
 
   openModal({
-    title: `${TASK_ICON[task]} ${TASK_ING[task]} — ${field.name}`,
+    title: `${task === 'harvest' && field.orchard ? '🧺 Memetik buah' : `${TASK_ICON[task]} ${TASK_ING[task]}`} — ${field.name}`,
     render: (body, m) => {
       const rerender = () => m.rerender();
       estBox = h('div');
       mount(body,
         h('p.muted.small', `${field.sizeHa} ha · ${field.region}`),
         task === 'seed' ? cropPicker(game, sel, field, rerender) : null,
-        rigPicker(game, task, sel, rerender),
+        rigPicker(game, task, sel, rerender, field),
         estBox);
     },
     actions: (m) => {

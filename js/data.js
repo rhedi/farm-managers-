@@ -31,6 +31,23 @@ export const CROPS = [
   { id: 'saffron', name: 'Saffron', emoji: '🌺', seedCostPerHa: 3500, growDays: 11, baseYield: 0.025, idealPh: [6.0, 8.0], waterNeed: 'low', unlockLevel: 27, seasons: ['autumn', 'dry'], minTemp: 0, nutrientUse: 0.1 },
 ];
 
+// Kebun buah (perennial orchards, js/engine/orchard.js). Planted once on a plowed field (`seed` task with a tree,
+// manual: worker + sapling cost plantCostPerHa, no seeder); trees bear fruit after maturityDays, then every
+// harvestEveryDays of fruit-window time. `seasons` = fruiting window (season ids, like CROPS), `minTemp` stops fruit
+// growth. After lifespanDays yield declines (−1.4 × overage/lifespan, floor 30%). Indexed into game.idx.crops.
+// Steady net $/ha/day in the best region (fertilized, base price, rented pickers): orange ≈600 · apple ≈670 ·
+// mango ≈855 · avocado ≈925 · coconut ≈1000 · cherry ≈1030 · durian ≈1140 (≈1.15–1.4× the best annual crop of the
+// unlock level, with no seed/plow/seeding work), but saplings + juvenile years ⇒ payback ≈ 1.75–2.9 game years.
+export const TREES = [
+  { id: 'orange', name: 'Jeruk', emoji: '🍊', perennial: true, plantCostPerHa: 24000, maturityDays: 30, harvestEveryDays: 5, baseYield: 8.9, lifespanDays: 320, idealPh: [5.5, 7.0], waterNeed: 'med', unlockLevel: 6, seasons: ['winter', 'spring', 'dry'], minTemp: 2, nutrientUse: 0.15 },
+  { id: 'apple', name: 'Apel', emoji: '🍎', perennial: true, plantCostPerHa: 23500, maturityDays: 40, harvestEveryDays: 6, baseYield: 9.6, lifespanDays: 400, idealPh: [6.0, 7.2], waterNeed: 'med', unlockLevel: 8, seasons: ['summer', 'autumn', 'dry'], minTemp: 0, nutrientUse: 0.15 },
+  { id: 'mango', name: 'Mangga', emoji: '🥭', perennial: true, plantCostPerHa: 30000, maturityDays: 45, harvestEveryDays: 6, baseYield: 8.6, lifespanDays: 480, idealPh: [5.5, 7.5], waterNeed: 'low', unlockLevel: 12, seasons: ['spring', 'summer', 'dry'], minTemp: 14, nutrientUse: 0.15 },
+  { id: 'avocado', name: 'Alpukat', emoji: '🥑', perennial: true, plantCostPerHa: 32500, maturityDays: 45, harvestEveryDays: 7, baseYield: 5.7, lifespanDays: 450, idealPh: [5.5, 7.0], waterNeed: 'high', unlockLevel: 15, seasons: ['summer', 'autumn', 'wet'], minTemp: 8, nutrientUse: 0.2 },
+  { id: 'coconut', name: 'Kelapa', emoji: '🥥', perennial: true, plantCostPerHa: 35000, maturityDays: 60, harvestEveryDays: 5, baseYield: 11.6, lifespanDays: 700, idealPh: [5.5, 8.0], waterNeed: 'med', unlockLevel: 18, seasons: ['spring', 'summer', 'wet'], minTemp: 18, nutrientUse: 0.15 },
+  { id: 'cherry', name: 'Ceri', emoji: '🍒', perennial: true, plantCostPerHa: 36000, maturityDays: 50, harvestEveryDays: 6, baseYield: 2.2, lifespanDays: 420, idealPh: [6.0, 7.5], waterNeed: 'med', unlockLevel: 22, seasons: ['spring', 'summer', 'dry'], minTemp: 2, nutrientUse: 0.15 },
+  { id: 'durian', name: 'Durian', emoji: '🍈', perennial: true, plantCostPerHa: 40000, maturityDays: 80, harvestEveryDays: 8, baseYield: 2.6, lifespanDays: 800, idealPh: [5.0, 6.5], waterNeed: 'high', unlockLevel: 26, seasons: ['summer', 'autumn', 'wet'], minTemp: 20, nutrientUse: 0.2 },
+];
+
 export const PRODUCTS = [
   { id: 'wheat', name: 'Gandum', emoji: '🌾', basePrice: 220, unit: 't', volatility: 0.04 },
   { id: 'barley', name: 'Barley', emoji: '🌿', basePrice: 200, unit: 't', volatility: 0.04 },
@@ -78,6 +95,14 @@ export const PRODUCTS = [
   { id: 'palm_kernel', name: 'Inti Sawit', emoji: '🥥', basePrice: 1400, unit: 't', volatility: 0.06 },
   { id: 'palm_kernel_oil', name: 'Minyak Inti Sawit (PKO)', emoji: '🫙', basePrice: 4350, unit: 't', volatility: 0.07 },
   { id: 'cooking_oil', name: 'Minyak Goreng', emoji: '🍳', basePrice: 3950, unit: 't', volatility: 0.04 },
+  // Kebun buah (TREES)
+  { id: 'orange', name: 'Jeruk', emoji: '🍊', basePrice: 520, unit: 't', volatility: 0.07 },
+  { id: 'apple', name: 'Apel', emoji: '🍎', basePrice: 640, unit: 't', volatility: 0.06 },
+  { id: 'mango', name: 'Mangga', emoji: '🥭', basePrice: 900, unit: 't', volatility: 0.08 },
+  { id: 'avocado', name: 'Alpukat', emoji: '🥑', basePrice: 1700, unit: 't', volatility: 0.08 },
+  { id: 'coconut', name: 'Kelapa', emoji: '🥥', basePrice: 650, unit: 't', volatility: 0.05 },
+  { id: 'cherry', name: 'Ceri', emoji: '🍒', basePrice: 4200, unit: 't', volatility: 0.09 },
+  { id: 'durian', name: 'Durian', emoji: '🍈', basePrice: 5200, unit: 't', volatility: 0.1 },
 ];
 
 export const MACHINES = [
@@ -128,6 +153,16 @@ export const MACHINES = [
   { id: 'plow_xxxl', name: 'Kase Bajak 20-Mata', brand: 'Kase', type: 'implement', price: 140000, unlockLevel: 27, task: 'plow', hpRequired: 800, haPerHour: 13 },
   { id: 'jd_x9', name: 'John Dear X9 1100', brand: 'John Dear', type: 'harvester', price: 1050000, unlockLevel: 28, haPerHour: 20, fuelPerHour: 120 },
   { id: 'seeder_xxxl', name: 'Fendtt Penabur 36m', brand: 'Fendtt', type: 'implement', price: 180000, unlockLevel: 30, task: 'seed', hpRequired: 800, haPerHour: 14 },
+  // Fruit harvest (orchards): tractor-mounted tree shakers (task 'pick'); without one, pickers are rented per ha.
+  { id: 'shaker_s', name: 'Kase Pengguncang Pohon', brand: 'Kase', type: 'implement', price: 16000, unlockLevel: 7, task: 'pick', hpRequired: 70, haPerHour: 1.2 },
+  { id: 'shaker_l', name: 'Fendtt Pemetik Buah Otomatis', brand: 'Fendtt', type: 'implement', price: 70000, unlockLevel: 16, task: 'pick', hpRequired: 230, haPerHour: 4 },
+  // Trucks (js/engine/logistics.js): deliver silo stock to CITIES. capacity t, speedKmh, fuelPerKm L.
+  // Upgrades: engine = capacity +10%/lvl, transmission = speed +10%/lvl, efficiency = fuel −10%/lvl.
+  { id: 'truk_elf', name: 'Isuzi Elf Bak 4t', brand: 'Isuzi', type: 'truck', price: 9000, unlockLevel: 2, capacity: 4, speedKmh: 60, fuelPerKm: 0.13 },
+  { id: 'truk_canter', name: 'Mitsubichi Canter 8t', brand: 'Mitsubichi', type: 'truck', price: 24000, unlockLevel: 4, capacity: 8, speedKmh: 70, fuelPerKm: 0.2 },
+  { id: 'truk_hinu', name: 'Hinu 500 Tronton 20t', brand: 'Hinu', type: 'truck', price: 65000, unlockLevel: 7, capacity: 20, speedKmh: 75, fuelPerKm: 0.32 },
+  { id: 'truk_scanya', name: 'Scanya R500 Trailer 35t', brand: 'Scanya', type: 'truck', price: 140000, unlockLevel: 12, capacity: 35, speedKmh: 85, fuelPerKm: 0.4 },
+  { id: 'truk_volvu', name: 'Volvu FH16 Road Train 60t', brand: 'Volvu', type: 'truck', price: 260000, unlockLevel: 20, capacity: 60, speedKmh: 90, fuelPerKm: 0.52 },
 ];
 
 export const ANIMALS = [
@@ -186,6 +221,58 @@ export const REGIONS = [
   // Late regions (stream A): every field there opens at max(field.unlockLevel, region.unlockLevel).
   { id: 'matogrosso', name: 'Mato Grosso', unlockLevel: 12, climate: { baseTemp: 26, rainChance: 0.4, tempSwing: 4, tropical: true } },
   { id: 'queensland', name: 'Queensland', unlockLevel: 19, climate: { baseTemp: 22, rainChance: 0.25, tempSwing: 7, tropical: false } },
+];
+
+// Cities for truck deliveries (js/engine/logistics.js). `km`: road distance from each region it can be reached
+// from (the nearest region with an owned field is used). Sale price = market × (demand[id] ?? base). Crops
+// (buyable at market ×1.2) are capped at ×1.15 so buy-and-ship never profits. Near = small premium, far = big;
+// processed/animal goods top out at ×1.25 (only far cities), so trucks add margin without replacing factories.
+export const CITIES = [
+  { id: 'bandung', name: 'Bandung', emoji: '🏙️', unlockLevel: 2, km: { jabar: 40 }, base: 1.03,
+    demand: { rice: 1.08, tomato: 1.1, strawberry: 1.12, tea: 1.08, eggs: 1.08, potato: 0.95 } },
+  { id: 'jakarta', name: 'Jakarta', emoji: '🌆', unlockLevel: 5, km: { jabar: 150 }, base: 1.05,
+    demand: { milk: 1.15, eggs: 1.12, bread: 1.15, cake: 1.18, sugar: 1.12, oil: 1.12, cooking_oil: 1.15, rice: 1.1, coffee: 1.12, cotton: 0.95 } },
+  { id: 'desmoines', name: 'Des Moines', emoji: '🏢', unlockLevel: 4, km: { iowa: 45 }, base: 1.02,
+    demand: { corn: 1.06, soybean: 1.08, pork: 1.08, wheat: 0.95 } },
+  { id: 'munchen', name: 'München', emoji: '🍺', unlockLevel: 4, km: { bavaria: 70 }, base: 1.03,
+    demand: { barley: 1.1, malt: 1.15, butter: 1.1, cow_cheese: 1.08, honey: 1.1, wheat: 0.95 } },
+  { id: 'sapporo', name: 'Sapporo', emoji: '❄️', unlockLevel: 5, km: { hokkaido: 120 }, base: 1.04,
+    demand: { milk: 1.15, butter: 1.15, cow_cheese: 1.15, potato: 1.12, rice: 1.1, wheat: 0.95 } },
+  { id: 'paris', name: 'Paris', emoji: '🗼', unlockLevel: 7, km: { normandia: 240, bavaria: 830 }, base: 1.06,
+    demand: { cow_cheese: 1.25, cheese: 1.25, butter: 1.2, bread: 1.2, cake: 1.25, flour: 1.15, grape: 1.15, lavender: 1.15 } },
+  { id: 'chicago', name: 'Chicago', emoji: '🌃', unlockLevel: 8, km: { iowa: 560 }, base: 1.08,
+    demand: { flour: 1.2, pork: 1.2, milk: 1.15, bread: 1.25, cake: 1.25, soybean: 1.15, corn: 1.15 } },
+  { id: 'cuiaba', name: 'Cuiabá', emoji: '🌇', unlockLevel: 12, km: { matogrosso: 60 }, base: 1.03,
+    demand: { soybean: 1.08, sugar: 1.15, oil: 1.15, coffee: 1.12, cotton: 1.1, cocoa: 0.9 } },
+];
+
+// Research tree (js/engine/research.js). Points: 1 per level-up (old saves: level − 1, derived from the level).
+// `effects` are summed per key over unlocked nodes (perk(key)); see research.js PERK_KEYS for where each applies.
+export const RESEARCH_BRANCHES = [
+  { id: 'tani', name: 'Pertanian', emoji: '🌾' }, { id: 'ternak', name: 'Peternakan', emoji: '🐄' },
+  { id: 'bisnis', name: 'Bisnis', emoji: '💼' }, { id: 'mesin', name: 'Mekanik', emoji: '🚜' },
+];
+export const RESEARCH = [
+  { id: 'tani_panen1', branch: 'tani', name: 'Benih Unggul I', emoji: '🌱', cost: 1, requires: [], effects: { yield: 0.05 } },
+  { id: 'tani_benih', branch: 'tani', name: 'Petani Hemat', emoji: '💵', cost: 1, requires: ['tani_panen1'], effects: { seedCost: 0.1 } },
+  { id: 'tani_pupuk', branch: 'tani', name: 'Pupuk Grosir', emoji: '🧪', cost: 1, requires: ['tani_panen1'], effects: { fertCost: 0.2 } },
+  { id: 'tani_panen2', branch: 'tani', name: 'Benih Unggul II', emoji: '🌾', cost: 2, requires: ['tani_benih', 'tani_pupuk'], effects: { yield: 0.05 } },
+  { id: 'tani_panen3', branch: 'tani', name: 'Benih Unggul III', emoji: '🏆', cost: 3, requires: ['tani_panen2'], effects: { yield: 0.05 } },
+  { id: 'ternak_pakan1', branch: 'ternak', name: 'Ransum Efisien', emoji: '🌽', cost: 1, requires: [], effects: { feed: 0.1 } },
+  { id: 'ternak_produksi1', branch: 'ternak', name: 'Perawatan Ternak', emoji: '🥛', cost: 1, requires: ['ternak_pakan1'], effects: { animalProd: 0.1 } },
+  { id: 'ternak_lahir', branch: 'ternak', name: 'Inseminasi', emoji: '🐣', cost: 1, requires: ['ternak_pakan1'], effects: { births: 0.2 } },
+  { id: 'ternak_produksi2', branch: 'ternak', name: 'Kandang Modern', emoji: '🏠', cost: 2, requires: ['ternak_produksi1'], effects: { animalProd: 0.1 } },
+  { id: 'ternak_pakan2', branch: 'ternak', name: 'Nutrisi Presisi', emoji: '🧬', cost: 3, requires: ['ternak_produksi2', 'ternak_lahir'], effects: { feed: 0.1 } },
+  { id: 'bisnis_gaji', branch: 'bisnis', name: 'Manajemen SDM', emoji: '👷', cost: 1, requires: [], effects: { wages: 0.1 } },
+  { id: 'bisnis_kontrak', branch: 'bisnis', name: 'Negosiator', emoji: '📋', cost: 1, requires: ['bisnis_gaji'], effects: { contractPrice: 0.05 } },
+  { id: 'bisnis_bunga', branch: 'bisnis', name: 'Relasi Bank', emoji: '🏦', cost: 2, requires: ['bisnis_gaji'], effects: { interest: 0.25 } },
+  { id: 'bisnis_gudang', branch: 'bisnis', name: 'Gudang Rapi', emoji: '🏚️', cost: 1, requires: ['bisnis_bunga'], effects: { silo: 0.1 } },
+  { id: 'bisnis_kota', branch: 'bisnis', name: 'Jaringan Kota', emoji: '🏙️', cost: 3, requires: ['bisnis_kontrak'], effects: { cityPrice: 0.05 } },
+  { id: 'mesin_bbm1', branch: 'mesin', name: 'Mesin Hemat', emoji: '⛽', cost: 1, requires: [], effects: { fuel: 0.1 } },
+  { id: 'mesin_aus', branch: 'mesin', name: 'Perawatan Berkala', emoji: '🔧', cost: 1, requires: ['mesin_bbm1'], effects: { wear: 0.2 } },
+  { id: 'mesin_cepat', branch: 'mesin', name: 'Operator Terlatih', emoji: '⏱️', cost: 2, requires: ['mesin_bbm1'], effects: { taskSpeed: 0.1 } },
+  { id: 'mesin_truk', branch: 'mesin', name: 'Bak Truk Panjang', emoji: '🚚', cost: 1, requires: ['mesin_aus'], effects: { truckCap: 0.15 } },
+  { id: 'mesin_bbm2', branch: 'mesin', name: 'Mesin Hemat II', emoji: '🛢️', cost: 3, requires: ['mesin_cepat', 'mesin_truk'], effects: { fuel: 0.1 } },
 ];
 
 export const FIELDS = [
@@ -315,4 +402,19 @@ export const BALANCE = {
   // Resale adds resale × upgrade spend (× condition).
   machineUpgrades: { costs: [0.15, 0.25, 0.4], levelGap: 2, resale: 0.5, engineHp: 0.15, engineHa: 0.1, transmission: 0.1,
     efficiency: 0.1, paints: ['#c0392b', '#27ae60', '#f1c40f', '#2980b9', '#e67e22', '#2c3e50'] },
+  // Kebun buah (js/engine/orchard.js). Manual tasks (worker, no machine): plant/prune/clear at *HaPerHour.
+  // Rented pickers: pickerRentPerHa at pickerHaPerHour (no worker, no fuel). Pruning: +pruneBonus yield this cycle.
+  orchard: { plantHaPerHour: 1.5, pruneHaPerHour: 3, pruneCostPerHa: 70, pruneBonus: 0.15, clearHaPerHour: 2,
+    clearCostPerHa: 150, pickerRentPerHa: 160, pickerHaPerHour: 0.75, oldAgeDecline: 1.4, minAgeFactor: 0.3 },
+  // Rumah kaca (js/engine/greenhouse.js): costPerHa × ha to build (capex 'rumah_kaca'), upkeepPerHaDay × ha daily
+  // (opex 'listrik_rumah_kaca'), fields ≤ maxHa only, not on orchards. Inside: growth ×1 (no season/minTemp), season
+  // yield ≥ 1, no dry-day penalty, no storm damage, yield +yieldBonus. Removing refunds `refund` of the build cost.
+  // Sim (vanilla/strawberry, ≤ 12 ha): greenhouse beats the same field outdoors after ≈ 40–60 days.
+  greenhouse: { unlockLevel: 9, costPerHa: 18000, upkeepPerHaDay: 90, maxHa: 12, yieldBonus: 0.2, refund: 0.3 },
+  // Truck deliveries (js/engine/logistics.js): trip hours = 2·km / speedKmh, fuel = 2·km·fuelPerKm·fuelPrice (booked
+  // at departure), trucks wear wearPerHour on the road. Only 't' products fill the truck (capacity in t); kg/L/pcs
+  // goods ride along without using capacity (like the silo). Crop city multipliers are capped at cropCap (< 1.2 buy markup).
+  logistics: { wearPerHour: 0.0006, cropCap: 1.15 },
+  // Research (js/engine/research.js): respec (reset all nodes, points back) costs respecPerLevel × level.
+  research: { respecPerLevel: 1500 },
 };

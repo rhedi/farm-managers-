@@ -1,0 +1,65 @@
+/* Kebun buah + rumah kaca: crop choices, field plots, detail panels. Linked after juice.css. */
+
+/* Crop picker */
+.tree-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.tree-head { margin-bottom: 7px; font-weight: 700; }
+.tree-choice { align-items: flex-start; }
+.tree-choice:disabled { opacity: .65; cursor: not-allowed; }
+.tree-facts { display: flex; flex-wrap: wrap; gap: 2px 10px; margin: 4px 0; color: var(--ink-soft); font-size: .78rem; }
+.tree-tag, .gh-badge, .gh-chip {
+  display: inline-flex; align-items: center; border-radius: 999px; white-space: nowrap;
+  background: var(--green-l); color: var(--green-d); font-size: .7rem; font-weight: 700; line-height: 1.5;
+}
+.tree-tag, .gh-badge { padding: 1px 7px; }
+.gh-badge { background: #d8edf0; color: #27616b; }
+.gh-note { padding: 7px 9px; border-radius: var(--radius-s); background: #e2f0ed; color: #285d57; }
+.gh-chip { margin-left: 5px; padding: 1px 6px; background: #d8edf0; color: #27616b; vertical-align: middle; }
+.manual-note { padding: 7px 9px; border-radius: var(--radius-s); background: var(--surface-2); color: var(--ink-soft); }
+
+/* Orchard state and animated plot */
+.st-orchard { --st: #527c37; }
+.field-card.st-orchard { border-left-color: var(--st); }
+.badge.st-orchard { background: color-mix(in srgb, var(--st) 18%, white); color: color-mix(in srgb, var(--st) 75%, black); }
+.plot.ps-orchard { --furrow: repeating-linear-gradient(180deg, #66502b 0 5px, #806638 5px 11px); }
+.ps-trees .plot-rows { inset: 1px 7px; }
+.ps-trees .sp { font-size: 22px; }
+.pt-prune .plot-done, .pt-clear .plot-done { display: block; background: rgba(214, 190, 125, .32); }
+
+/* Translucent glass roof: panels and ridge stay visible without hiding the crop. */
+.plot-glass { display: none; }
+.ps-gh .plot-glass {
+  display: block; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  border: 2px solid rgba(207, 239, 241, .9); border-top-width: 3px; border-radius: inherit;
+  background:
+    linear-gradient(65deg, transparent 47%, rgba(255,255,255,.48) 48% 50%, transparent 51%) 0 0 / 54px 100%,
+    linear-gradient(115deg, transparent 47%, rgba(194,227,232,.5) 48% 50%, transparent 51%) 0 0 / 54px 100%,
+    linear-gradient(180deg, rgba(220,244,246,.3), rgba(129,184,192,.12));
+  box-shadow: inset 0 3px 0 rgba(255,255,255,.55), inset 0 0 8px rgba(200,239,244,.4);
+}
+.ps-gh .plot-glass::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 5px; height: 2px;
+  background: rgba(238,252,253,.75); box-shadow: 0 17px 0 rgba(206,235,238,.42);
+}
+
+/* Field modal sections */
+.orchard-section, .gh-section {
+  margin: 12px 0; padding: 10px; border: 1px solid #b9cda6; border-radius: var(--radius-s);
+  background: #f1f5e8;
+}
+.gh-section { border-color: #b8d5d7; background: #edf5f3; }
+.gh-section.built { border-style: solid; border-width: 2px; padding: 9px; }
+.orchard-section .section-title, .gh-section .section-title { margin-top: 0; flex-wrap: wrap; }
+.orchard-section .kv > *, .gh-section .kv > * { min-width: 0; overflow-wrap: anywhere; }
+.orch-maturity { margin: 4px 0 10px; }
+.orch-maturity > span { display: block; margin-bottom: 3px; }
+.orch-young { background: #e3edcf; color: #49682c; }
+.orch-prime { background: #d2e7bd; color: #35611e; }
+.orch-old { background: #eee0bd; color: #75511d; }
+.orch-buttons, .gh-buttons { justify-content: flex-end; margin-top: 8px; }
+.gh-effects { margin: 8px 0; padding-left: 21px; color: var(--ink-soft); font-size: .85rem; }
+.gh-effects li { margin: 3px 0; }
+.gh-reason { margin: 7px 0; padding: 6px 8px; border-radius: 6px; background: #f7dfd5; color: var(--red-d); font-size: .85rem; font-weight: 600; }
+
+@media (min-width: 600px) {
+  .gh-effects { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; }
+}

@@ -101,6 +101,20 @@ Tab **Ladang** menampilkan peta semua wilayah. Penanda ladang milikmu berbeda de
 - Nutrisi tanah (0–100%, awal 80%) memengaruhi hasil (×0,6 sampai ×1). Panen memakai nutrisi, pupuk menambah 40%, dan kedelai justru memulihkannya.
 - Menanam tanaman yang sama dua kali berturut-turut mengurangi hasil 10%. Gilir tanamanmu.
 
+### Kebun buah
+
+Di ladang yang sudah dibajak, bagian **🌳 Pohon** pada dialog Tanam menawarkan jeruk (Lv 6), apel (8), mangga (12), alpukat (15), kelapa (18), ceri (22), dan durian (26). Pemilih menampilkan lama menuju dewasa, frekuensi panen, umur produktif, perkiraan hasil, dan pendapatan bersih per tahun. Bibit ditanam manual oleh pekerja, tanpa penabur; biayanya dihitung per hektare dan dicatat sebagai investasi **Bibit pohon**.
+
+Pohon mulai berbuah setelah dewasa, lalu bisa dipanen berulang tanpa tanam ulang. Buah hanya tumbuh pada musim buah dan suhu yang cocok untuk wilayah itu. Kartu ladang menampilkan kemajuan dewasa/buah dan perkiraan panen berikutnya. Panen memakai **sewa pemetik** ($160/ha, tanpa pekerja atau BBM) atau traktor dengan **pengguncang pohon** dari Garasi. Setelah panen, siklus buah berikutnya dimulai di pohon yang sama.
+
+Di detail ladang, **✂️ Pangkas** tersedia sekali per siklus pada pohon dewasa: biaya $70/ha dan hasil siklus itu +15%, tercatat sebagai **Pangkas & tebang kebun**. **🪓 Tebang** meminta konfirmasi, menghabiskan $150/ha, dan mengosongkan ladang; bibit tidak dikembalikan. Setelah melewati umur produktif, hasil pohon berangsur turun sampai 30%. Rencana ladang juga mendukung kebun (termasuk sewa pemetik dan jual otomatis); bar Aksi massal menyediakan panen dan ✂️ pangkas untuk 2+ kebun sekaligus.
+
+### Rumah kaca
+
+Mulai **level 9**, rumah kaca bisa dibangun dari detail ladang berukuran maksimal **12 ha** seharga **$18.000/ha**. Listriknya **$90/ha/hari**, dicatat sebagai **Listrik rumah kaca**; kekurangan uang ditambahkan ke pinjaman. Rumah kaca tidak bisa dibangun di kebun buah atau saat ladang sedang dikerjakan.
+
+Tanaman semusim di dalamnya mendapat hasil **+20%**, tumbuh normal tanpa hambatan musim atau suhu minimum, dan tidak menerima penalti hari kering maupun kerusakan badai. Pemilih tanaman memberi badge **🏠 bebas musim**, sementara rincian hasil menampilkan faktor rumah kaca. **Bongkar** meminta konfirmasi dan mengembalikan **30% biaya bangun** sebagai penjualan aset; tanaman tetap tumbuh di luar ruangan.
+
 ### Mesin
 
 Mesin dibeli dan dijual di tab **Garasi**. Ada tiga jenis:
@@ -138,6 +152,14 @@ Setiap hari hewan makan tanaman pakan dari gudang. Misalnya sapi memakan gandum,
 ### Kontrak
 
 Bagian "📋 Kontrak" di tab **Pasar** berisi tawaran pesanan yang diperbarui setiap hari. Setiap kontrak meminta sejumlah produk sampai hari tertentu, dengan harga di atas harga pasar dan hadiah XP. Saat harga pasar anjlok, harga kontrak dihitung dari minimal 90% harga dasar, dan persentasenya ditampilkan terhadap harga dasar. Kamu boleh menjalankan beberapa kontrak sekaligus. Kirim hasil panen dari gudang sampai jumlahnya terpenuhi untuk menerima bayaran. Kontrak yang lewat batas waktu gagal dan kamu dikenai denda. Angka di tab 📈 menunjukkan jumlah kontrak yang sedang berjalan.
+
+### Pengiriman ke kota (truk)
+
+Beli truk di **Garasi** (5 tingkat, mulai level 2: Isuzi Elf 4 t sampai Volvu 60 t). Bagian "🚚 Pengiriman" di tab **Pasar** (setelah Kontrak): pilih truk, kota tujuan, dan muatan dari gudang (cadangan pakan tidak ikut). Ada 8 kota (Bandung, Jakarta, Des Moines, München, Sapporo, Paris, Chicago, Cuiabá); kota hanya bisa dituju dari wilayah tempat kamu punya ladang dan terbuka di level tertentu. Tiap kota membayar harga pasar × pengali permintaan (badge kuning), tanaman maksimal +15%. BBM dibayar saat berangkat; truk dan satu pekerja bebas sibuk selama perjalanan pulang-pergi (`2 × km ÷ kecepatan`); muatan terjual saat tiba di kota. Kapasitas hanya dihitung dari produk bersatuan ton; susu, telur, dan barang kg ikut tanpa memakan kapasitas. Perkiraan menampilkan hasil di kota vs jual lokal, BBM, gaji sopir + aus truk, dan untung bersih. Upgrade mesin berlaku: Mesin = muatan, Transmisi = kecepatan, Efisiensi = BBM.
+
+### Riset
+
+Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya). Buka "🔬 Riset" di atas tab **Prestasi** atau ketuk badge level di bar atas. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 5 riset dengan prasyarat; beberapa butuh 2–3 poin. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
 
 ### Pinjaman
 
@@ -204,12 +226,15 @@ css/factories.css   Gaya bagian Pabrik di tab Gudang
 css/missions.css    Gaya misi harian dan papan peringkat (tab Prestasi)
 css/breeding.css    Gaya panel pembiakan ternak dan dialog upgrade mesin
 css/finance.css     Gaya laporan keuangan
+css/logistics.css   Gaya pengiriman truk ke kota
+css/orchard.css     Gaya kebun buah dan rumah kaca
 js/data.js          Data game: tanaman, produk, mesin, hewan, wilayah, ladang, level, prestasi, BALANCE
 js/engine.js        Mesin game (tanpa DOM): state, waktu, aksi pemain, view, simpan/muat
 js/engine/*         Modul engine: rng, defs, weather, market, fields, tasks, taskrun,
                     animals, economy, purchase, contracts, plans, views, persist,
                     silo, workers, wear, seasons, events, soil, factories, factoryView,
-                    missions, rivals, breeding, upgrades, ledger
+                    missions, rivals, breeding, upgrades, ledger, orchard, greenhouse,
+                    logistics, logisticsView, research
 js/ui/*             Komponen antarmuka per tab
 js/main.js          Titik masuk: memuat/membuat game, game loop, autosave, navigasi tab
 tests/              Tes engine (node:test)

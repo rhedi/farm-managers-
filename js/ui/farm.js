@@ -18,7 +18,7 @@ function pinLabel(f) {
   if (f.locked) return [h('span.pin-lock', '🔒'), h('span.pin-lv', `Lv ${f.unlockLevel}`)];
   if (!f.owned) return '🏷️';
   if (f.state === 'busy') return '🚜';
-  if ((f.state === 'growing' || f.state === 'ready') && f.crop) return f.crop.emoji;
+  if ((f.state === 'growing' || f.state === 'ready' || f.state === 'orchard') && f.crop) return f.crop.emoji;
   return STATE_EMOJI[f.state] ?? '•';
 }
 
@@ -50,7 +50,7 @@ function fieldCard(f) {
     h('div.card-head',
       h('div.card-icon', f.crop ? f.crop.emoji : STATE_EMOJI[st]),
       h('div', { style: { flex: '1', minWidth: '0' } },
-        h('div.card-title', f.name),
+        h('div.card-title', f.name, f.greenhouse ? h('span.gh-chip', '🏠 Rumah kaca') : null),
         h('div.card-sub', `${f.region} · ${f.sizeHa} ha · pH ${fmtPh(f.ph)}`)),
       h(`span.badge.st-${st}`, STATE_LABEL[st])),
     h('div.card-body', plot, bar, status, planChip(app.game, f)),

@@ -1,6 +1,7 @@
 // Workers (F9): every owned-machine field task needs a free worker. Wages are paid daily.
 import { random, round2 } from './rng.js';
 import { fmtMoney } from './defs.js';
+import { perk } from './research.js';
 
 export const NO_WORKER = 'Tidak ada pekerja bebas.';
 export const MAX_SKILL_SPEEDUP = 0.2;
@@ -59,7 +60,9 @@ export function ensureWorkers(game) {
 export const candidatesView = (game) => game.state.candidates.map((c) => ({ ...c }));
 
 export function workersView(game) {
-  const names = (id) => game.idx.fields.get(id)?.name ?? id;
+  const trip = (id) => game.state.shipments?.find((s) => s.id === id); // truck driver (logistics.js)
+  const names = (id) => game.idx.fields.get(id)?.name
+    ?? (trip(id) ? `🚚 ${game.idx.cities.get(trip(id).cityId)?.name ?? 'Pengiriman'}` : id);
   return game.state.workers.map((w) => ({ ...w, busyField: w.busy ? names(w.busy) : null,
     speedup: round2(MAX_SKILL_SPEEDUP * w.skill) }));
 }
@@ -92,7 +95,8 @@ export function onTaskDone(game, worker) {
   worker.skill = Math.min(1, Math.round((worker.skill + gain * (1 - worker.skill)) * 1000) / 1000);
 }
 
-export const totalWages = (game) => game.state.workers.reduce((sum, w) => sum + w.wage, 0);
+/** Daily wage bill (research perk 'wages' lowers it). */
+export const totalWages = (game) => game.state.workers.reduce((sum, w) => sum + w.wage, 0) * (1 - perk(game, 'wages'));
 
 /** Daily rollover: pay wages (shortfall goes to the loan), refresh candidates weekly. */
 export function stepWorkersDay(game) {

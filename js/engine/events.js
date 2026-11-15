@@ -84,7 +84,8 @@ function create(game, type, day) {
   const { state } = game;
   const e = { type, startDay: day, endsDay: day };
   if (type === 'pest') {
-    const ids = Object.keys(state.fields).filter((id) => state.fields[id].state === 'growing' && !state.fields[id].pest);
+    const crops = (f) => f.state === 'growing' || f.state === 'orchard'; // annual crops and fruit trees
+    const ids = Object.keys(state.fields).filter((id) => crops(state.fields[id]) && !state.fields[id].pest);
     if (!ids.length) return null;
     e.fieldId = pick(state, ids);
     e.regionId = game.idx.fields.get(e.fieldId)?.regionId;
@@ -98,7 +99,8 @@ function create(game, type, day) {
     if (type === 'storm') {
       e.damage = round2(randRange(state, 0.05, 0.15));
       for (const [fid, f] of Object.entries(state.fields)) {
-        if (f.state !== 'growing' || game.idx.fields.get(fid)?.regionId !== e.regionId) continue;
+        // growing crops and orchards outdoors; a rumah kaca shields its field
+        if ((f.state !== 'growing' && f.state !== 'orchard') || f.greenhouse || game.idx.fields.get(fid)?.regionId !== e.regionId) continue;
         f.damage = round2((f.damage ?? 1) * (1 - e.damage));
       }
     }

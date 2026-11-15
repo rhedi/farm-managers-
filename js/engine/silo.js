@@ -2,6 +2,7 @@
 import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { saleCategory } from './ledger.js';
+import { perk } from './research.js';
 
 export const SILO_START = 150;
 export const SILO_STEP = 200;
@@ -22,11 +23,13 @@ export function siloUsed(game) {
   return round2(used);
 }
 
-export const siloCapacity = (game) => game.state.siloCapacity ?? siloStart(game);
+/** Built capacity (state, upgrades only); the usable capacity adds the research perk 'silo'. */
+const builtCapacity = (game) => game.state.siloCapacity ?? siloStart(game);
+export const siloCapacity = (game) => round2(builtCapacity(game) * (1 + perk(game, 'silo')));
 export const siloFree = (game) => Math.max(0, round2(siloCapacity(game) - siloUsed(game)));
 
 /** Number of upgrades bought so far (derived from capacity). */
-const upgradesDone = (game) => Math.max(0, Math.round((siloCapacity(game) - siloStart(game)) / siloStep(game)));
+const upgradesDone = (game) => Math.max(0, Math.round((builtCapacity(game) - siloStart(game)) / siloStep(game)));
 
 export function nextUpgradeCost(game) {
   const c = cfg(game);
@@ -42,10 +45,10 @@ export function siloInfo(game) {
 export function upgradeSilo(game) {
   const cost = nextUpgradeCost(game);
   if (!game.spend(cost, 'gudang')) return { ok: false, reason: 'Uang tidak cukup.' };
-  game.state.siloCapacity = siloCapacity(game) + siloStep(game);
-  game.emit('silo_upgraded', `Silo diperbesar menjadi ${fmtNum(game.state.siloCapacity)} t (${fmtMoney(cost)}).`,
-    { capacity: game.state.siloCapacity, cost });
-  return { ok: true, capacity: game.state.siloCapacity, cost };
+  game.state.siloCapacity = builtCapacity(game) + siloStep(game);
+  const capacity = siloCapacity(game);
+  game.emit('silo_upgraded', `Silo diperbesar menjadi ${fmtNum(capacity)} t (${fmtMoney(cost)}).`, { capacity, cost });
+  return { ok: true, capacity, cost };
 }
 
 /** Can `qty` of a product be added? Returns '' or an Indonesian reason. */

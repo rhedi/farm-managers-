@@ -6,10 +6,13 @@ import { phOf, LIME_TARGET_PH } from './soil.js';
 import { freeWorker, skillFactor, NO_WORKER } from './workers.js';
 import { wearFactor, rollBreakdown, conditionOf, BREAKDOWN_BELOW } from './wear.js';
 import { effectiveStats, upgradesOf } from './upgrades.js';
+import { orchardAllows, orchardTaskSpec } from './orchard.js';
+import { perk } from './research.js';
 
 export const RENT_HA_PER_HOUR = 1.0;
+// Orchard tasks (orchard.js): prune on growing trees, clear (tebang) on any orchard; orchardAllows refines them.
 const REQUIRED_STATE = { plow: ['idle'], fertilize: ['plowed'], seed: ['plowed'], irrigate: ['growing'], harvest: ['ready'],
-  lime: ['idle', 'plowed'] };
+  lime: ['idle', 'plowed'], prune: ['orchard'], clear: ['orchard', 'ready'] };
 const fail = (reason, extra = {}) => ({ ok: false, reason, ...extra });
 
 const defOf = (game, m) => game.idx.machines.get(m.defId);
@@ -17,26 +20,31 @@ const defOf = (game, m) => game.idx.machines.get(m.defId);
 const effOf = (game, m) => effectiveStats(game, m);
 const upgradeLevel = (m) => Object.values(upgradesOf(m)).reduce((s, l) => s + l, 0);
 
-/** Task allowed by the field's state (a fully withered crop may be plowed under). */
-function stateAllows(f, task) {
-  if (REQUIRED_STATE[task].includes(f.state)) return true;
+/** Task allowed by the field's state (a fully withered crop may be plowed under; orchards use orchardAllows). */
+function stateAllows(game, f, task) {
+  const o = orchardAllows(game, f, task);
+  if (o != null) return o;
+  if (REQUIRED_STATE[task]?.includes(f.state)) return true;
   return task === 'plow' && f.state === 'ready' && witherFactor(f) <= 0;
 }
 
 /** Liming does nothing once pH is at the target, or twice in one cycle. */
 const limeDone = (game, fieldId, f) => !!f.limed || Math.abs(phOf(game, fieldId) - LIME_TARGET_PH) < 0.01;
 
-/** Does the player own the machines a task needs (ignoring busy/HP)? Harvest can always be rented. */
+/** Does the player own the machines a task needs (ignoring busy/HP)? Harvest can always be rented; orchard work is manual. */
 export function ownsRigFor(game, task) {
-  if (task === 'harvest') return true;
+  if (task === 'harvest' || task === 'prune' || task === 'clear') return true;
   const types = game.state.machines.map((m) => defOf(game, m)).filter(Boolean);
   return types.some((d) => d.type === 'tractor') && types.some((d) => d.type === 'implement' && d.task === task);
 }
 
+/** Saplings are planted by hand: `seed` is offered without a seeder when a tree is unlocked. */
+const canPlantTree = (game) => (game.data.TREES || []).some((t) => t.unlockLevel <= game.state.level);
+
 export function availableActions(game, fieldId) {
   const f = game.state.fields[fieldId];
   if (!f || f.busy) return [];
-  const acts = TASKS.filter((t) => stateAllows(f, t) && ownsRigFor(game, t)
+  const acts = TASKS.filter((t) => stateAllows(game, f, t) && (ownsRigFor(game, t) || (t === 'seed' && canPlantTree(game)))
     && !(t === 'fertilize' && f.fertilized) && !(t === 'irrigate' && f.irrigated) && !(t === 'lime' && limeDone(game, fieldId, f)));
   if (f.state === 'idle' && Object.keys(game.state.fields).length > 1) acts.push('sell');
   return acts;
@@ -121,33 +129,37 @@ export function planTask(game, fieldId, task, opts = {}) {
   if (!def) return fail('Ladang tidak ditemukan.');
   if (!f) return fail('Kamu belum memiliki ladang ini.');
   if (f.busy) return fail('Ladang sedang dikerjakan.');
-  if (!stateAllows(f, task)) return fail(`Tidak bisa ${TASK_NAMES[task].toLowerCase()} ladang dalam kondisi ini.`);
+  if (!stateAllows(game, f, task)) return fail(`Tidak bisa ${TASK_NAMES[task].toLowerCase()} ladang dalam kondisi ini.`);
   if (task === 'fertilize' && f.fertilized) return fail('Ladang sudah dipupuk.');
   if (task === 'irrigate' && f.irrigated) return fail('Ladang sudah diairi.');
   if (task === 'lime' && limeDone(game, fieldId, f)) return fail('pH tanah sudah ideal atau sudah dikapur.');
   let materialCost = 0, cropId = null;
+  const orch = orchardTaskSpec(game, def, f, task, opts, pickRig); // trees: saplings, prune, tebang, fruit picking
+  if (orch && orch.ok === false) return orch;
   if (task === 'seed') {
     cropId = opts.cropId;
     const crop = idx.crops.get(cropId);
     if (!crop) return fail('Pilih tanaman yang akan ditanam.');
     if (crop.unlockLevel > state.level) return fail(`${crop.name} terbuka di level ${crop.unlockLevel}.`);
-    materialCost = def.sizeHa * crop.seedCostPerHa;
-  } else if (task === 'fertilize') materialCost = def.sizeHa * B.fertilizerCostPerHa;
+    materialCost = orch ? orch.materialCost : def.sizeHa * crop.seedCostPerHa * (1 - perk(game, 'seedCost')); // research perks: seed/fertilizer cost
+  } else if (orch) materialCost = orch.materialCost;
+  else if (task === 'fertilize') materialCost = def.sizeHa * B.fertilizerCostPerHa * (1 - perk(game, 'fertCost'));
   else if (task === 'irrigate') materialCost = def.sizeHa * B.irrigateCostPerHa;
   else if (task === 'lime') materialCost = def.sizeHa * (B.limeCostPerHa ?? 90);
-  const rig = task === 'harvest' ? pickHarvester(game, opts) : pickRig(game, task, opts);
+  const rig = orch?.rig ?? (task === 'harvest' ? pickHarvester(game, opts) : pickRig(game, task, opts));
   if (!rig.ok) return rig;
   // Rented harvesters come with their own driver and don't wear our machines.
   const worker = rig.rented ? null : freeWorker(game);
-  const factor = rig.rented ? 1 : skillFactor(worker) * wearFactor(game, rig.uids);
+  // Research perks: 'taskSpeed' shortens own-rig tasks, 'fuel' lowers the fuel bill.
+  const factor = rig.rented ? 1 : skillFactor(worker) * wearFactor(game, rig.uids) / (1 + perk(game, 'taskSpeed'));
   const hours = round2((def.sizeHa / rig.rate) * factor);
-  const fuelCost = round2(hours * rig.fuelPerHour * B.fuelPrice);
-  const rentCost = rig.rented ? def.sizeHa * data.STARTING.harvesterRentPerHa : 0;
+  const fuelCost = round2(hours * rig.fuelPerHour * B.fuelPrice * (1 - perk(game, 'fuel')));
+  const rentCost = rig.rented ? def.sizeHa * (rig.rentPerHa ?? data.STARTING.harvesterRentPerHa) : 0;
   const cost = round2(fuelCost + materialCost + rentCost);
   // Harvest is paid on completion (from money, or by auto-selling part of the crop), so it never fails on money.
   const payOnCompletion = task === 'harvest';
-  const costSplit = { bbm: fuelCost, sewa_pemanen: rentCost }; // ledger categories (game.spend split)
-  if (materialCost > 0) costSplit[MATERIAL_CATEGORY[task]] = materialCost;
+  const costSplit = { bbm: fuelCost, [rig.rentCategory ?? 'sewa_pemanen']: rentCost }; // ledger categories (game.spend split)
+  if (materialCost > 0) costSplit[orch?.category ?? MATERIAL_CATEGORY[task]] = materialCost;
   const plan = { ok: true, hours, cost, costSplit, fuelCost, materialCost, rentCost, machineUids: rig.uids, rented: !!rig.rented, cropId, payOnCompletion,
     workerId: worker?.id ?? null, workerName: worker?.name ?? null };
   if (!rig.rented && !worker) return { ...plan, ok: false, reason: NO_WORKER };

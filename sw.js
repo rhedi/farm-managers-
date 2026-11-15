@@ -2,7 +2,7 @@
 // cached index.html as offline fallback. A new version waits until the page asks it to take over
 // (toast "Versi baru tersedia" in js/ui/pwa.js). After changing any file, regenerate VERSION and
 // PRECACHE with the command in README → "Pasang di HP (PWA)".
-const VERSION = "4dbb7fe063";
+const VERSION = "d7d2b618f9";
 const PREFIX = 'farm-manager-';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = [
@@ -16,8 +16,10 @@ const PRECACHE = [
   "./css/finance.css",
   "./css/juice.css",
   "./css/levels.css",
+  "./css/logistics.css",
   "./css/missions.css",
   "./css/ops.css",
+  "./css/orchard.css",
   "./css/style.css",
   "./css/world.css",
   "./icons/apple-touch-icon.png",
@@ -36,12 +38,17 @@ const PRECACHE = [
   "./js/engine/factories.js",
   "./js/engine/factoryView.js",
   "./js/engine/fields.js",
+  "./js/engine/greenhouse.js",
   "./js/engine/ledger.js",
+  "./js/engine/logistics.js",
+  "./js/engine/logisticsView.js",
   "./js/engine/market.js",
   "./js/engine/missions.js",
+  "./js/engine/orchard.js",
   "./js/engine/persist.js",
   "./js/engine/plans.js",
   "./js/engine/purchase.js",
+  "./js/engine/research.js",
   "./js/engine/rivals.js",
   "./js/engine/rng.js",
   "./js/engine/seasons.js",
@@ -90,8 +97,10 @@ const PRECACHE = [
   "./js/ui/planEditor.js",
   "./js/ui/plot.js",
   "./js/ui/pwa.js",
+  "./js/ui/research.js",
   "./js/ui/sfx.js",
   "./js/ui/shell.js",
+  "./js/ui/shipping.js",
   "./js/ui/silo.js",
   "./js/ui/taskModal.js",
   "./js/ui/topbar.js",

@@ -3,6 +3,7 @@ import { startTask, ownsRigFor } from './tasks.js';
 import { witherFactor, WITHER_AFTER_HOURS } from './fields.js';
 import { phOf, LIME_TARGET_PH } from './soil.js';
 import { NO_WORKER } from './workers.js';
+import { orchardAllows, ownsShaker } from './orchard.js';
 
 const ok = (extra = {}) => ({ ok: true, ...extra });
 const fail = (reason) => ({ ok: false, reason });
@@ -20,8 +21,11 @@ export function setFieldPlan(game, fieldId, plan) {
   const crop = game.idx.crops.get(plan.cropId);
   if (!crop) return fail('Pilih tanaman untuk rencana.');
   if (crop.unlockLevel > game.state.level) return fail(`${crop.name} terbuka di level ${crop.unlockLevel}.`);
-  const rot = plan.rotateCropId && plan.rotateCropId !== crop.id ? game.idx.crops.get(plan.rotateCropId) : null;
-  if (plan.rotateCropId && plan.rotateCropId !== crop.id && !rot) return fail('Tanaman rotasi tidak ditemukan.');
+  // Trees stay planted across harvests, so an orchard plan never rotates.
+  const rotId = !crop.perennial && plan.rotateCropId !== crop.id ? plan.rotateCropId : null;
+  const rot = rotId ? game.idx.crops.get(rotId) : null;
+  if (rotId && !rot) return fail('Tanaman rotasi tidak ditemukan.');
+  if (rot?.perennial) return fail('Pohon tidak bisa dipakai untuk rotasi.');
   if (rot && rot.unlockLevel > game.state.level) return fail(`${rot.name} terbuka di level ${rot.unlockLevel}.`);
   f.plan = {
     cropId: crop.id,
@@ -57,13 +61,17 @@ export function nextStepFor(game, fieldId) {
       return (p ? p.fertilize : true) && !f.fertilized && ownsRigFor(game, 'fertilize') ? 'fertilize' : 'seed';
     case 'growing':
       return (p ? p.irrigate : true) && !f.irrigated && ownsRigFor(game, 'irrigate') ? 'irrigate' : null;
-    case 'ready': return witherFactor(f) <= 0 ? 'plow' : 'harvest';
+    case 'orchard': // kebun buah: feed / water mature trees once per fruit cycle; no replanting
+      if ((p ? p.fertilize : true) && !f.fertilized && ownsRigFor(game, 'fertilize') && orchardAllows(game, f, 'fertilize')) return 'fertilize';
+      return (p ? p.irrigate : true) && !f.irrigated && ownsRigFor(game, 'irrigate') && orchardAllows(game, f, 'irrigate') ? 'irrigate' : null;
+    case 'ready': return f.orchard ? 'harvest' : witherFactor(f) <= 0 ? 'plow' : 'harvest';
     default: return null;
   }
 }
 
 function startHarvest(game, fieldId, f) {
-  const own = game.state.machines.some((m) => game.idx.machines.get(m.defId)?.type === 'harvester');
+  // Orchards: own tractor + tree shaker, else rented pickers; field crops: own harvester, else rented harvester.
+  const own = f.orchard ? ownsShaker(game) : game.state.machines.some((m) => game.idx.machines.get(m.defId)?.type === 'harvester');
   const r = startTask(game, fieldId, 'harvest', { rent: false, avoidWorn: true });
   if (r.ok) return r;
   if (f.plan.rent || !own || f.readyHours >= rentFallbackHours()) return startTask(game, fieldId, 'harvest', { rent: true });

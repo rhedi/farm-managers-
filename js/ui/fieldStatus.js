@@ -8,9 +8,20 @@ function growHoursLeft(f) {
   return crop ? (1 - f.growth) * crop.growDays * 24 : 0;
 }
 
+/** Kebun buah: maturity, then fruit progress and the next harvest (from the engine's hoursToRipe). */
+export function orchardStatusText(f) {
+  const o = f.orchard;
+  if (!o.mature) return `🌱 Pohon muda ${fmtPct(o.maturity)} · berbuah dalam ±${fmtHours((o.maturityDays - o.ageDays) * 24)}`;
+  const next = o.hoursToRipe == null ? 'tidak berbuah di wilayah ini' : `panen berikut ±${fmtHours(o.hoursToRipe)}`;
+  const paused = o.fruitMult === 0 ? (o.windowOpen ? ' · ❄️ terlalu dingin' : ' · ⏸ luar musim buah') : '';
+  return `${f.crop.emoji} Buah ${fmtPct(o.fruit)} · ${next}${paused}`;
+}
+
 /** One-line status for a field view. */
 export function fieldStatusText(f) {
   if (f.state === 'busy') return `${TASK_ING[f.task] ?? f.task} · sisa ${fmtHours(f.hoursLeft)}`;
+  if (f.orchard && f.state === 'orchard') return orchardStatusText(f);
+  if (f.orchard && f.state === 'ready') return f.withering ? `Siap dipetik! hasil tinggal ${fmtPct(f.witherFactor)}` : `${f.crop.emoji} Siap dipetik`;
   if (f.state === 'growing' && f.crop) {
     const left = f.growth < 1 ? growHoursLeft(f) : 0;
     return `${f.crop.name} ${fmtPct(f.growth)} · panen dalam ±${fmtHours(left)}`;
@@ -27,5 +38,5 @@ export function fieldStatusText(f) {
 /** Changes whenever a card or the modal needs a full rebuild. */
 export function fieldSignature(f) {
   return `${f.id}:${f.state}:${f.crop?.id ?? ''}:${f.fertilized}:${f.irrigated}:${f.withering}:${(f.actions || []).join(',')}`
-    + `:${planSig(f)}`;
+    + `:${planSig(f)}:${f.greenhouse ? 'gh' : ''}:${f.orchard ? `${f.orchard.stage}${f.orchard.pruned ? 'p' : ''}` : ''}`;
 }

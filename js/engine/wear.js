@@ -1,6 +1,7 @@
 // Machine wear (F10): condition 1 → 0 with working hours; worn machines are slower and may break down.
 import { random, round2 } from './rng.js';
 import { fmtMoney } from './defs.js';
+import { perk } from './research.js';
 
 export const WEAR_PER_HOUR = 0.002;
 export const SLOW_BELOW = 0.5;
@@ -13,9 +14,9 @@ export const REPAIR_RATE = 0.3;
 const cfg = (game) => game.data.BALANCE.wear ?? {};
 export const conditionOf = (m) => (typeof m?.condition === 'number' ? m.condition : 1);
 
-/** Wear the machines of a running task by `hours` of work. */
-export function wearMachines(game, uids, hours) {
-  const rate = cfg(game).perHour ?? WEAR_PER_HOUR;
+/** Wear the machines of a running task by `hours` of work (`rate` per hour; research perk 'wear' reduces it). */
+export function wearMachines(game, uids, hours, rate = cfg(game).perHour ?? WEAR_PER_HOUR) {
+  rate *= 1 - perk(game, 'wear');
   for (const uid of uids) {
     const m = game.state.machines.find((x) => x.uid === uid);
     if (m) m.condition = Math.max(0, Math.round((conditionOf(m) - rate * hours) * 1e5) / 1e5);

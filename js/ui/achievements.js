@@ -1,4 +1,4 @@
-// Achievements tab: achievement list, stats, event log, settings (reset).
+// Achievements tab: research tree, missions, achievement list, stats, event log, settings (reset).
 import { h, mount, fmtMoney, fmtNum, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
 import { app } from './app.js';
@@ -7,6 +7,7 @@ import { financeCard } from './finance.js';
 import { sfxEnabled, setSfxEnabled, onSfxChange, sfx } from './sfx.js';
 import { missionsCard, leaderboardCard, missionsSig, updateMissionsCountdown } from './missions.js';
 import { installControl } from './pwa.js';
+import { researchSection, researchSig } from './research.js';
 
 const LOG_ICON = {
   task_done: '✅', crop_ready: '🌾', wither: '🥀', achievement: '🏆', level_up: '⭐', weather: '🌦️',
@@ -15,6 +16,7 @@ const LOG_ICON = {
   season_change: '🍂', event_start: '📣', event_end: '🏁', pest: '🐛', silo_overflow: '🏚️',
   machine_breakdown: '🔧', wages_unpaid: '💸', worker_hired: '👷',
   mission_done: '🎯', missions_new: '🎯', mission_streak: '🔥', rank_up: '🏅',
+  delivery_start: '🚚', delivery_done: '🚚', truck_returned: '🚚', research_unlocked: '🔬', research_reset: '🔬',
 };
 let sig = '';
 
@@ -76,7 +78,7 @@ function statsCard(game) {
 
 function computeSig(game) {
   const log = game.state.log;
-  return `${game.state.achievements.length}|${log.length}|${log[log.length - 1]?.msg ?? ''}|${game.day}|${game.state.history?.length ?? 0}|${missionsSig(game)}`;
+  return `${game.state.achievements.length}|${log.length}|${log[log.length - 1]?.msg ?? ''}|${game.day}|${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}`;
 }
 
 export function renderAchievements(root) {
@@ -85,6 +87,7 @@ export function renderAchievements(root) {
   const list = game.achievementsView();
   const done = list.filter((a) => a.unlocked).length;
   mount(root,
+    researchSection(game),
     h('section.section',
       h('div.section-title', '🎯 Misi harian', h('span.spacer'), h('span.small.muted', `Hari ${game.day}`)),
       missionsCard(game)),

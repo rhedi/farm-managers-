@@ -5,12 +5,16 @@ import { app, act } from './app.js';
 import { workersSection, workersSig } from './workers.js';
 import { openUpgradeModal } from './machineUpgrade.js';
 
-const TYPE_ICON = { tractor: '🚜', harvester: '🌾', implement: '🔧' };
-const TYPE_ORDER = ['tractor', 'harvester', 'implement'];
+const TYPE_ICON = { tractor: '🚜', harvester: '🌾', implement: '🔧', truck: '🚚' };
+const TYPE_ORDER = ['tractor', 'harvester', 'implement', 'truck'];
 let sig = '';
 
 function specs(m) {
   if (m.type === 'tractor') return `${m.hp} HP · kecepatan ×${fmtNum(m.speed, 1)} · BBM ${fmtNum(m.fuelPerHour, 1)} L/jam`;
+  if (m.type === 'truck') {
+    const fuel = m.fuelPerKm * (app.game.data.BALANCE?.fuelPrice ?? 0);
+    return `Muatan ${fmtNum(m.capacity, 1)} t · ${fmtNum(m.speedKmh)} km/jam · BBM ${fmtNum(m.fuelPerKm, 2)} L/km (${fmtMoney(fuel * 100)}/100 km)`;
+  }
   if (m.type === 'harvester') {
     const d = app.game.data;
     const save = (d.STARTING?.harvesterRentPerHa ?? 0) - m.fuelPerHour * (d.BALANCE?.fuelPrice ?? 0) / m.haPerHour;
@@ -19,7 +23,10 @@ function specs(m) {
   return `${TASK_LABEL[m.task] ?? m.task} · ${fmtNum(m.haPerHour, 1)} ha/jam · butuh ${m.hpRequired} HP`;
 }
 
+/** What a busy machine is doing: a field name, or a truck trip ("🚚 Jakarta"). */
 function fieldName(id) {
+  const trip = app.game.shipmentsView?.().find((t) => t.id === id);
+  if (trip) return `${trip.cityEmoji} ${trip.cityName}`;
   return app.game.data.FIELDS.find((f) => f.id === id)?.name ?? id;
 }
 

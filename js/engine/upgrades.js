@@ -26,6 +26,10 @@ export function statsFor(game, d, up) {
   } else if (d.haPerHour != null) {
     const engine = d.type === 'harvester' ? 1 + c.engineHa * u.engine : 1;
     s.haPerHour = round2(d.haPerHour * engine * (1 + c.transmission * u.transmission));
+  } else if (d.type === 'truck') { // logistics: engine = payload, transmission = road speed, efficiency = L/km
+    s.capacity = round2(d.capacity * (1 + c.engineHa * u.engine));
+    s.speedKmh = round2(d.speedKmh * (1 + c.transmission * u.transmission));
+    s.fuelPerKm = round2(d.fuelPerKm * (1 - c.efficiency * u.efficiency) * 1000) / 1000;
   }
   if (d.fuelPerHour != null) s.fuelPerHour = round2(d.fuelPerHour * (1 - c.efficiency * u.efficiency));
   return s;
@@ -64,6 +68,7 @@ const STAT_OF = {
   tractor: { engine: ['hp', 'HP'], transmission: ['speed', 'kecepatan ×'], efficiency: ['fuelPerHour', 'BBM L/jam'] },
   harvester: { engine: ['haPerHour', 'ha/jam'], transmission: ['haPerHour', 'ha/jam'], efficiency: ['fuelPerHour', 'BBM L/jam'] },
   implement: { transmission: ['haPerHour', 'ha/jam'] },
+  truck: { engine: ['capacity', 't muatan'], transmission: ['speedKmh', 'km/jam'], efficiency: ['fuelPerKm', 'BBM L/km'] },
 };
 
 export function upgradeMachine(game, uid, track) {

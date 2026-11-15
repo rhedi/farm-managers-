@@ -26,8 +26,8 @@ const blockedText = (reason) => (reason === NO_WORKER ? `${reason} Rekrut pekerj
 export function planChip(game, f) {
   if (!f.plan) return null;
   const step = stepLabel(f.nextStep);
-  const crop = game.data.CROPS.find((c) => c.id === f.plan.cropId);
-  const rot = f.plan.rotateCropId ? game.data.CROPS.find((c) => c.id === f.plan.rotateCropId) : null;
+  const crop = allCrops(game).find((c) => c.id === f.plan.cropId);
+  const rot = f.plan.rotateCropId && !crop?.perennial ? game.data.CROPS.find((c) => c.id === f.plan.rotateCropId) : null;
   return h('div.plan-chip-row',
     h(`span.plan-chip${f.plan.blocked ? '.blocked' : ''}`, `🔁 ${crop ? `${crop.emoji} ${crop.name}` : 'Rencana'}${rot ? ` ⇄ ${rot.emoji}` : ''}`),
     f.plan.blocked ? h('span.plan-blocked.small', `⏸ ${blockedText(f.plan.blocked)}`)
@@ -72,12 +72,17 @@ function toggle(draft, key, label) {
     ` ${label}`);
 }
 
-function cropSelect(game, f, draft) {
-  const open = game.data.CROPS.filter((c) => c.unlockLevel <= game.state.level);
+/** Annual crops plus trees (kebun buah); trees can be planned but never rotated. */
+const allCrops = (game) => [...game.data.CROPS, ...(game.data.TREES || [])];
+
+function cropSelect(game, f, draft, rerender) {
+  const open = allCrops(game).filter((c) => c.unlockLevel <= game.state.level && !(c.perennial && f.greenhouse));
   if (!open.some((c) => c.id === draft.cropId)) draft.cropId = open[0]?.id ?? null;
-  return h('select', { 'aria-label': 'Tanaman rencana', onchange: (e) => { draft.cropId = e.target.value; picked.add(draft); } },
-    open.map((c) => h('option', { value: c.id, selected: c.id === draft.cropId },
-      `${c.emoji} ${c.name} ${phFits(f, c) ? '✅' : '⚠️ pH'}`)));
+  const opt = (c) => h('option', { value: c.id, selected: c.id === draft.cropId }, `${c.emoji} ${c.name} ${phFits(f, c) ? '✅' : '⚠️ pH'}`);
+  const trees = open.filter((c) => c.perennial);
+  return h('select', { 'aria-label': 'Tanaman rencana', onchange: (e) => { draft.cropId = e.target.value; picked.add(draft); rerender?.(); } },
+    open.filter((c) => !c.perennial).map(opt),
+    trees.length ? h('optgroup', { label: '🌳 Pohon (kebun buah)' }, trees.map(opt)) : null);
 }
 
 function rotateSelect(game, f, draft) {
@@ -92,24 +97,28 @@ function rotateSelect(game, f, draft) {
 const ownsLime = (game) => (game.availableMachinesFor?.('lime')?.implements?.length ?? 0) > 0;
 
 /** The "🔁 Rencana" section; null when the engine has no plan support. */
-export function planSection(game, f, draft) {
+export function planSection(game, f, draft, rerender) {
   if (!plansSupported(game)) return null;
   const save = () => act(game.setFieldPlan(f.id, { ...draft }), '🔁 Rencana disimpan.');
   const clear = () => act(game.setFieldPlan(f.id, null), 'Rencana dihapus.');
   const next = nextStepText(f);
+  const tree = allCrops(game).find((c) => c.id === draft.cropId)?.perennial;
   return h('div.plan-section',
     h('div.section-title', '🔁 Rencana', h('span.spacer'), f.plan ? h('span.badge.badge-green', 'Aktif') : null),
-    h('p.small.muted', 'Ladang dikerjakan otomatis: bajak → pupuk → tanam → airi → panen, jika mesin, pekerja dan uang cukup.'),
+    h('p.small.muted', tree
+      ? 'Kebun buah dikerjakan otomatis: bajak → tanam bibit → pupuk/airi tiap siklus → petik, jika pekerja dan uang cukup.'
+      : 'Ladang dikerjakan otomatis: bajak → pupuk → tanam → airi → panen, jika mesin, pekerja dan uang cukup.'),
     f.plan?.blocked ? h('p.small.plan-blocked', `⏸ ${blockedText(f.plan.blocked)}`) : null,
     next && f.plan ? h('p.small', next) : null,
-    h('div.field-group', h('label', 'Tanaman'), cropSelect(game, f, draft)),
-    h('div.field-group', h('label', '🔄 Rotasi dengan'), rotateSelect(game, f, draft),
-      h('div.small.muted', 'Bergantian tiap musim tanam agar terhindar dari penalti tanam berulang (−10%).')),
+    h('div.field-group', h('label', 'Tanaman'), cropSelect(game, f, draft, rerender)),
+    tree ? h('p.small.muted', '🌳 Pohon tetap tumbuh setelah dipetik, jadi tidak ada rotasi.')
+      : h('div.field-group', h('label', '🔄 Rotasi dengan'), rotateSelect(game, f, draft),
+        h('div.small.muted', 'Bergantian tiap musim tanam agar terhindar dari penalti tanam berulang (−10%).')),
     h('div.plan-toggles',
       ownsLime(game) ? toggle(draft, 'lime', '🪨 Kapur') : null,
       toggle(draft, 'fertilize', '🧪 Pupuk'),
       toggle(draft, 'irrigate', '💧 Airi'),
-      toggle(draft, 'rent', '🤝 Sewa pemanen'),
+      toggle(draft, 'rent', tree ? '🧺 Sewa pemetik' : '🤝 Sewa pemanen'),
       toggle(draft, 'sell', '💰 Jual otomatis saat panen'),
       toggle(draft, 'repeat', '🔁 Ulangi')),
     h('div.row.plan-buttons',

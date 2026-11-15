@@ -41,5 +41,7 @@ export function updateBadges(game) {
   setBadge('market', active ? String(active) : '', active ? `${active} kontrak aktif` : '');
 
   const claimable = game.missionsView?.().claimable ?? 0;
-  setBadge('achievements', claimable ? String(claimable) : '', claimable ? `${claimable} hadiah misi siap diambil` : '');
+  const points = game.researchPoints?.().available ?? 0;
+  const tips = [claimable ? `${claimable} hadiah misi siap diambil` : '', points > 0 ? `${points} poin riset tersedia` : ''].filter(Boolean);
+  setBadge('achievements', claimable ? String(claimable) : points > 0 ? '🔬' : '', tips.join(' · '));
 }

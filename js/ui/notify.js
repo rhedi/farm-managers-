@@ -25,6 +25,7 @@ const TOAST_EVENTS = {
   factory_blocked: { kind: 'warn', merged: (n) => `🏭 ${n} pabrik terhenti — cek Gudang.` },
   breed_improved: { kind: 'success', merged: (n) => `🧬 Genetika ternak membaik (${n}×).` },
   herd_full: { kind: 'warn', merged: (n) => `🏠 ${n} kandang penuh — kelahiran berhenti.` },
+  delivery_done: { kind: 'success', merged: (n) => `🚚 ${n} muatan terjual di kota.` },
 };
 
 /** Season changes only matter for regions where the player owns a field. */

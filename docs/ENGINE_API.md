@@ -1,7 +1,7 @@
 # Farm Manager Engine API
 
 `js/engine.js` holds the game logic. It has no DOM and does not touch `localStorage` directly; storage is passed in. All player-visible strings are in Bahasa Indonesia.
-Modules: `js/engine/{rng,defs,weather,market,fields,tasks,taskrun,animals,economy,purchase,plans,contracts,views,persist,silo,workers,wear,seasons,events,soil,missions,rivals,breeding,upgrades}.js`. The UI should only need `engine.js`.
+Modules: `js/engine/{rng,defs,weather,market,fields,tasks,taskrun,animals,economy,purchase,plans,contracts,views,persist,silo,workers,wear,seasons,events,soil,missions,rivals,breeding,upgrades,ledger,orchard,greenhouse,logistics,logisticsView,research}.js`. The UI should only need `engine.js`.
 
 ```js
 import { createGame, loadGame, loadFrom, SPEEDS } from './engine.js';
@@ -33,11 +33,11 @@ Mutating player actions never throw. They return `{ ok: true, ...extra }` or `{ 
 | `game.clock()` | `{ time, day, hour, speed }`; `day = floor(time/24)+1`. A new game starts at day 1, 06:00 |
 | `game.day`, `game.hour` | getters |
 
-Daily rollover runs in this order: world events (`stepEventsDay`: expire finished ones, maybe start one), weather for each region (consuming the forecast), dry/wet day counters on growing fields, `season_change` events, market random walk, animal feeding and production (with animal XP), then breeding (stud genetics, births), loan interest, worker wages and the weekly candidate refresh (`stepWorkersDay`), contracts (`stepContractsDay`), a `state.history` entry, rival ranking (`rank_up`), new daily missions (`missions_new`), then a `weather` event.
+Daily rollover runs in this order: world events (`stepEventsDay`: expire finished ones, maybe start one), weather for each region (consuming the forecast), dry/wet day counters on growing fields and orchards, `season_change` events, market random walk, animal feeding and production (with animal XP), then breeding (stud genetics, births), loan interest, greenhouse electricity (`stepGreenhouseDay`, ledger `listrik_rumah_kaca`), worker wages and the weekly candidate refresh (`stepWorkersDay`), contracts (`stepContractsDay`), a `state.history` entry, rival ranking (`rank_up`), new daily missions (`missions_new`), then a `weather` event.
 
 ## Field tasks
-Tasks: `'plow' | 'fertilize' | 'seed' | 'irrigate' | 'harvest' | 'lime'`. Lime runs on `idle` or `plowed` fields, needs a tractor plus an implement with `task:'lime'`, costs `BALANCE.limeCostPerHa ?? 90` per ha, and calls `soil.applyLime` on completion. It is not offered once pH is at 6.8 or the field was already limed this cycle (`fields[id].limed`, reset by plow and harvest).
-Field states: `idle → plow → plowed → (fertilize) → seed → growing → (irrigate) → ready → harvest → idle`. While a task runs, the view reports `'busy'`. A `ready` field whose crop has fully withered (`witherFactor 0`) may also be plowed, which clears it.
+Tasks: `'plow' | 'fertilize' | 'seed' | 'irrigate' | 'harvest' | 'lime' | 'prune' | 'clear'`. Lime runs on `idle` or `plowed` fields, needs a tractor plus an implement with `task:'lime'`, costs `BALANCE.limeCostPerHa ?? 90` per ha, and calls `soil.applyLime` on completion. It is not offered once pH is at 6.8 or the field was already limed this cycle (`fields[id].limed`, reset by plow and harvest).
+Annual field states: `idle → plow → plowed → (fertilize) → seed → growing → (irrigate) → ready → harvest → idle`. Orchards instead use `plowed → seed(tree) → orchard ⇄ ready → harvest → orchard`; `clear` (tebang) returns them to `idle`. While a task runs, the view reports `'busy'`. A `ready` annual field whose crop has fully withered (`witherFactor 0`) may also be plowed, which clears it.
 
 | Call | Returns |
 |---|---|
@@ -63,6 +63,34 @@ Field states: `idle → plow → plowed → (fertilize) → seed → growing →
   - `phFactor = max(0.3, 1 - distOutsideIdealPh*yieldPhPenaltyPerUnit)`, using the field's current `ph` (lime changes it).
   - `weatherFactor` compares the share of dry days with the crop's tolerance (low 0.8, med 0.6, high 0.4); every 20% over tolerance costs `dryPenalty`, with a floor of 0.4. Irrigation removes this penalty.
   - Withering: once a crop has been ready for more than 72h, it loses 10% per day.
+
+## Perennial orchards (`js/engine/orchard.js`)
+`data.TREES` contains seven perennial crops: orange, apple, mango, avocado, coconut, cherry and durian. They are indexed in `game.idx.crops` and `game.idx.trees`, and their products use unit `t`. Plant a tree with the normal `seed` task on a plowed field and `{cropId: treeId}`. Planting is manual (one worker, no seeder or fuel), costs `sizeHa × plantCostPerHa`, and books `bibit_pohon`. A tree cannot be planted in a greenhouse.
+
+- On completion the field state is `orchard`; `fields[id].orchard = {plantedAt, harvests, pruned, matureNotified}`. After `maturityDays`, fruit accumulates `harvestEveryDays × 24` eligible hours. Eligibility requires the tree's fruiting `seasons` and `minTemp`; season yield and rotation factors are neutral for trees.
+- Harvesting does not replant: it stores/sells the fruit, resets fertilizer/irrigation/weather cycle data, increments `harvests`, and returns to `orchard`. Use `{rent:true}` for rented pickers (`pickerRentPerHa`, `pickerHaPerHour`, no worker/fuel, ledger `sewa_pemetik`), or own a tractor plus an implement with `task:'pick'`.
+- `prune` is manual, allowed once per fruit cycle on a mature, non-ready orchard. It costs `pruneCostPerHa`, books `perawatan_kebun`, and gives `pruneBonus` to that harvest (`yieldFactors.prune`). `clear` is manual and allowed on `orchard` or `ready`; it costs `clearCostPerHa`, books `perawatan_kebun`, returns to `idle`, and drops a plan for the cleared tree.
+- After `lifespanDays`, `yieldFactors.age` declines by `oldAgeDecline × overage/lifespan`, floored at `minAgeFactor`. All defaults live in `BALANCE.orchard`.
+- Orchard plans support fertilize/irrigate once per mature fruit cycle, own-or-rented harvest and auto-sell. Trees never rotate. `startTaskAll('harvest', {rent:true})` also supports orchards.
+
+| Call | Returns |
+|---|---|
+| `game.orchardOutlook(fieldId, treeId)` | `{treeId, tons, harvestsPerYear, windowDays, windowSeasons, price, yearlyRevenue, yearlyCost, yearlyProfit, plantCost, maturityDays, harvestEveryDays, lifespanDays, paybackDays, cold, blocked}` for crop pickers; `null` for an unknown field/tree |
+
+The field view's `orchard` block is `null` for annual crops, otherwise `{treeId, ageDays, maturityDays, lifespanDays, harvestEveryDays, mature, maturity, stage:'young'|'prime'|'old', vitality, fruit, fruitMult, windowOpen, nextWindowDay, windowSeasons, windowDays, hoursToRipe, harvests, pruned}`. `yieldFactors` includes `age` and `prune`. `orchard_mature` fires once when the tree starts fruiting.
+
+## Greenhouses (`js/engine/greenhouse.js`)
+A field's `greenhouse` is `null` or `{builtDay, cost}`. Configuration is `BALANCE.greenhouse`: unlock level 9, `costPerHa` 18000, `upkeepPerHaDay` 90, maximum 12 ha, `yieldBonus` 0.2 and removal `refund` 0.3. Greenhouses cannot be built on orchards or busy fields. Building books capex `rumah_kaca`; daily electricity books `listrik_rumah_kaca` and may borrow; removal books `penjualan_aset`.
+
+Inside, annual growth ignores season and `minTemp`; `yieldFactors.weather` and `storm` are 1, `season` is at least 1, and `greenhouse` is `1 + yieldBonus`. Storm events skip the field. Removing the greenhouse leaves the current crop growing outdoors.
+
+| Call | Returns |
+|---|---|
+| `game.greenhouseQuote(fieldId)` | `{ok, reason, cost, upkeepPerDay, refund, maxHa, unlockLevel, yieldBonus, built}`; numbers are available even when blocked |
+| `game.buildGreenhouse(fieldId)` | `{ok, cost, upkeepPerDay}` or `{ok:false, reason}`; emits `greenhouse_built {fieldId}` |
+| `game.removeGreenhouse(fieldId)` | `{ok, refund}` or `{ok:false, reason}`; fails if absent or busy |
+
+The field view's `greenhouse` block is `null` outdoors, otherwise `{builtDay, cost, upkeepPerDay, refund, yieldBonus}`. Old saves normalize missing `orchard`/`greenhouse` keys to `null`; both survive serialize/load.
 
 ## Economy
 | Call | Notes |
@@ -147,8 +175,16 @@ Modules `seasons.js` (derived from the day, no state/RNG), `events.js` (`state.e
 
 ## Finance ledger (`js/engine/ledger.js`)
 Every money movement goes through `game.spend(amount, category, {stat})` / `game.earn(amount, category, {stat})` (modules only; `category` = ledger id or a split map `{id: part}`, default `'lainnya'` / `'lainnya_masuk'`; unknown or wrong-direction ids fall back to those). Financing ids never count in `stats.totalSpent/totalEarned`; `{stat:false}` books to the ledger only (asset sales, level/achievement rewards, interest — unchanged stats behaviour). `game.payOrBorrow(amount, category)` pays even when broke: the shortfall is added to the loan and booked as `pinjaman_masuk` (harvest cost, wages, contract penalties); unpaid interest is capitalised the same way.
-- Categories (`CATEGORIES`: `{id, name, emoji, group}`): **income** `penjualan_panen` (crop sales incl. plan/harvest auto-sell and silo overflow), `penjualan_ternak_produk`, `penjualan_olahan`, `penjualan_ternak`, `kontrak`, `hadiah` (achievements, level-up, missions, streak, subsidy), `penjualan_aset`, `lainnya_masuk`; **opex** `bbm`, `benih`, `pupuk_kapur_irigasi`, `sewa_pemanen`, `gaji`, `pakan` (`buyFeed`), `perbaikan`, `semprot_hama`, `bunga_pinjaman`, `penalti_kontrak`, `pembelian_produk`, `lainnya`; **capex** `beli_ladang`, `beli_mesin`, `upgrade_mesin`, `kandang`, `beli_ternak`, `indukan`, `gudang`, `pabrik`; **financing** `pinjaman_masuk`, `pelunasan_pinjaman`. Task costs are split: fuel → `bbm`, material → `benih`/`pupuk_kapur_irigasi`, rented harvester → `sewa_pemanen`.
+- Categories (`CATEGORIES`: `{id, name, emoji, group}`): **income** `penjualan_panen` (crop sales incl. plan/harvest auto-sell and silo overflow), `penjualan_ternak_produk`, `penjualan_olahan`, `penjualan_ternak`, `kontrak`, `hadiah` (achievements, level-up, missions, streak, subsidy), `penjualan_aset`, `lainnya_masuk`; **opex** `bbm`, `benih`, `pupuk_kapur_irigasi`, `sewa_pemanen`, `sewa_pemetik`, `perawatan_kebun`, `listrik_rumah_kaca`, `gaji`, `pakan` (`buyFeed`), `perbaikan`, `semprot_hama`, `bunga_pinjaman`, `penalti_kontrak`, `pembelian_produk`, `transportasi` (truck fuel), `riset` (research respec), `lainnya`; **capex** `beli_ladang`, `beli_mesin`, `upgrade_mesin`, `kandang`, `beli_ternak`, `indukan`, `gudang`, `pabrik`, `bibit_pohon`, `rumah_kaca`; **financing** `pinjaman_masuk`, `pelunasan_pinjaman`. Task costs are split: fuel → `bbm`, material → `benih`/`bibit_pohon`/`pupuk_kapur_irigasi`/`perawatan_kebun`, rented harvester → `sewa_pemanen`, rented pickers → `sewa_pemetik`.
 - `financeReport(period)` (`'today'|'yesterday'|'7d'|'30d'|'all'`, default `'7d'`) → `{ period, days, income, opex, capex: {total, byCat:[{id,name,emoji,amount,pct}] /* desc */}, financing:{loanIn, repaid}, operatingProfit /* income − opex */, netCashFlow /* income − opex − capex + loanIn − repaid */, margin /* operatingProfit/income, null without income */, daily:[{day, income, opex, capex, profit}] }`. `7d`/`30d` include today; `all` uses all-time totals (`daily` = last 61 days). Midnight costs (wages, interest, penalties) belong to the day that ended.
+
+## Logistics (`js/engine/logistics.js`, `logisticsView.js`)
+Trucks are `MACHINES` with `type:'truck'` (`capacity` t, `speedKmh`, `fuelPerKm`; upgrades: engine +10% capacity, transmission +10% speed, efficiency −10% L/km). `data.CITIES`: `{id, name, emoji, unlockLevel, km:{regionId:km}, base, demand:{productId:mult}}`; route = nearest region with an owned field.
+- `shipToCity(truckUid, cityId, cargo:{productId:qty})` → `{ok, id, hours, fuelCost, estValue}`. Cargo leaves the silo (feed reserve kept), fuel `2·km·fuelPerKm·fuelPrice·(1−perk fuel)` booked to `transportasi` at departure, truck + the least-skilled free worker get `busy = 'tripN'` for `hours = 2·km/speed` (×1.25 when worn). At `hours/2` the cargo sells at `market × cityMult` (income category = `saleCategory`, i.e. `penjualan_panen`/`penjualan_ternak_produk`/`penjualan_olahan`), event `delivery_done {cityId, value, gain, shipmentId}`; back home: `truck_returned`. Only unit `'t'` products count toward capacity; kg/L/pcs ride along free.
+- `estimateShipment(...)` → full plan (`ok`, `reason`, `items`, `tons`, `capacity`, `km`, `hours`, `fuelCost`, `value`, `localValue`, `gain`, `wageCost`, `wearCost`, `profit`, `workerName`). `cityPrices(productId)` → `[{cityId,name,emoji,mult,price,km,reachable,unlocked}]` best first. `citiesView()`, `trucksView()`, `shipmentsView()` → `[{id, truckName, workerName, cityName, km, hours, done, progress, phase:'pergi'|'pulang', sold, value, estValue, fuelCost, cargo, tons}]`.
+
+## Research (`js/engine/research.js`)
+Points = `level − 1` (derived, so old saves get them); `data.RESEARCH` nodes `{id, branch, name, emoji, cost, requires, effects:{key:frac}}`, `data.RESEARCH_BRANCHES`. `researchView()` → `{points:{earned,spent,available}, perks, branches:[{id,name,emoji,done,nodes:[{id,name,cost,desc,requires,status:'unlocked'|'ready'|'open'|'locked',reason}]}], respecCost, canRespec}`; `researchPoints()`; `unlockResearch(id)`; `respecResearch()` (cost `respecPerLevel × level`, ledger `riset`); `perk(key)` = summed effect. Keys: `yield` (yieldFactors.research), `seedCost`, `fertCost`, `fuel` (tasks + trucks), `taskSpeed`, `feed`, `animalProd`, `births`, `wages`, `interest`, `contractPrice` (capped < 1.2 × market), `cityPrice`, `wear`, `silo`, `truckCap`. Events `research_unlocked`, `research_reset`; `level_up` carries `researchPoints`.
 
 ## Views (read-only plain objects)
 - `getFieldView(id)`: the field data fields plus `{ region, owned, state:'unowned'|'idle'|'plowed'|'growing'|'ready'|'busy', baseState, task, hoursLeft, progress 0–1 (task progress when busy, growth otherwise), growth, crop:{id,name,emoji}|null, fertilized, irrigated, withering, witherFactor, dryDays, wetDays, predictedYield (t, without the random roll), yieldFactors:{soil,ph,fert,irrig,contamination,weather,wither}|null (multipliers, 1 = neutral; null without a crop), plan:{cropId,fertilize,irrigate,rent,repeat,blocked}|null, nextStep:task|null (next cycle step, plan-aware; null while busy or growing without irrigation to do), actions, weather }`. `actions` lists only tasks the player can run, meaning they own a tractor plus the matching implement; harvest is always possible through renting. `'sell'` is listed only on idle fields when more than one field is owned. Unowned fields have `actions:['buy']`.
@@ -178,6 +214,8 @@ Breeding and upgrades: `animals_born {animalId, n}`, `herd_full {animalId}`, `br
   fields: { [fieldId]: { state, cropId, fertilized, irrigated, growHours, readyHours, dryDays, wetDays,
             limed /* lime done this cycle */, ph, nutrients /* 0–1 */, lastCropId, pest, damage /* storm, 1 = none */,
             seasonSum, seasonN /* season yield average */, plan: null | { cropId, rotateCropId, fertilize, irrigate, rent, repeat, lime, sell, blocked },
+            orchard: null | { plantedAt, harvests, pruned, matureNotified },
+            greenhouse: null | { builtDay, cost },
             busy: null | { task, hours, done, machineUids, cropId, rented, workerId, yieldTons?, cost?, costSplit? /* harvest, paid at completion */ } } },
   machines: [{ uid, defId, busy: false | fieldId, condition /* 0–1, F10 */, upgrades: { engine, transmission, efficiency } /* 0–3 */, paint? }],
   silo: { [productId]: qty },                 // crops in t, animal products in their unit

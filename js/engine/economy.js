@@ -5,13 +5,14 @@ import { newFieldState } from './fields.js';
 import { conditionOf } from './wear.js';
 import { upgradeSpent, emptyUpgrades, cfg as upgradeCfg } from './upgrades.js';
 import { saleCategory } from './ledger.js';
+import { perk } from './research.js';
 
 export const FIELD_REFUND = 0.7;
 export const MACHINE_REFUND = 0.6;
 export const LOAN_CAP_PER_LEVEL = 25000;
-/** Default daily loan rate; `BALANCE.loanDailyRate` overrides it. */
+/** Default daily loan rate; `BALANCE.loanDailyRate` overrides it. Research perk 'interest' lowers it. */
 export const LOAN_DAILY_RATE = 0.002;
-export const loanRate = (game) => game.data.BALANCE.loanDailyRate ?? LOAN_DAILY_RATE;
+export const loanRate = (game) => (game.data.BALANCE.loanDailyRate ?? LOAN_DAILY_RATE) * (1 - perk(game, 'interest'));
 
 /** Resale value (unrounded): (60% of price + resale share of upgrade spend) × condition. */
 export function machineResale(game, m) {
@@ -59,7 +60,7 @@ export function sellField(game, fieldId) {
   if (!def || !f) return fail('Kamu tidak memiliki ladang ini.');
   if (f.busy || f.state !== 'idle') return fail('Ladang hanya bisa dijual saat kosong.');
   if (Object.keys(game.state.fields).length <= 1) return fail('Tidak bisa menjual ladang terakhir.');
-  const value = round2(def.price * FIELD_REFUND);
+  const value = round2(def.price * FIELD_REFUND + (f.greenhouse?.cost ?? 0) * (game.data.BALANCE.greenhouse?.refund ?? 0.3)); // + rumah kaca refund
   delete game.state.fields[fieldId];
   game.earn(value, 'penjualan_aset', { stat: false });
   syncCounts(game);
@@ -176,9 +177,13 @@ export function chargeInterest(game) {
 export function netWorth(game) {
   const s = game.state, idx = game.idx;
   let v = s.money - s.loan;
-  for (const id of Object.keys(s.fields)) v += FIELD_REFUND * (idx.fields.get(id)?.price ?? 0);
+  for (const id of Object.keys(s.fields)) v += FIELD_REFUND * (idx.fields.get(id)?.price ?? 0)
+    + (s.fields[id].greenhouse?.cost ?? 0) * (game.data.BALANCE.greenhouse?.refund ?? 0.3); // rumah kaca at removal value
   for (const m of s.machines) v += machineResale(game, m);
   for (const [id, q] of Object.entries(s.silo)) v += q * (s.market[id] ?? 0);
+  for (const t of s.shipments || []) { // truck cargo on its way to a city (logistics.js), at market
+    if (!t.sold) for (const [id, q] of Object.entries(t.cargo)) v += q * (s.market[id] ?? 0);
+  }
   for (const [id, h] of Object.entries(s.animals)) v += 0.6 * h.count * (idx.animals.get(id)?.price ?? 0);
   for (const [id, f] of Object.entries(s.factories || {})) {
     const def = (game.data.FACTORIES || []).find((x) => x.id === id);
@@ -198,7 +203,7 @@ export function levelForXp(levels, xp) {
 export function unlocksBetween(data, from, to) {
   const inRange = (lvl) => lvl > from && lvl <= to;
   const pick = (arr) => (arr || []).filter((x) => inRange(x.unlockLevel)).map((x) => x.id);
-  return { crops: pick(data.CROPS), machines: pick(data.MACHINES), animals: pick(data.ANIMALS),
+  return { crops: [...pick(data.CROPS), ...pick(data.TREES)], machines: pick(data.MACHINES), animals: pick(data.ANIMALS),
     fields: (data.FIELDS || []).filter((f) => inRange(fieldUnlockLevel(data, f))).map((f) => f.id),
     regions: pick(data.REGIONS), factories: pick(data.FACTORIES ?? []) };
 }
@@ -214,11 +219,12 @@ export function addXp(game, n) {
     const unlocks = unlocksBetween(game.data, s.level, lvl);
     let reward = 0;
     for (let l = s.level + 1; l <= lvl; l++) reward += levelReward(game.data, l);
+    const researchPoints = lvl - s.level; // 1 research point per level-up (research.js)
     s.level = lvl;
     game.earn(reward, 'hadiah', { stat: false });
     const n = Object.values(unlocks).reduce((sum, ids) => sum + ids.length, 0);
-    const msg = `⭐ Naik ke level ${lvl}! Hadiah ${fmtMoney(reward)}${n ? `, ${n} konten baru terbuka` : ''}.`;
-    game.emit('level_up', msg, { level: lvl, unlocks, reward });
+    const msg = `⭐ Naik ke level ${lvl}! Hadiah ${fmtMoney(reward)}, +${researchPoints} poin riset${n ? `, ${n} konten baru terbuka` : ''}.`;
+    game.emit('level_up', msg, { level: lvl, unlocks, reward, researchPoints });
   }
   syncCounts(game);
   game.checkAchievements();

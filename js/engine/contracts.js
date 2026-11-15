@@ -4,6 +4,7 @@
 import { random, randRange, round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { BUY_MARKUP } from './purchase.js';
+import { perk } from './research.js';
 
 const DEFAULTS = { offers: 3, maxActive: 3, offerDays: 3, dueMin: 5, dueMax: 12, priceMin: 1.1, priceMax: 1.19,
   harvestsMin: 1, harvestsMax: 2, penaltyRate: 0.1, xpPerValue: 0.01 };
@@ -51,7 +52,9 @@ function makeOffer(game, cfg, day) {
   // Price off max(market, 0.9·base) so a market crash doesn't produce absurdly cheap offers.
   const market = Math.max(s.market[p.id] ?? p.basePrice, p.basePrice * 0.9);
   const hi = Math.min(cfg.priceMax, BUY_MARKUP - 0.01);
-  const price = r4(market * randRange(s, Math.min(cfg.priceMin, hi), hi));
+  // Research perk 'contractPrice' raises the offer, still below BUY_MARKUP so buying to deliver never profits.
+  const rate = randRange(s, Math.min(cfg.priceMin, hi), hi);
+  const price = r4(market * Math.min(rate * (1 + perk(game, 'contractPrice')), BUY_MARKUP - 0.01));
   const days = cfg.dueMin + Math.floor(random(s) * (cfg.dueMax - cfg.dueMin + 1));
   const value = round2(qty * price);
   s.nextUid = (s.nextUid || 1) + 1;

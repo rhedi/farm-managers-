@@ -1,7 +1,8 @@
-// Top bar: money (tap → Laporan Keuangan), level/XP, clock, season + weather (tap → forecast). Cheap: textContent / style only.
+// Top bar: money (tap → Laporan Keuangan), level/XP (tap → 🔬 Riset), clock, season + weather (tap → forecast). Cheap: textContent / style only.
 import { fmtMoney, fmtClock, weatherEmoji, fmtNum } from './dom.js';
 import { openForecastModal } from './forecast.js';
 import { openFinanceReport } from './finance.js';
+import { openResearchModal } from './research.js';
 
 let els = null;
 let curGame = null; // listeners are bound once; a new game replaces this
@@ -45,6 +46,17 @@ export function initTopbar(game, onSpeed) {
     moneyStat.addEventListener('click', () => openFinanceReport());
     moneyStat.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFinanceReport(); } });
   }
+  const levelStat = els.level.closest('.stat-level');
+  if (levelStat && !levelStat.dataset.rsBound) {
+    levelStat.dataset.rsBound = '1';
+    levelStat.tabIndex = 0;
+    levelStat.setAttribute('role', 'button');
+    levelStat.classList.add('level-tap');
+    levelStat.addEventListener('click', () => openResearchModal());
+    levelStat.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openResearchModal(); } });
+    els.rsDot = levelStat.appendChild(Object.assign(document.createElement('span'), { className: 'rs-dot', hidden: true }));
+  }
+  els.rsDot ??= levelStat?.querySelector('.rs-dot');
   for (const k of Object.keys(last)) delete last[k];
   updateTopbar(game);
 }
@@ -60,7 +72,10 @@ export function updateTopbar(game) {
   const w = `${Math.round((li.maxed ? 1 : li.progress) * 100)}%`;
   if (last.xp !== w) { last.xp = w; els.xpbar.style.width = w; }
   const xpTitle = li.maxed ? `XP ${fmtNum(li.xp)} (maks)` : `XP ${fmtNum(li.xp)} / ${fmtNum(li.next)}`;
-  if (last.xpTitle !== xpTitle) { last.xpTitle = xpTitle; els.level.parentElement.parentElement.title = xpTitle; }
+  const pts = game.researchPoints?.().available ?? 0;
+  const lvlTitle = `${xpTitle}\n${pts > 0 ? `🔬 ${pts} poin riset tersedia — ` : ''}Ketuk untuk riset.`;
+  if (last.xpTitle !== lvlTitle) { last.xpTitle = lvlTitle; els.level.parentElement.parentElement.title = lvlTitle; }
+  if (els.rsDot && last.rsDot !== pts) { last.rsDot = pts; els.rsDot.hidden = pts <= 0; els.rsDot.textContent = `🔬${pts}`; }
   if (els.xptext) setText(els.xptext, 'xpText', li.maxed ? 'MAKS' : `${fmtNum(li.xp)}/${fmtNum(li.next)}`);
   const c = game.clock();
   setText(els.clock, 'clock', fmtClock(c.day, c.hour));

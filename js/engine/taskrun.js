@@ -7,6 +7,7 @@ import { applyLime, onFertilize, onHarvest } from './soil.js';
 import { storeHarvest } from './silo.js';
 import { onTaskDone } from './workers.js';
 import { wearMachines, conditionOf, repairCost, repairMachine } from './wear.js';
+import { isTree, plantOrchard, afterOrchardHarvest, clearOrchard } from './orchard.js';
 
 /** Advance all running tasks by dt game hours. Returns the number of tasks completed. */
 export function stepTasks(game, dt) {
@@ -71,12 +72,25 @@ export function completeTask(game, fieldId) {
       msg = `Pengapuran di ${fname} selesai: pH tanah kini ${fmtNum(applyLime(game, fieldId))}.`;
       break;
     case 'seed': {
+      const crop = idx.crops.get(job.cropId);
+      if (isTree(crop)) {
+        plantOrchard(game, f, crop);
+        resetCropCycle(f);
+        msg = `🌱 Bibit ${crop.emoji} ${crop.name} ditanam di ${fname}. Berbuah setelah ${crop.maturityDays} hari.`;
+        break;
+      }
       Object.assign(f, { state: 'growing', cropId: job.cropId, growHours: 0, readyHours: 0, dryDays: 0, wetDays: 0 });
       resetCropCycle(f);
-      const crop = idx.crops.get(job.cropId);
       msg = `${crop.emoji} ${crop.name} ditanam di ${fname}.`;
       break;
     }
+    case 'prune':
+      if (f.orchard) f.orchard.pruned = true;
+      break;
+    case 'clear':
+      clearOrchard(f);
+      msg = `🪓 Kebun di ${fname} ditebang; ladang kosong lagi.`;
+      break;
     case 'irrigate':
       f.irrigated = true;
       break;
@@ -103,6 +117,7 @@ export function completeTask(game, fieldId) {
         if (r.ok) msg += ` ${fmtNum(r.qty)} t dijual otomatis (${fmtMoney(r.earned)}).`;
       }
       if (f.plan && !f.plan.repeat) f.plan = null;
+      if (f.orchard) { afterOrchardHarvest(f); break; } // trees stay: next fruit cycle
       Object.assign(f, { state: 'idle', cropId: null, fertilized: false, irrigated: false, limed: false,
         growHours: 0, readyHours: 0, dryDays: 0, wetDays: 0 });
       break;

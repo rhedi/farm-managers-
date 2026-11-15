@@ -25,6 +25,11 @@ import { factoriesView } from './engine/factoryView.js';
 import * as missions from './engine/missions.js';
 import * as rivals from './engine/rivals.js';
 import * as ledger from './engine/ledger.js';
+import * as orchard from './engine/orchard.js';
+import * as greenhouse from './engine/greenhouse.js';
+import * as logistics from './engine/logistics.js';
+import * as logView from './engine/logisticsView.js';
+import * as research from './engine/research.js';
 import { SAVE_VERSION, MAX_CATCHUP_HOURS, HISTORY_SIZE, newStats, normalizeState, serializeState, parseSave,
   writeStorage, readStorage } from './engine/persist.js';
 
@@ -115,7 +120,7 @@ export class Game {
       const t = this.state.time;
       const nextHour = Math.floor(t + 1e-9) + 1;
       const step = Math.min(left, nextHour - t);
-      const finished = stepTasks(this, step);
+      const finished = stepTasks(this, step) + logistics.stepShipments(this, step); // field tasks + returning trucks
       this.state.time = Math.round((t + step) * 1e6) / 1e6;
       left -= step;
       if (Math.abs(this.state.time - nextHour) < 1e-6) {
@@ -136,6 +141,7 @@ export class Game {
     stepMarket(this, day);
     animals.stepAnimalsDay(this);
     eco.chargeInterest(this);
+    greenhouse.stepGreenhouseDay(this); // rumah kaca upkeep (listrik_rumah_kaca)
     workers.stepWorkersDay(this);
     contracts.stepContractsDay(this);
     const h = this.state.history;
@@ -239,6 +245,27 @@ export class Game {
   missionsView() { return missions.missionsView(this); }
   claimMission(id) { return missions.claimMission(this, id); }
   leaderboard() { return rivals.leaderboard(this); }
+  // ---- kebun buah + rumah kaca (js/engine/orchard.js, greenhouse.js) ----
+  /** Planting outlook for a tree on a field: tons/harvest, harvestsPerYear, yearly revenue/cost/profit, paybackDays… */
+  orchardOutlook(fieldId, treeId) { return orchard.orchardOutlook(this, fieldId, treeId); }
+  greenhouseQuote(fieldId) { return greenhouse.greenhouseQuote(this, fieldId); }
+  buildGreenhouse(fieldId) { return greenhouse.buildGreenhouse(this, fieldId); }
+  removeGreenhouse(fieldId) { return greenhouse.removeGreenhouse(this, fieldId); }
+  // ---- logistics: trucks deliver to cities (js/engine/logistics.js) ----
+  citiesView() { return logView.citiesView(this); }
+  cityPrices(productId) { return logView.cityPrices(this, productId); }
+  trucksView() { return logView.trucksView(this); }
+  shipmentsView() { return logView.shipmentsView(this); }
+  /** Full trip estimate (numbers filled even when `ok` is false): hours, fuelCost, value, localValue, gain, profit… */
+  estimateShipment(truckUid, cityId, cargo) { return logistics.planShipment(this, truckUid, cityId, cargo); }
+  shipToCity(truckUid, cityId, cargo) { return logistics.shipToCity(this, truckUid, cityId, cargo); }
+  // ---- research tree (js/engine/research.js) ----
+  researchView() { return research.researchView(this); }
+  /** {earned, spent, available}: cheap points summary (topbar/badges). */
+  researchPoints() { return research.researchPoints(this); }
+  unlockResearch(nodeId) { return research.unlockResearch(this, nodeId); }
+  respecResearch() { return research.respecResearch(this); }
+  perk(key) { return research.perk(this, key); }
 
   // ---- persistence ----
   serialize() { return serializeState(this.state); }
@@ -254,6 +281,7 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
     stats: { ...newStats(), level: 1 },
     achievements: [], log: [], history: [], contracts: [], feedReserve: {}, forecast: {}, events: [], nextEventId: 1,
     siloCapacity: silo.siloStart({ data }), workers: [], autoRepair: false, factories: {}, ledger: ledger.newLedger(1),
+    shipments: [], nextTripId: 1, research: { unlocked: [], respecs: 0 },
   };
   const game = new Game(state, data);
   for (const id of S.fieldIds) state.fields[id] = newFieldState(game.idx.fields.get(id));
@@ -273,6 +301,8 @@ export function loadGame(json, { data = DEFAULT_DATA } = {}) {
   fillForecast(game, game.day); // pre-F5 saves have no forecast yet
   eco.syncCounts(game);
   workers.ensureWorkers(game);
+  logistics.ensureLogistics(game); // after ensureWorkers: re-marks trucks/drivers on the road
+  research.ensureResearch(game);
   missions.ensureMissions(game); // pre-missions saves: today's missions + rival ranks
   rivals.ensureRivals(game);
   return game;

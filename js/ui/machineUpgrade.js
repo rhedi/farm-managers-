@@ -9,10 +9,12 @@ const TRACK_EFFECT = {
     efficiency: '−10% BBM per level' },
   harvester: { engine: '+10% ha/jam per level', transmission: '+10% ha/jam per level', efficiency: '−10% BBM per level' },
   implement: { transmission: '+10% ha/jam per level' },
+  truck: { engine: '+10% muatan (t) per level', transmission: '+10% kecepatan jalan per level', efficiency: '−10% BBM per level' },
 };
 
-const fmtStat = (t, v) => (t.stat === 'speed' ? `×${fmtNum(v, 2)}` : t.stat === 'hp' ? `${fmtNum(v)} HP`
-  : t.stat === 'fuelPerHour' ? `${fmtNum(v, 1)} L/jam` : `${fmtNum(v, 2)} ha/jam`);
+const STAT_FMT = { speed: (v) => `×${fmtNum(v, 2)}`, hp: (v) => `${fmtNum(v)} HP`, fuelPerHour: (v) => `${fmtNum(v, 1)} L/jam`,
+  capacity: (v) => `${fmtNum(v, 1)} t`, speedKmh: (v) => `${fmtNum(v)} km/jam`, fuelPerKm: (v) => `${fmtNum(v, 3)} L/km` };
+const fmtStat = (t, v) => (STAT_FMT[t.stat] ?? ((x) => `${fmtNum(x, 2)} ha/jam`))(v);
 
 function pips(level, max) {
   return h('span.upg-pips', { 'aria-label': `Level ${level} dari ${max}` },

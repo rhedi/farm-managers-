@@ -57,11 +57,11 @@ export function forecastView(game, regionId) {
   });
 }
 
-/** Called once per day after rolling weather: record dry/wet days on growing fields. */
+/** Called once per day after rolling weather: record dry/wet days on growing fields and orchards. */
 export function applyWeatherToFields(game) {
   const { state } = game;
   for (const [fid, f] of Object.entries(state.fields)) {
-    if (f.state !== 'growing' && !(f.busy && f.busy.task === 'irrigate')) continue;
+    if (f.state !== 'growing' && f.state !== 'orchard' && !(f.busy && f.busy.task === 'irrigate')) continue;
     const def = game.idx.fields.get(fid);
     const w = def && state.weather[def.regionId];
     if (!w) continue;

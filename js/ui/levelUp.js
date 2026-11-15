@@ -1,8 +1,9 @@
-// Level-up modal: money reward plus newly unlocked crops, machines, animals, factories, regions and fields (U5).
+// Level-up modal: money reward, +research points, newly unlocked crops, machines, animals, factories, regions and fields (U5).
 import { h, mount, fmtMoney, fmtNum } from './dom.js';
 import { openModal, isModalOpen } from './modal.js';
 import { sfx } from './sfx.js';
 import { confetti, vibrate } from './fx.js';
+import { openResearchModal } from './research.js';
 
 const pending = []; // level_up events waiting for a free modal slot
 
@@ -28,17 +29,22 @@ function unlocksOf(game, ev) {
 function show(game, ev) {
   const groups = unlocksOf(game, ev);
   const reward = ev.reward > 0 ? h('p.levelup-reward', `💰 Hadiah naik level: ${fmtMoney(ev.reward)}`) : null;
+  const pts = ev.researchPoints ?? 1;
+  const research = pts > 0 && game.researchView
+    ? h('p.levelup-research', `🔬 +${pts} poin riset — buka pohon keahlian untuk memakainya.`) : null;
   const maxed = ev.level >= game.data.LEVELS.length ? h('p.small.muted', '🏆 Level maksimal tercapai!') : null;
   openModal({
     title: `⭐ Naik ke level ${ev.level}!`,
-    render: (body) => mount(body, reward, maxed,
+    render: (body) => mount(body, reward, research, maxed,
       groups.length
         ? [h('p', 'Konten baru terbuka:'),
           ...groups.map(([label, list]) => h('div.unlock-group',
             h('div.small.muted', label),
             h('ul.unlock-list', list.map((n) => h('li', n)))))]
         : h('p', 'Tidak ada konten baru di level ini, tapi teruslah berkembang!')),
-    actions: (m) => [h('button.btn.btn-primary', { onclick: () => m.close() }, 'Mantap!')],
+    actions: (m) => [
+      research ? h('button.btn.btn-secondary', { onclick: () => { m.close(); openResearchModal(); } }, '🔬 Riset') : null,
+      h('button.btn.btn-primary', { onclick: () => m.close() }, 'Mantap!')],
   });
   // Celebrate when the modal actually appears (it may wait behind another modal).
   document.querySelector('.modal')?.classList.add('modal-levelup');

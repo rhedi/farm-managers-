@@ -1,9 +1,10 @@
-// Market tab: 📋 contracts, 🏦 finance, then prices (stock first, the rest collapsed) with sell/buy rows.
+// Market tab: 📋 contracts, 🚚 deliveries, 🏦 finance, then prices (stock first, the rest collapsed) with sell/buy rows.
 import { h, mount, fmtMoney, fmtPrice, fmtSignedPct, fmtNum } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { contractsPanel, contractsSig } from './contracts.js';
 import { loansPanel, loansSig } from './loans.js';
+import { shippingPanel, shippingSig } from './shipping.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const qtyInput = new Map(); // productId → typed qty (survives re-render)
@@ -120,7 +121,7 @@ function compactRow(p) {
 }
 
 function computeSig(game) {
-  return `${game.day}|${loansSig(game)}|${contractsSig(game)}|`
+  return `${game.day}|${loansSig(game)}|${contractsSig(game)}|${shippingSig(game)}|`
     + game.marketView().map((p) => `${p.price}:${p.stock}:${p.reserve ?? 0}`).join(',');
 }
 
@@ -135,6 +136,7 @@ export function renderMarket(root) {
     h('div.eco-plist', rest.map(compactRow)));
   mount(root,
     contractsPanel(),
+    shippingPanel(),
     loansPanel(),
     h('section.section',
       h('div.section-title', '📈 Stok & harga', h('span.spacer'), h('span.small.muted', `Hari ${game.day}`)),

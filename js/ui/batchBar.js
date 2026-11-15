@@ -4,7 +4,7 @@ import { openModal, closeModal, toast } from './modal.js';
 import { app } from './app.js';
 import { cropPicker, bestCropId } from './cropPicker.js';
 
-const ORDER = ['harvest', 'plow', 'lime', 'fertilize', 'seed', 'irrigate'];
+const ORDER = ['harvest', 'plow', 'lime', 'fertilize', 'seed', 'irrigate', 'prune'];
 
 export const batchSupported = (game) => typeof game.startTaskAll === 'function';
 
@@ -64,7 +64,9 @@ export function batchBar(owned) {
   const free = ws ? ws.filter((w) => !w.busy).length : Infinity;
   const buttons = ORDER.filter((t) => by[t].length >= 2).map((t) => {
     const n = by[t].length;
-    const label = `${TASK_ICON[t]} ${TASK_LABEL[t]} semua${t === 'seed' ? '…' : ''} (${n})`;
+    // Orchards in a harvest batch are picked by own tree shakers, else rented pickers (sewa_pemetik).
+    const trees = t === 'harvest' ? by[t].filter((f) => f.orchard).length : 0;
+    const label = `${TASK_ICON[t]} ${TASK_LABEL[t]} semua${t === 'seed' ? '…' : ''} (${n}${trees ? ` · 🌳 ${trees} kebun` : ''})`;
     const noWorker = t !== 'harvest' && free === 0;
     const onclick = t === 'seed' ? () => openSeedAll(by.seed)
       : () => run(t, t === 'harvest' ? { rent: true } : {});

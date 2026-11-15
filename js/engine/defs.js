@@ -3,13 +3,16 @@
 export function indexData(data) {
   const byId = (arr) => new Map((arr || []).map((x) => [x.id, x]));
   return {
-    crops: byId(data.CROPS),
+    crops: byId([...(data.CROPS || []), ...(data.TREES || [])]), // trees (perennial orchards) are crops too
+    trees: byId(data.TREES),
     products: byId(data.PRODUCTS),
     machines: byId(data.MACHINES),
     animals: byId(data.ANIMALS),
     regions: byId(data.REGIONS),
     fields: byId(data.FIELDS),
     achievements: byId(data.ACHIEVEMENTS),
+    cities: byId(data.CITIES), // truck deliveries (logistics.js)
+    research: byId(data.RESEARCH), // research tree (research.js)
   };
 }
 
@@ -19,7 +22,7 @@ export function fieldUnlockLevel(data, def) {
   return Math.max(def.unlockLevel ?? 1, region?.unlockLevel ?? 1);
 }
 
-export const TASKS = ['plow', 'fertilize', 'seed', 'irrigate', 'harvest', 'lime'];
+export const TASKS = ['plow', 'fertilize', 'seed', 'irrigate', 'harvest', 'lime', 'prune', 'clear'];
 
 export const TASK_NAMES = {
   plow: 'Membajak',
@@ -28,6 +31,9 @@ export const TASK_NAMES = {
   irrigate: 'Mengairi',
   harvest: 'Memanen',
   lime: 'Mengapur',
+  prune: 'Memangkas',
+  clear: 'Menebang kebun',
+  pick: 'Memetik buah', // implement task of tree shakers (orchard harvest), not a field task
 };
 
 const nf0 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });

@@ -3,6 +3,7 @@
 import { clamp, round2, random, hashSeed } from './rng.js';
 import { xpForValue } from './taskrun.js';
 import { fmtMoney } from './defs.js';
+import { perk } from './research.js';
 
 const DEFAULTS = { minHappiness: 0.7, drift: 0.02, min: 0.5, max: 1.5, xpFactor: 0.5,
   intensive: { births: 4, feed: 1.5, production: 0.75 }, stud: { maxTier: 5, step: 0.1, costFactor: 0.2, perDay: 0.01 } };
@@ -31,8 +32,9 @@ export const intensiveActive = (h, a) => !!h.breeding && h.count >= 2 && h.count
 export function breedingMods(game, a, h) {
   const c = breedCfg(game);
   const on = intensiveActive(h, a) && !!cycleOf(c, a);
-  return { intensive: on, feed: on ? c.intensive.feed : 1,
-    production: (on ? c.intensive.production : 1) * (h.breedQuality ?? 1) };
+  // Research perks: 'feed' lowers the need, 'animalProd' raises output.
+  return { intensive: on, feed: (on ? c.intensive.feed : 1) * (1 - perk(game, 'feed')),
+    production: (on ? c.intensive.production : 1) * (h.breedQuality ?? 1) * (1 + perk(game, 'animalProd')) };
 }
 
 /** Herd average genetics after adding `n` head with genes `q`. */
@@ -88,7 +90,7 @@ export function stepBreedingDay(game, a, h, fed, intensive) {
   h.breedDays = (h.breedDays || 0) + 1;
   if (h.breedDays < cyc.days) return 0;
   h.breedDays = 0;
-  const expected = (h.birthCarry || 0) + h.count * cyc.rate * (intensive ? c.intensive.births : 1);
+  const expected = (h.birthCarry || 0) + h.count * cyc.rate * (intensive ? c.intensive.births : 1) * (1 + perk(game, 'births'));
   const n = Math.min(Math.floor(expected), cap - h.count);
   h.birthCarry = n < Math.floor(expected) ? 0 : r4(expected - Math.floor(expected));
   if (n <= 0) return 0;
@@ -167,7 +169,7 @@ export function breedingView(game, a, h) {
     breedQuality: round2(bq), stars: starsOf(bq), breeding: !!h.breeding, breedingActive: active,
     breedPaused: pauseReason(c, a, h), cycleDays: cyc?.days ?? null, breedDays: h.breedDays || 0,
     nextBirthIn: cyc ? Math.max(1, cyc.days - (h.breedDays || 0)) : null,
-    expectedBirths: cyc ? round2((h.birthCarry || 0) + h.count * cyc.rate * (active ? c.intensive.births : 1)) : 0,
+    expectedBirths: cyc ? round2((h.birthCarry || 0) + h.count * cyc.rate * (active ? c.intensive.births : 1) * (1 + perk(game, 'births'))) : 0,
     bornTotal: h.bornTotal || 0, bornLast: h.bornLast || 0, lastBirthDay: h.lastBirthDay ?? null,
     bornToday: h.lastBirthDay === game.day ? h.bornLast || 0 : 0,
     studTier: h.studTier || 0, studMaxTier: c.stud.maxTier, studTarget: round2(studTarget(game, h)),

@@ -8,6 +8,9 @@ import { cropGrowthMult, seasonYieldNow, seasonOf, cropSeasonFit, seasonIdAt } f
 import { forecastView } from './weather.js';
 import { eventGrowthMult, pestFactor, treatPestCost } from './events.js';
 import { fieldUnlockLevel } from './defs.js';
+import { orchardFactors, stepOrchardHour, orchardView } from './orchard.js';
+import { greenhouseFactors, greenhouseView, hasGreenhouse } from './greenhouse.js';
+import { perk } from './research.js';
 
 export const WITHER_AFTER_HOURS = 72;
 export const WITHER_PER_DAY = 0.1;
@@ -19,6 +22,7 @@ export function newFieldState(def) {
     growHours: 0, readyHours: 0, dryDays: 0, wetDays: 0, busy: null, plan: null,
     ...(def ? { ph: def.ph } : {}), nutrients: 0.8, lastCropId: null,
     pest: false, damage: 1, seasonSum: 0, seasonN: 0, // per crop cycle (F5 events/seasons)
+    orchard: null, greenhouse: null, // kebun buah trees (orchard.js) · rumah kaca (greenhouse.js)
   };
 }
 
@@ -53,7 +57,7 @@ export function yieldFactorsOf(game, fieldId, cropId, assume = {}) {
   const current = f.cropId === cropId; // pest/damage/season history belong to the planted crop only
   const soil = soilFactors(game, fieldId, cropId);
   if (fert && !f.fertilized) soil.nutrients = 0.6 + 0.4 * Math.min(1, nutrientsOf(game, fieldId) + FERTILIZE_NUTRIENTS);
-  return {
+  const fac = {
     soil: B.soilYield[def.soil] ?? 1,
     ph: phFactor(game, def, crop, phOf(game, fieldId)),
     fert: 1 + (fert ? B.fertilizerBonus : 0),
@@ -66,13 +70,18 @@ export function yieldFactorsOf(game, fieldId, cropId, assume = {}) {
     rotation: soil.rotation,
     pest: current ? pestFactor(game, f) : 1,
     storm: current ? (f.damage ?? 1) : 1,
+    research: 1 + perk(game, 'yield'), // research tree (research.js)
   };
+  // Trees: season only sets the fruiting window, no rotation penalty, age/prune factors (orchard.js).
+  // Greenhouse: no dry/storm/season penalty, +yield (greenhouse.js).
+  return { ...fac, ...orchardFactors(game, f, crop), ...greenhouseFactors(game, f, fac) };
 }
 
 /** Current growth speed (0 = stalled by cold) of a crop on a field: season/temp × event bonus. */
 export function growthMultOf(game, fieldId, crop) {
   const regionId = game.idx.fields.get(fieldId)?.regionId;
-  return cropGrowthMult(game, regionId, crop) * eventGrowthMult(game, regionId);
+  const inside = hasGreenhouse(game.state.fields[fieldId]); // rumah kaca: season/minTemp don't slow growth
+  return (inside ? 1 : cropGrowthMult(game, regionId, crop)) * eventGrowthMult(game, regionId);
 }
 
 /**
@@ -111,7 +120,8 @@ export function stepFieldsHour(game) {
     if (typeof f.ph !== 'number') ensureSoil(game, fid);
     if (f.state === 'idle' || f.state === 'plowed') {
       if (f.pest || f.seasonN || (f.damage ?? 1) !== 1) resetCropCycle(f);
-    } else if (f.state === 'growing') {
+    } else if (f.state === 'orchard') stepOrchardHour(game, fid, f);
+    else if (f.state === 'growing') {
       const crop = game.idx.crops.get(f.cropId);
       const mult = crop ? growthMultOf(game, fid, crop) : 1;
       if (mult > 0 && crop) {
@@ -150,9 +160,12 @@ export function getFieldView(game, fieldId) {
   const crop = f.cropId ? game.idx.crops.get(f.cropId) : null;
   const fac = crop ? yieldFactorsOf(game, fieldId, crop.id) : null;
   const yieldFactors = fac && Object.fromEntries(Object.entries(fac).map(([k, v]) => [k, round2(v)]));
+  const orchard = orchardView(game, fieldId, f); // kebun buah block (null for annual crops)
+  const growth = orchard ? (orchard.mature ? orchard.fruit : orchard.maturity)
+    : crop ? Math.min(1, f.growHours / (crop.growDays * 24)) : 0;
   let progress = 0;
   if (f.busy) progress = Math.min(1, f.busy.done / f.busy.hours);
-  else if (f.state === 'growing' && crop) progress = Math.min(1, f.growHours / (crop.growDays * 24));
+  else if ((f.state === 'growing' && crop) || f.state === 'orchard') progress = growth;
   else if (f.state === 'ready') progress = 1;
   return {
     ...base,
@@ -161,14 +174,16 @@ export function getFieldView(game, fieldId) {
     task: f.busy ? f.busy.task : null,
     hoursLeft: f.busy ? round2(f.busy.hours - f.busy.done) : 0,
     progress: round2(progress),
-    growth: crop ? round2(Math.min(1, f.growHours / (crop.growDays * 24))) : 0,
-    growthMult: crop && f.state === 'growing' ? round2(growthMultOf(game, fieldId, crop)) : null,
+    growth: round2(growth),
+    growthMult: crop && f.state === 'growing' ? round2(growthMultOf(game, fieldId, crop)) : orchard?.fruitMult ?? null,
+    orchard,
+    greenhouse: greenhouseView(game, fieldId),
     ph: round2(phOf(game, fieldId)),
     soilState: { ph: round2(phOf(game, fieldId)), nutrients: round2(nutrientsOf(game, fieldId)), lastCropId: f.lastCropId ?? null },
     pest: !!f.pest,
     pestCost: f.pest ? treatPestCost(game, fieldId) : 0,
     season: seasonOf(game, def.regionId),
-    crop: crop ? { id: crop.id, name: crop.name, emoji: crop.emoji } : null,
+    crop: crop ? { id: crop.id, name: crop.name, emoji: crop.emoji, perennial: !!crop.perennial } : null,
     fertilized: f.fertilized,
     irrigated: f.irrigated,
     withering: witherFactor(f) < 1,

@@ -14,6 +14,10 @@ const FACTORS = [
   ['rotation', 'Rotasi tanaman'],
   ['pest', 'Hama'],
   ['storm', 'Kerusakan badai'],
+  ['research', 'Riset'],
+  ['greenhouse', '🏠 Rumah kaca'],
+  ['age', '🌳 Umur pohon'],
+  ['prune', '✂️ Pangkas'],
 ];
 
 const pct = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0, signDisplay: 'exceptZero' });
@@ -42,6 +46,9 @@ export function yieldBreakdown(f) {
   if (low('rotation')) hints.push('🔄 Tanaman sama dua kali berturut-turut (−10%). Ganti tanaman di siklus berikutnya.');
   if (low('ph', 0.95)) hints.push('🪨 pH tidak cocok. Kapur menggeser pH 0,5 ke arah 6,8 sebelum menanam.');
   if (low('season')) hints.push('⏳ Ditanam di luar musim: tumbuh lebih lambat dan hasil sedikit turun.');
+  if (f.greenhouse) hints.push('🏠 Rumah kaca: tanpa penalti musim, hari kering dan badai.');
+  if (low('age')) hints.push('🌳 Pohon melewati umur produktif: hasil terus turun. Tebang dan tanam baru.');
+  if (f.orchard && !f.orchard.pruned && f.orchard.mature && (f.actions || []).includes('prune')) hints.push('✂️ Pangkas pohon untuk +15% hasil siklus ini.');
   return h('div.yield-breakdown',
     h('div.small.muted', 'Faktor hasil'),
     h('div.yf-list', rows),
