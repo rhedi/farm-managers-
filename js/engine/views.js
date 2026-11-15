@@ -12,7 +12,7 @@ export function siloView(game) {
     const p = game.idx.products.get(id) || { id, name: id, emoji: '', unit: '' };
     const price = s.market[id] ?? 0;
     const reserve = Math.min(qty, s.feedReserve?.[id] || 0);
-    return { id, name: p.name, emoji: p.emoji, unit: p.unit, qty, price, value: round2(qty * price),
+    return { id, name: p.name, emoji: p.emoji, unit: p.unit, category: p.category ?? 'crop', qty, price, value: round2(qty * price),
       reserve, sellable: round2(qty - reserve), isFeed: feed.has(id) };
   });
   return { items, totalValue: round2(items.reduce((sum, i) => sum + i.value, 0)) };

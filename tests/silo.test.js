@@ -77,3 +77,17 @@ test('old saves get enough capacity for their stock', () => {
   const g2 = loadGame(JSON.stringify(s));
   assert.ok(g2.siloInfo().capacity >= 420);
 });
+
+test('every product has a storage category that matches how its sales are booked', async () => {
+  const { saleCategory } = await import('../js/engine/ledger.js');
+  const g = newGame(1);
+  const LEDGER = { crop: 'penjualan_panen', animal: 'penjualan_ternak_produk', processed: 'penjualan_olahan' };
+  for (const p of DATA.PRODUCTS) {
+    assert.ok(p.category in LEDGER, `${p.id} has category ${p.category}`);
+    assert.equal(saleCategory(g, p.id), LEDGER[p.category], p.id);
+  }
+  g.state.silo.wheat = 3; g.state.silo.milk = 40; g.state.silo.flour = 1;
+  const cats = Object.fromEntries(g.siloView().items.map((i) => [i.id, i.category]));
+  assert.deepEqual(cats, { wheat: 'crop', milk: 'animal', flour: 'processed' });
+  assert.equal(g.marketView().find((p) => p.id === 'eggs').category, 'animal');
+});

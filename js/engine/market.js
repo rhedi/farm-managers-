@@ -66,6 +66,7 @@ export function marketView(game) {
       name: p.name,
       emoji: p.emoji,
       unit: p.unit,
+      category: p.category,
       price,
       buyPrice: round2(price * BUY_MARKUP),
       buyable: game.idx.crops.has(p.id),
