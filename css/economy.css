@@ -20,10 +20,6 @@
 .eco-ratio.eco-normal { color: var(--ink-mute, #8a7f70); }
 .eco-reserve { color: var(--brown, #8a5a2b); }
 
-.eco-others > summary { cursor: pointer; list-style: none; user-select: none; }
-.eco-others > summary::-webkit-details-marker { display: none; }
-.eco-others > summary::before { content: '▸ '; }
-.eco-others[open] > summary::before { content: '▾ '; }
 .eco-plist { display: grid; gap: 4px; }
 .eco-prow {
   background: var(--surface, #fff); border: 1px solid var(--line, #d8cfbf);
@@ -34,9 +30,8 @@
   cursor: pointer; list-style: none; font-size: 0.95em;
 }
 .eco-prow > summary::-webkit-details-marker { display: none; }
-.eco-prow > summary .eco-ratio { font-size: 0.8em; }
 .eco-prow[open] { padding-bottom: 10px; }
-.eco-prow > .card { box-shadow: none; border: 0; padding: 0; margin: 0; background: transparent; }
+.eco-prow-body { display: grid; gap: 6px; }
 
 /* 🚜 Garage */
 .eco-warn {

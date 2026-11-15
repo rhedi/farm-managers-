@@ -2,6 +2,7 @@
 import { h, fmtMoney, fmtPrice, fmtNum, progressBar } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
+import { fold } from './subtabs.js';
 
 const MAX_ACTIVE = () => app.game.data.BALANCE?.contracts?.maxActive ?? 3;
 
@@ -72,14 +73,21 @@ export function contractsPanel() {
   const offers = all.filter((c) => c.status === 'offer');
   const closed = all.filter((c) => c.status === 'done' || c.status === 'failed');
   const full = active.length >= MAX_ACTIVE();
-  return h('section.section.eco-contracts',
-    h('div.section-title', '📋 Kontrak', h('span.spacer'), h('span.small.muted', `Aktif ${active.length}/${MAX_ACTIVE()}`)),
-    active.length ? h('div.cards', active.map(activeCard)) : null,
-    offers.length
-      ? h('div', h('div.small.muted.eco-subtitle', 'Tawaran — harga di atas pasar, bayar saat pengiriman lengkap. Terlambat = denda.'),
-        h('div.cards', offers.map((c) => offerCard(c, full))))
-      : h('p.small.muted', 'Belum ada tawaran. Tawaran baru datang setiap pagi.'),
-    closed.length ? h('div.eco-closed', closed.map(closedLine)) : null);
+  return h('div.eco-contracts',
+    h('section.section',
+      h('div.section-title', '📋 Kontrak berjalan', h('span.small.muted', `${active.length}/${MAX_ACTIVE()}`)),
+      active.length ? h('div.cards', active.map(activeCard)) : h('div.empty.compact', 'Belum ada kontrak. Terima tawaran di bawah.')),
+    h('section.section',
+      h('div.section-title', '📨 Tawaran', h('span.small.muted', String(offers.length))),
+      h('p.hint', 'Harga di atas pasar, dibayar saat pengiriman lengkap. Terlambat = denda.'),
+      offers.length ? h('div.cards', offers.map((c) => offerCard(c, full)))
+        : h('div.empty.compact', 'Belum ada tawaran. Tawaran baru datang setiap pagi.')),
+    closed.length ? fold('contracts-closed', '🗂️ Riwayat', { meta: String(closed.length) }, h('div.eco-closed', closed.map(closedLine))) : null);
+}
+
+/** Active contracts that can receive stock right now (bottom-nav and sub-tab badge). */
+export function deliverableCount(game) {
+  return (game.contractsView?.() ?? []).filter((c) => c.status === 'active' && c.canDeliver).length;
 }
 
 /** Render signature for the contracts panel. */

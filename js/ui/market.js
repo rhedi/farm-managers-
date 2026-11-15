@@ -1,15 +1,17 @@
-// Market tab: 📋 contracts, 🚚 deliveries, 🏦 finance, then prices (stock first, the rest collapsed) with sell/buy rows.
-import { h, mount, fmtMoney, fmtPrice, fmtSignedPct, fmtNum } from './dom.js';
+// Pasar tab: 💰 Jual (stock by category, price trend, partial sell) | 📋 Kontrak | 🚚 Kirim | 📊 Harga (every product, buy crops).
+import { h, mount, fmtMoney, fmtPrice } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
-import { contractsPanel, contractsSig } from './contracts.js';
-import { loansPanel, loansSig } from './loans.js';
+import { contractsPanel, contractsSig, deliverableCount } from './contracts.js';
 import { shippingPanel, shippingSig } from './shipping.js';
+import { subTabBar, getSub, fold } from './subtabs.js';
+import { CATEGORIES, stockByCategory, groupValue, sellGroup, stockRow, trendChip, sellableQty } from './stock.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
+const SUBS = ['sell', 'contracts', 'ship', 'prices'];
 const qtyInput = new Map(); // productId → typed qty (survives re-render)
 const buyInput = new Map(); // productId → typed buy qty
-let othersOpen = false;
+const openRows = new Set(); // expanded rows in Jual
 let sig = '';
 
 function svgEl(name, attrs) {
@@ -42,42 +44,6 @@ function numberInput(value, onInput, attrs = {}) {
     oninput: (e) => onInput(e.target.value), ...attrs });
 }
 
-function sellRow(p) {
-  if (!(p.stock > 0)) return null;
-  const reserve = p.reserve || 0;
-  const sellable = Math.max(0, p.stock - reserve);
-  const doSell = (qty) => act(app.game.sellProduct(p.id, qty),
-    (r) => `Terjual ${p.emoji} ${p.name} senilai ${fmtMoney(r.earned)}.`);
-  return h('div.card-actions',
-    h('span.small', `Stok ${fmtAmt(p.stock, p.unit)} ≈ ${fmtMoney(p.stock * p.price)}`,
-      reserve > 0 ? h('span.eco-reserve', ` 🔒 ${fmtAmt(reserve, p.unit)} dicadangkan`) : null),
-    h('span.spacer'),
-    numberInput(qtyInput.get(p.id) ?? '', (v) => qtyInput.set(p.id, v), { placeholder: p.unit, 'aria-label': `Jumlah ${p.name}` }),
-    h('button.btn.btn-small.btn-secondary', { onclick: () => {
-      const q = Number(qtyInput.get(p.id));
-      if (!(q > 0)) return act({ ok: false, reason: 'Isi jumlah yang akan dijual.' });
-      qtyInput.delete(p.id);
-      doSell(Math.min(q, sellable));
-    } }, 'Jual'),
-    h('button.btn.btn-small.btn-primary', { disabled: sellable <= 0, onclick: () => { qtyInput.delete(p.id); doSell(); } },
-      reserve > 0 ? `Jual ${fmtAmt(sellable, p.unit)}` : 'Jual semua'));
-}
-
-function buyRow(p) {
-  if (!p.buyable) return null;
-  return h('div.card-actions',
-    h('span.small', `Harga beli ${fmtPrice(p.buyPrice)}/${p.unit}`),
-    h('span.spacer'),
-    numberInput(buyInput.get(p.id) ?? '', (v) => buyInput.set(p.id, v), { placeholder: p.unit, 'aria-label': `Jumlah beli ${p.name}` }),
-    h('button.btn.btn-small.btn-secondary', { onclick: () => {
-      const q = Number(buyInput.get(p.id));
-      if (!(q > 0)) return act({ ok: false, reason: 'Isi jumlah yang akan dibeli.' });
-      const r = app.game.buyProduct(p.id, q);
-      if (r.ok) buyInput.delete(p.id);
-      act(r, `Membeli ${fmtAmt(r.qty, p.unit)} ${p.name} seharga ${fmtMoney(r.cost)}.`);
-    } }, 'Beli'));
-}
-
 function ratioText(p) {
   const pct = Math.round((p.ratio ?? 1) * 100);
   const word = pct >= 110 ? 'mahal' : pct <= 90 ? 'murah' : 'normal';
@@ -94,55 +60,112 @@ function eventBadge(p, short = false) {
     `${e.emoji} ${pct > 0 ? '+' : '−'}${Math.abs(pct)}%${short ? '' : until}`);
 }
 
-function productCard(p) {
-  const cls = p.change > 0 ? 'price-up' : p.change < 0 ? 'price-down' : 'muted';
-  const arrow = p.change > 0 ? '▲' : p.change < 0 ? '▼' : '•';
-  return h('div.card',
-    h('div.card-head',
-      h('div.card-icon', p.emoji),
-      h('div', { style: { flex: '1', minWidth: '0' } },
-        h('div.card-title', p.name, ' ', eventBadge(p)),
-        h('div.card-sub', `Dasar ${fmtPrice(p.basePrice)}/${p.unit} · `, ratioText(p))),
-      h('div', { style: { textAlign: 'right' } },
-        h('div.card-title.num', `${fmtPrice(p.price)}/${p.unit}`),
-        h(`div.small.${cls}`, `${arrow} ${fmtSignedPct(p.change)}`))),
+/** Price detail: base price, ratio, sparkline over 30 days with the dashed base line. */
+function priceDetail(p) {
+  return [
+    h('div.small.muted', `Dasar ${fmtPrice(p.basePrice)}/${p.unit} · `, ratioText(p), ' ', eventBadge(p)),
     sparkline(p.history, 120, 36, p.basePrice),
-    sellRow(p),
-    buyRow(p));
+  ];
 }
 
-/** Compact row for products without stock (inside the collapsed list). */
-function compactRow(p) {
+function partialSell(p, it) {
+  const sellable = sellableQty(it);
+  return h('div.card-actions',
+    h('span.small.muted', 'Jual sebagian'),
+    h('span.spacer'),
+    numberInput(qtyInput.get(p.id) ?? '', (v) => qtyInput.set(p.id, v), { placeholder: p.unit, 'aria-label': `Jumlah ${p.name}` }),
+    h('button.btn.btn-small.btn-secondary', { onclick: () => {
+      const q = Number(qtyInput.get(p.id));
+      if (!(q > 0)) return act({ ok: false, reason: 'Isi jumlah yang akan dijual.' });
+      qtyInput.delete(p.id);
+      act(app.game.sellProduct(p.id, Math.min(q, sellable)), (r) => `Terjual ${p.emoji} ${p.name} senilai ${fmtMoney(r.earned)}.`);
+    } }, 'Jual'));
+}
+
+function buyRow(p) {
+  if (!p.buyable) return null;
+  return h('div.card-actions',
+    h('span.small', `Beli ${fmtPrice(p.buyPrice)}/${p.unit}`),
+    h('span.spacer'),
+    numberInput(buyInput.get(p.id) ?? '', (v) => buyInput.set(p.id, v), { placeholder: p.unit, 'aria-label': `Jumlah beli ${p.name}` }),
+    h('button.btn.btn-small.btn-secondary', { onclick: () => {
+      const q = Number(buyInput.get(p.id));
+      if (!(q > 0)) return act({ ok: false, reason: 'Isi jumlah yang akan dibeli.' });
+      const r = app.game.buyProduct(p.id, q);
+      if (r.ok) buyInput.delete(p.id);
+      act(r, `Membeli ${fmtAmt(r.qty, p.unit)} ${p.name} seharga ${fmtMoney(r.cost)}.`);
+    } }, 'Beli'));
+}
+
+/** Jual row: the stock row (one-tap "Jual $value"), tap elsewhere to expand trend + partial sell. */
+function sellRow(it, p) {
+  return h('details.stock-detail', { open: openRows.has(it.id), ontoggle: (e) => (e.target.open ? openRows.add(it.id) : openRows.delete(it.id)) },
+    h('summary', stockRow(it, trendChip(p.change))),
+    h('div.stock-detail-body', priceDetail(p), partialSell(p, it)));
+}
+
+function sellPane(game, byId) {
+  const groups = stockByCategory(game);
+  const all = Object.values(groups).flat();
+  if (!all.length) return h('div.empty', h('span.big', '🧺'), 'Gudang kosong. Panen dulu, lalu jual di sini.');
+  const total = groupValue(all);
+  return [
+    h('div.stock-summary',
+      h('div.stock-summary-main', h('div.small.muted', `Nilai semua stok · hari ${game.day}`), h('div.stock-summary-value', fmtMoney(total))),
+      h('button.btn.btn-secondary', { type: 'button', onclick: () => sellGroup(all, 'Semua stok') }, 'Jual semua…')),
+    CATEGORIES.filter((c) => groups[c.id].length).map((c) => h('section.section',
+      h('div.section-title', `${c.icon} ${c.label}`, h('span.small.muted', fmtMoney(groupValue(groups[c.id])))),
+      h('div.stock-list', groups[c.id].map((it) => sellRow(it, byId.get(it.id)))))),
+    h('p.hint', 'Ketuk baris untuk tren harga dan jual sebagian. Cadangan pakan (🔒) tidak ikut terjual.'),
+  ];
+}
+
+/** Harga row: name + price; expands to the price detail, the stock line and (crops) buying. */
+function priceRow(p) {
   return h('details.eco-prow',
     h('summary',
       h('span.mkt-pname', h('span.mkt-pname-text', `${p.emoji} ${p.name}`), eventBadge(p, true)),
-      h('span.mkt-pprice', h('span.num', `${fmtPrice(p.price)}/${p.unit}`), ratioText(p))),
-    productCard(p));
+      h('span.mkt-pprice', h('span.num', `${fmtPrice(p.price)}/${p.unit}`), trendChip(p.change))),
+    h('div.eco-prow-body', priceDetail(p),
+      p.stock > 0 ? h('div.small', `Stok ${fmtAmt(p.stock, p.unit)} ≈ ${fmtMoney(p.stock * p.price)}`) : null,
+      buyRow(p)));
+}
+
+function pricesPane(items) {
+  return [
+    h('p.hint', 'Harga bergerak setiap hari. Tanaman bisa dibeli (+20%) untuk pakan atau kontrak.'),
+    CATEGORIES.map((c) => {
+      const list = items.filter((p) => (p.category ?? 'crop') === c.id);
+      const up = list.filter((p) => p.change > 0).length;
+      return fold(`prices-${c.id}`, `${c.icon} ${c.label}`, { open: c.id === 'crop', meta: `${list.length} · ▲${up}` },
+        h('div.eco-plist', list.map(priceRow)));
+    }),
+  ];
 }
 
 function computeSig(game) {
-  return `${game.day}|${loansSig(game)}|${contractsSig(game)}|${shippingSig(game)}|`
+  return `${getSub('market', SUBS)}|${game.day}|${contractsSig(game)}|${shippingSig(game)}|`
     + game.marketView().map((p) => `${p.price}:${p.stock}:${p.reserve ?? 0}`).join(',');
 }
 
 export function renderMarket(root) {
   const game = app.game;
   sig = computeSig(game);
+  const sub = getSub('market', SUBS);
   const items = game.marketView();
-  const withStock = items.filter((p) => p.stock > 0);
-  const rest = items.filter((p) => !(p.stock > 0));
-  const others = h('details.eco-others', { open: othersOpen, ontoggle: (e) => { othersOpen = e.target.open; } },
-    h('summary.section-title', `📊 Harga lainnya (${fmtNum(rest.length)})`),
-    h('div.eco-plist', rest.map(compactRow)));
+  const byId = new Map(items.map((p) => [p.id, p]));
+  const deliver = deliverableCount(game);
   mount(root,
-    contractsPanel(),
-    shippingPanel(),
-    loansPanel(),
-    h('section.section',
-      h('div.section-title', '📈 Stok & harga', h('span.spacer'), h('span.small.muted', `Hari ${game.day}`)),
-      withStock.length ? h('div.cards', withStock.map(productCard))
-        : h('p.small.muted', 'Gudang kosong. Panen dulu, lalu jual di sini.'),
-      rest.length ? others : null));
+    subTabBar('market', [
+      { id: 'sell', icon: '💰', label: 'Jual' },
+      { id: 'contracts', icon: '📋', label: 'Kontrak', badge: deliver || null },
+      { id: 'ship', icon: '🚚', label: 'Kirim' },
+      { id: 'prices', icon: '📊', label: 'Harga' },
+    ], sub),
+    sub === 'sell' ? sellPane(game, byId)
+      : sub === 'contracts' ? contractsPanel()
+        : sub === 'ship' ? shippingPanel()
+          : pricesPane(items));
 }
 
 export function updateMarket(root) {
