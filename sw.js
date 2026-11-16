@@ -1,8 +1,9 @@
 // Service worker: cache-first app shell (precached per VERSION), network-first navigation with the
 // cached index.html as offline fallback. A new version takes over as soon as it has precached
 // (skipWaiting + clients.claim); js/ui/pwa.js then saves and reloads open pages once. After changing
-// any file, regenerate VERSION and PRECACHE with the command in README → "Pasang di HP (PWA)".
-const VERSION = "01041b5db8";
+// any file, regenerate VERSION (here and in index.html) and PRECACHE with the command in README →
+// "Pasang di HP (PWA)".
+const VERSION = "b93d75f5fe";
 const PREFIX = 'farm-manager-';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = [
@@ -127,10 +128,37 @@ const PRECACHE = [
   // PRECACHE:end
 ];
 
+// cache.addAll is all-or-nothing: one dropped request on mobile data (or one file missing after a bad
+// deploy) failed the whole install, and the phone kept the old version. Each file is fetched on its own:
+// network errors are retried, and the install only fails (old version kept, retried at the next update
+// check) when the network is really gone. A file the server refuses (404…) is logged and skipped; the
+// page fetches it on first use.
+const NETWORK_TRIES = 3;
+
+async function precacheFile(cache, url) {
+  for (let attempt = 1; ; attempt++) {
+    let res;
+    try {
+      res = await fetch(url, { cache: 'reload' });
+    } catch (e) {
+      if (attempt >= NETWORK_TRIES) throw e;
+      await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+      continue;
+    }
+    if (!res.ok) return `${url} (HTTP ${res.status})`;
+    await cache.put(url, res);
+    return null;
+  }
+}
+
+async function precache() {
+  const cache = await caches.open(CACHE);
+  const skipped = (await Promise.all(PRECACHE.map((url) => precacheFile(cache, url)))).filter(Boolean);
+  if (skipped.length) console.warn(`Precache ${VERSION}: ${skipped.length} file dilewati: ${skipped.join(', ')}`);
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE)
-    .then((cache) => cache.addAll(PRECACHE.map((url) => new Request(url, { cache: 'reload' }))))
-    .then(() => self.skipWaiting()));
+  event.waitUntil(precache().then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -146,9 +174,12 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
+// Network requests revalidate with the server (no-cache): GitHub Pages sends max-age=600, and a page or
+// file the browser fetched minutes before a deploy must not be served (and cached) next to new files.
+// Chrome ignores the cache option on a copy of a navigation request, so navigations fetch the URL itself.
 async function navigate(request) {
   try {
-    return await fetch(request);
+    return await fetch(request.url, { cache: 'no-cache', credentials: 'same-origin', redirect: 'manual' });
   } catch {
     const cache = await caches.open(CACHE);
     return (await cache.match(request, { ignoreSearch: true })) || (await cache.match('./index.html')) || Response.error();
@@ -159,7 +190,7 @@ async function cacheFirst(request) {
   const cache = await caches.open(CACHE);
   const hit = await cache.match(request);
   if (hit) return hit;
-  const res = await fetch(request);
+  const res = await fetch(request, { cache: 'no-cache' });
   if (res.ok && res.type === 'basic') await cache.put(request, res.clone());
   return res;
 }

@@ -14,6 +14,46 @@
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     })();
   </script>
+  <script>
+    // Stuck-update escape hatch, which also rescues older installed versions: index.html always comes from
+    // the network, and VERSION is this deploy's build (same value as in sw.js, written by the README command).
+    // A page controlled by a service worker whose cache still lacks this build after an update check drops
+    // every service worker and farm-manager-* cache (never localStorage: the save stays) and reloads from the
+    // network, at most once per session. Until then the modules may run old files; they load and autosave
+    // the save as usual, and the new files migrate it.
+    (function () {
+      var VERSION = "b93d75f5fe";
+      document.documentElement.setAttribute('data-version', VERSION);
+      var sw = navigator.serviceWorker, GUARD = 'farm-manager-sw-reset';
+      if (!sw || !sw.controller || !window.caches) return;
+      function hasBuild() {
+        return caches.match('index.html', { cacheName: 'farm-manager-' + VERSION }).then(function (res) { return !!res; });
+      }
+      function installed(worker) { // a slow install is waited out: Chrome itself ends a stuck install event
+        return new Promise(function (resolve) {
+          if (!worker || worker.state !== 'installing') return resolve();
+          worker.addEventListener('statechange', function () { if (worker.state !== 'installing') resolve(); });
+        });
+      }
+      function reset() {
+        if (sessionStorage.getItem(GUARD) === VERSION) return; // already tried this session: no reload loop
+        sessionStorage.setItem(GUARD, VERSION);
+        return sw.getRegistrations().then(function (regs) {
+          return Promise.all(regs.map(function (reg) { return reg.unregister(); }));
+        }).then(function () { return caches.keys(); }).then(function (keys) {
+          return Promise.all(keys.filter(function (key) { return key.indexOf('farm-manager-') === 0; })
+            .map(function (key) { return caches.delete(key); }));
+        }).then(function () { location.reload(); });
+      }
+      hasBuild().then(function (ok) {
+        return ok || sw.getRegistration().then(function (reg) {
+          // update() rejects offline: then the installed version keeps running.
+          return reg && reg.update().then(function () { return installed(reg.installing); })
+            .then(hasBuild).then(function (ok) { return ok || reset(); });
+        });
+      }).catch(function () { /* offline or storage blocked: keep the installed version */ });
+    })();
+  </script>
   <meta name="description" content="Farm Manager — kelola ladang, mesin, dan ternakmu.">
   <title>Farm Manager</title>
   <link rel="manifest" href="manifest.webmanifest">

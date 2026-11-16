@@ -1,9 +1,10 @@
-// ⚙️ Pengaturan (top bar button): theme, sound, save now, install as app, restart the tutorial, reset the game.
+// ⚙️ Pengaturan (top bar button): theme, sound, save now, restart the tutorial, check for updates, install as
+// app, version, reset the game.
 import { h, mount } from './dom.js';
 import { openModal, confirmModal, toast } from './modal.js';
 import { app } from './app.js';
 import { sfxEnabled, setSfxEnabled, onSfxChange, sfx } from './sfx.js';
-import { installControl } from './pwa.js';
+import { installControl, updateControl, appVersion } from './pwa.js';
 import { resetOnboarding } from './onboarding.js';
 import { themePref, setThemePref, onThemeChange } from './theme.js';
 
@@ -63,8 +64,10 @@ export function openSettings() {
           app.setTab('farm');
           toast('📘 Panduan dimulai lagi di tab Ladang.', 'success');
         } }, '📘 Ulangi panduan awal'),
+        updateControl(),
         installControl()),
       h('p.small.muted', 'Permainan tersimpan otomatis di peramban ini setiap 10 detik.'),
+      h('p.small.muted', `Versi: ${appVersion()}`),
       h('div.settings-danger',
         h('button.btn.btn-danger.btn-block', { type: 'button', onclick: resetFlow }, '🗑️ Reset game'))),
     actions: (m) => [h('button.btn.btn-primary', { type: 'button', onclick: () => m.close() }, 'Tutup')],
