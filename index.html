@@ -22,7 +22,7 @@
     // network, at most once per session. Until then the modules may run old files; they load and autosave
     // the save as usual, and the new files migrate it.
     (function () {
-      var VERSION = "d8a7b61b13";
+      var VERSION = "e4438af88f";
       document.documentElement.setAttribute('data-version', VERSION);
       var sw = navigator.serviceWorker, GUARD = 'farm-manager-sw-reset';
       if (!sw || !sw.controller || !window.caches) return;
@@ -74,6 +74,7 @@
   <link rel="stylesheet" href="css/logistics.css">
   <link rel="stylesheet" href="css/orchard.css">
   <link rel="stylesheet" href="css/fish.css">
+  <link rel="stylesheet" href="css/v16.css">
   <link rel="stylesheet" href="css/layout.css">
 </head>
 <body>
@@ -87,7 +88,7 @@
       <div class="stat stat-weather" id="weather" title="Cuaca"><span id="weather-now">☀️</span><span class="season-chip" id="season-chip"></span></div>
     </div>
     <div class="topbar-row">
-      <div class="stat stat-clock" id="clock">Hari 1, 06:00</div>
+      <div class="stat stat-clock" id="clock">H1 · 06:00</div>
       <div class="speed-group" role="group" aria-label="Kecepatan waktu">
         <button class="speed-btn" id="speed-0" data-speed="0" title="Jeda">⏸</button>
         <button class="speed-btn active" id="speed-1" data-speed="1" title="Normal">1×</button>

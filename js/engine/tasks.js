@@ -8,6 +8,7 @@ import { wearFactor, rollBreakdown, conditionOf, BREAKDOWN_BELOW } from './wear.
 import { effectiveStats, upgradesOf } from './upgrades.js';
 import { orchardAllows, orchardTaskSpec } from './orchard.js';
 import { perk } from './research.js';
+import { boostMult } from './calendar.js';
 
 export const RENT_HA_PER_HOUR = 1.0;
 // Orchard tasks (orchard.js): prune on growing trees, clear (tebang) on any orchard; orchardAllows refines them.
@@ -141,7 +142,7 @@ export function planTask(game, fieldId, task, opts = {}) {
     const crop = idx.crops.get(cropId);
     if (!crop) return fail('Pilih tanaman yang akan ditanam.');
     if (crop.unlockLevel > state.level) return fail(`${crop.name} terbuka di level ${crop.unlockLevel}.`);
-    materialCost = orch ? orch.materialCost : def.sizeHa * crop.seedCostPerHa * (1 - perk(game, 'seedCost')); // research perks: seed/fertilizer cost
+    materialCost = orch ? orch.materialCost : def.sizeHa * crop.seedCostPerHa * (1 - perk(game, 'seedCost')) * boostMult(game, 'seedCost'); // research perks + 🌱 booster
   } else if (orch) materialCost = orch.materialCost;
   else if (task === 'fertilize') materialCost = def.sizeHa * B.fertilizerCostPerHa * (1 - perk(game, 'fertCost'));
   else if (task === 'irrigate') materialCost = def.sizeHa * B.irrigateCostPerHa;
@@ -150,8 +151,8 @@ export function planTask(game, fieldId, task, opts = {}) {
   if (!rig.ok) return rig;
   // Rented harvesters come with their own driver and don't wear our machines.
   const worker = rig.rented ? null : freeWorker(game);
-  // Research perks: 'taskSpeed' shortens own-rig tasks, 'fuel' lowers the fuel bill.
-  const factor = rig.rented ? 1 : skillFactor(worker) * wearFactor(game, rig.uids) / (1 + perk(game, 'taskSpeed'));
+  // Research perks: 'taskSpeed' shortens own-rig tasks, 'fuel' lowers the fuel bill; ⚡ Kerja Kilat booster (calendar.js).
+  const factor = rig.rented ? 1 : skillFactor(worker) * wearFactor(game, rig.uids) / (1 + perk(game, 'taskSpeed')) / boostMult(game, 'taskSpeed');
   const hours = round2((def.sizeHa / rig.rate) * factor);
   const fuelCost = round2(hours * rig.fuelPerHour * B.fuelPrice * (1 - perk(game, 'fuel')));
   const rentCost = rig.rented ? def.sizeHa * (rig.rentPerHa ?? data.STARTING.harvesterRentPerHa) : 0;

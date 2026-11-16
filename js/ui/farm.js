@@ -9,7 +9,8 @@ import { batchBar } from './batchBar.js';
 import { plotEl, updatePlot } from './plot.js';
 import { regionBoxes, mapFxLayers, updateMapFx } from './mapFx.js';
 import { eventsBanner, updateEventsBanner } from './eventsBanner.js';
-import { subTabBar, getSub, fold, setSub, chipBar } from './subtabs.js';
+import { subTabBar, getSub, fold, setSub, chipBar, goTo } from './subtabs.js';
+import { chapterPill } from './missions.js';
 
 const SUBS = ['fields', 'map'];
 const FOR_SALE_SHOWN = 3;
@@ -136,7 +137,9 @@ function mapPane(fields) {
 }
 
 function computeSig(fields) {
-  return `${getSub('farm', SUBS)}|${activeContinent()}|${fields.map((f) => fieldSignature(f) + (f.locked ? ':L' : '') + (f.pest ? ':P' : '')).join('|')}`;
+  const ch = app.game.chaptersView?.();
+  return `${getSub('farm', SUBS)}|${activeContinent()}|${ch?.started && ch.ready ? ch.current.id : ''}|`
+    + fields.map((f) => fieldSignature(f) + (f.locked ? ':L' : '') + (f.pest ? ':P' : '')).join('|');
 }
 
 export function renderFarm(root) {
@@ -148,6 +151,8 @@ export function renderFarm(root) {
   const todo = fields.filter(needsAction).length;
   const panes = [fieldsPane(fields), mapPane(fields)];
   panes[sub === 'map' ? 0 : 1].hidden = true;
+  const pill = chapterPill(app.game, goTo); // 📖 Bab Petani: a step's reward is ready (top of Ladangku)
+  if (pill) panes[0].prepend(pill);
   mount(root,
     subTabBar('farm', [
       { id: 'fields', icon: '🌾', label: 'Ladangku', badge: todo || null },

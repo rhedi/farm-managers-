@@ -122,12 +122,12 @@ test('deterministic: same actions, same state', () => {
   assert.deepEqual(run(), run());
 });
 
-test('offline catch-up is bounded: ≤ 48 h of passes, one wage per midnight', () => {
+test('offline catch-up is bounded: ≤ 48 h of exact passes, one wage per midnight', () => {
   const g = setup({ silo: { wheat: 400 } });
   g.hireFactoryManager('direktur');
   const runs0 = g.factoryManagerView().stats.runs, t0 = g.state.time, gaji0 = g.state.ledger.total.gaji;
   const workerWages = g.state.workers.reduce((a, w) => a + w.wage, 0);
-  g.catchUp(1e9);
+  g.catchUp(48 * DATA.BALANCE.realSecondsPerGameHour); // the exact window; longer absences continue coarsely (offline.test.js)
   assert.equal(g.state.time - t0, 48);
   const runs = g.factoryManagerView().stats.runs - runs0;
   assert.ok(runs >= 6 && runs <= 48, `${runs}`); // hourly passes, a 6 h flour batch: one new batch at a time

@@ -5,9 +5,10 @@ import { app } from './app.js';
 import { netWorthCard } from './netWorthChart.js';
 import { financeCard } from './finance.js';
 import { loansPanel, loansSig } from './loans.js';
-import { missionsCard, leaderboardCard, missionsSig, updateMissionsCountdown } from './missions.js';
+import { missionsCard, leaderboardCard, missionsSig, updateMissionsCountdown, chapterCard } from './missions.js';
 import { researchSection, researchSig } from './research.js';
-import { subTabBar, getSub, fold } from './subtabs.js';
+import { subTabBar, getSub, fold, goTo } from './subtabs.js';
+import { calendarCard, calendarSig } from './calendar.js';
 
 const SUBS = ['missions', 'research', 'trophies', 'finance'];
 const NEXT_SHOWN = 5; // closest achievements shown; the rest are folded
@@ -33,7 +34,7 @@ function achievementCard(a) {
       h('div.card-main',
         h('div.card-title', a.name),
         h('div.card-sub', a.desc)),
-      h(`span.badge${a.unlocked ? '.badge-gold' : ''}`, `+${fmtMoney(a.reward)}`)),
+      h(`span.badge${a.unlocked ? '.badge-gold' : ''}`, `+${fmtMoney(a.payout?.money ?? a.reward)}${a.payout?.rp ? ` +${a.payout.rp} 🔬` : ''}`)),
     a.unlocked ? null : h('div', progressBar(frac, 'gold'),
       h('div.small.muted', `${fmtNum(Math.min(a.value || 0, target))} / ${fmtNum(target)}`)));
 }
@@ -59,9 +60,12 @@ function statsCard(game) {
 }
 
 function missionsPane(game) {
+  const ch = chapterCard(game, goTo);
   return [
+    ch ? h('section.section', h('div.section-title', '📖 Bab Petani'), ch) : null,
+    h('section.section', calendarCard(game)),
     h('section.section',
-      h('div.section-title', '🎯 Misi harian', h('span.small.muted', `Hari ${game.day}`)),
+      h('div.section-title', '🎯 Misi hari ini (hari game)', h('span.small.muted', `Hari ${game.day}`)),
       missionsCard(game)),
     h('section.section', h('div.section-title', '🏅 Papan peringkat'), leaderboardCard(game)),
   ];
@@ -95,14 +99,14 @@ function financePane(game) {
 function computeSig(game) {
   const log = game.state.log;
   return `${getSub('achievements', SUBS)}|${game.state.achievements.length}|${log.length}|${log[log.length - 1]?.msg ?? ''}|${game.day}|`
-    + `${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}|${loansSig(game)}`;
+    + `${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}|${loansSig(game)}|${calendarSig(game)}`;
 }
 
 export function renderAchievements(root) {
   const game = app.game;
   sig = computeSig(game);
   const sub = getSub('achievements', SUBS);
-  const claimable = game.missionsView?.().claimable ?? 0;
+  const claimable = (game.missionsView?.().claimable ?? 0) + (game.chaptersView?.().ready ? 1 : 0);
   const points = game.researchPoints?.().available ?? 0;
   mount(root,
     subTabBar('achievements', [

@@ -7,6 +7,7 @@ import { app, act } from './app.js';
 import { goTo } from './subtabs.js';
 import { stars } from './dispatcher.js';
 import { tierLine, candidateItem, swapFold, factoryRows, settingsFold } from './factoryManagerParts.js';
+import { factoryBlockBox } from './factoryBlock.js';
 
 let lastRecent; // newest run already shown (the newest row slides in once)
 let lastTier; // hired tier last rendered (a new one pops in once after Ganti / promosikan)
@@ -67,6 +68,7 @@ function hiredBody(v) {
     h('div.small.muted', `Gaji ${fmtMoney(hd.wagePaid)}/hari · ${tierLine(hd)}`),
     passLine(v),
     v.on && v.note ? h('div.disp-wait', `💤 ${v.note}`) : null,
+    factoryBlockBox(v.blocked),
     v.factories.length ? [h('div.disp-set-title', 'Pabrik'), factoryRows(v)]
       : h('div.disp-wait', '🏭 Belum punya pabrik. Beli di bawah, manajer langsung mulai bekerja.'),
     swapFold(v),

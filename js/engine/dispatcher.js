@@ -6,11 +6,10 @@
 // `held`/`seen`: the "sisakan X%" ledger: X% of every stock increase the manager sees stays in the silo.
 import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
-import { sellableStock } from './economy.js';
+import { keptStock, freeStock } from './stockKeep.js';
 import { planShipment, shipToCity, routeOf, truckStats, shipments, cityMult } from './logistics.js';
 import { conditionOf, BREAKDOWN_BELOW } from './wear.js';
 import { staffCfg, staffTier, staffWage, hireStaff, staffSwapCost, replaceStaff, fireStaff, payStaffDay, staffCandidates } from './staff.js';
-import { factoryHold } from './factoryManager.js';
 
 export const GROUPS = ['crop', 'animal', 'processed'];
 export const RECENT = 6;
@@ -123,25 +122,18 @@ function updateHeld(game) {
   }
 }
 
-/** Remaining quantity of active contracts per product (kept for delivery). */
-function contractNeed(game) {
-  const need = {};
-  for (const c of game.state.contracts || []) if (c.status === 'active') need[c.productId] = (need[c.productId] || 0) + Math.max(0, c.qty - c.delivered);
-  return need;
-}
-
 /**
- * Stock the manager may load: silo − feed reserve − active contracts − "sisakan %" − the Manajer Pabrik hold (inputs
- * of its queued batches and of its next pass), allowed groups/products only.
+ * Stock the manager may load: silo − kept stock (js/engine/stockKeep.js: feed reserve / auto-feed, active contracts,
+ * the Manajer Pabrik hold of one planning interval) − "sisakan %", allowed groups/products only.
  */
 export function dispatchableStock(game) {
-  const s = game.state, set = st(game).settings, need = contractNeed(game), hold = factoryHold(game);
+  const s = game.state, set = st(game).settings, kept = keptStock(game, { factoryHours: 0 });
   updateHeld(game);
   const out = new Map();
   for (const id of Object.keys(s.silo).sort()) {
     const p = game.idx.products.get(id);
     if (!p || !set.groups[p.category ?? 'crop'] || set.exclude.includes(id) || !(s.market[id] > 0)) continue;
-    const q = floor2(sellableStock(game, id) - (need[id] || 0) - (st(game).held[id] || 0) - (hold[id] || 0));
+    const q = floor2(freeStock(game, id, kept) - (st(game).held[id] || 0));
     if (q > 0) out.set(id, q);
   }
   return out;

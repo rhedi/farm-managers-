@@ -9,8 +9,8 @@ export const BUY_MARKUP = 1.2;
 const fail = (reason) => ({ ok: false, reason });
 const buyPriceOf = (game, productId) => (game.state.market[productId] ?? 0) * BUY_MARKUP;
 
-/** `category`: ledger id ('pembelian_produk'; buyFeed books 'pakan'). */
-export function buyProduct(game, productId, qty, category = 'pembelian_produk') {
+/** `category`: ledger id ('pembelian_produk'; buyFeed books 'pakan'). `quiet`: no `purchase` event (auto-feed sums its own). */
+export function buyProduct(game, productId, qty, category = 'pembelian_produk', { quiet = false } = {}) {
   const p = game.idx.products.get(productId);
   if (!p) return fail('Produk tidak ditemukan.');
   if (!game.idx.crops.has(productId) && !p.buyable) return fail(`${p.name} tidak bisa dibeli.`);
@@ -22,7 +22,7 @@ export function buyProduct(game, productId, qty, category = 'pembelian_produk') 
   if (!game.spend(cost, category)) return fail('Uang tidak cukup.');
   const s = game.state.silo;
   s[productId] = Math.round(((s[productId] || 0) + qty) * 1e6) / 1e6;
-  game.emit('purchase', `Membeli ${fmtNum(qty)} ${p.unit} ${p.name} seharga ${fmtMoney(cost)}.`, { productId, qty, cost });
+  if (!quiet) game.emit('purchase', `Membeli ${fmtNum(qty)} ${p.unit} ${p.name} seharga ${fmtMoney(cost)}.`, { productId, qty, cost });
   return { ok: true, cost, qty };
 }
 

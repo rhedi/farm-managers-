@@ -472,12 +472,15 @@ export const STARTING = {
   harvesterRentPerHa: 120,
 };
 
-// LEVELS[i] = XP for level i + 1 (50 entries, max level 50). Lv 1–10 unchanged; 11–20 ×1.27 and 21–30 ×1.29 per
+// LEVELS[i] = XP for level i + 1 (50 entries, max level 50). Lv 5–12 lowered in v16 (old 4500/8000/13000/20000/30000/
+// 45000/57000/73000 → 4200/7200/11500/17500/24000/35000/48000/70000): plans-and-land bot, 3 seeds, every level
+// Lv 4→13 takes ≈ 15–24 game days (was 16–39 with a hump at 7→10); Lv 13→15 ≈ 12–23. Every new threshold is
+// below the old one, so no save loses a level. 11–20 ×1.27 and 21–30 ×1.29 per
 // level; 31–50 ×1.19 easing to ×1.127 (land income grows slower than exponential once regions run out). Greedy bot
 // (plans, land/machine buying, daily missions; 3 seeds): Lv 20 ≈ day 425–445, Lv 30 ≈ day 800–855 (≈ 13–14 h at 1×),
 // Lv 40 ≈ day 1325–1390, Lv 50 ≈ day 1985–2040 (Lv 30→50 ≈ 1180 days ≈ 20 h at 1×, 44 → 67 days per level).
-export const LEVELS = [0, 250, 900, 2200, 4500, 8000, 13000, 20000, 30000, 45000,
-  57000, 73000, 92000, 117000, 149000, 189000, 240000, 305000, 387000, 491000,
+export const LEVELS = [0, 250, 900, 2200, 4200, 7200, 11500, 17500, 24000, 35000,
+  48000, 70000, 92000, 117000, 149000, 189000, 240000, 305000, 387000, 491000,
   634000, 817000, 1050000, 1360000, 1750000, 2260000, 2920000, 3770000, 4860000, 6270000,
   7460000, 8850000, 10500000, 12400000, 14500000, 17000000, 19900000, 23200000, 26900000, 31200000,
   36000000, 41500000, 47600000, 54500000, 62100000, 70700000, 80100000, 90500000, 102000000, 115000000];
@@ -503,16 +506,23 @@ export const ACHIEVEMENTS = [
   { id: 'level_5', name: 'Manajer Andal', desc: 'Capai level 5.', reward: 20000, condition: { stat: 'level', gte: 5 } },
   { id: 'level_10', name: 'Legenda Pertanian', desc: 'Capai level 10.', reward: 150000, condition: { stat: 'level', gte: 10 } },
   { id: 'level_20', name: 'Maestro Agribisnis', desc: 'Capai level 20.', reward: 400000, condition: { stat: 'level', gte: 20 } },
-  { id: 'level_30', name: 'Raja Agrikultur Dunia', desc: 'Capai level 30.', reward: 1500000, condition: { stat: 'level', gte: 30 } },
-  { id: 'level_40', name: 'Kaisar Agribisnis', desc: 'Capai level 40.', reward: 4000000, condition: { stat: 'level', gte: 40 } },
-  { id: 'level_50', name: 'Legenda Abadi', desc: 'Capai level 50 (maksimal).', reward: 10000000, condition: { stat: 'level', gte: 50 } },
+  { id: 'level_30', name: 'Raja Agrikultur Dunia', desc: 'Capai level 30.', reward: 1500000, incomeDays: 1, condition: { stat: 'level', gte: 30 } },
+  { id: 'level_40', name: 'Kaisar Agribisnis', desc: 'Capai level 40.', reward: 4000000, incomeDays: 1, rp: 2, condition: { stat: 'level', gte: 40 } },
+  { id: 'level_50', name: 'Legenda Abadi', desc: 'Capai level 50 (maksimal).', reward: 10000000, incomeDays: 1, rp: 3, condition: { stat: 'level', gte: 50 } },
   // Land round trips lose 30% of the price, far above these rewards.
   { id: 'regions_7', name: 'Penjelajah Benua', desc: 'Miliki ladang di 7 wilayah.', reward: 200000, condition: { stat: 'regionsOwned', gte: 7 } },
-  { id: 'regions_13', name: 'Penguasa Dunia', desc: 'Miliki ladang di ke-13 wilayah.', reward: 1000000, condition: { stat: 'regionsOwned', gte: 13 } },
+  { id: 'regions_13', name: 'Penguasa Dunia', desc: 'Miliki ladang di ke-13 wilayah.', reward: 1000000, incomeDays: 1, rp: 2, condition: { stat: 'regionsOwned', gte: 13 } },
   { id: 'fields_25', name: 'Baron Tanah', desc: 'Miliki 25 ladang.', reward: 250000, condition: { stat: 'fieldsOwned', gte: 25 } },
-  { id: 'fields_50', name: 'Taipan Tanah', desc: 'Miliki 50 ladang.', reward: 2000000, condition: { stat: 'fieldsOwned', gte: 50 } },
+  { id: 'fields_50', name: 'Taipan Tanah', desc: 'Miliki 50 ladang.', reward: 2000000, incomeDays: 1, condition: { stat: 'fieldsOwned', gte: 50 } },
   { id: 'tons_25000', name: 'Lumbung Dunia', desc: 'Panen total 25.000 ton hasil bumi.', reward: 150000, condition: { stat: 'tonsHarvested', gte: 25000 } },
-  { id: 'tons_250000', name: 'Lumbung Planet', desc: 'Panen total 250.000 ton hasil bumi.', reward: 1500000, condition: { stat: 'tonsHarvested', gte: 250000 } },
+  { id: 'tons_250000', name: 'Lumbung Planet', desc: 'Panen total 250.000 ton hasil bumi.', reward: 1500000, incomeDays: 1, rp: 1, condition: { stat: 'tonsHarvested', gte: 250000 } },
+  // v16 tiers (Hadiah Berskala: reward = max(fixed, incomeDays × recent daily income), rp = bonus research points).
+  { id: 'harvest_250', name: 'Tangan Emas', desc: 'Selesaikan 250 kali panen.', reward: 60000, condition: { stat: 'harvests', gte: 250 } },
+  { id: 'harvest_2500', name: 'Mesin Panen Hidup', desc: 'Selesaikan 2.500 kali panen.', reward: 600000, incomeDays: 1, rp: 1, condition: { stat: 'harvests', gte: 2500 } },
+  { id: 'contracts_100', name: 'Pemasok Nasional', desc: 'Selesaikan 100 kontrak.', reward: 150000, incomeDays: 1, rp: 1, condition: { stat: 'contractsDone', gte: 100 } },
+  { id: 'ponds_5', name: 'Juragan Tambak', desc: 'Miliki 5 kolam ikan.', reward: 40000, condition: { stat: 'pondsOwned', gte: 5 } },
+  { id: 'factory_runs_1000', name: 'Pabrik Tanpa Henti', desc: 'Manajer Pabrik menjalankan 1.000 putaran produksi.', reward: 300000, incomeDays: 1, rp: 1, condition: { stat: 'factoryManagerRuns', gte: 1000 } },
+  { id: 'earned_100m', name: 'Konglomerat Tani', desc: 'Raih total pendapatan 100.000.000.', reward: 5000000, incomeDays: 1, condition: { stat: 'totalEarned', gte: 100000000 } },
 ];
 
 export const BALANCE = {

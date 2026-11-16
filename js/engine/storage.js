@@ -8,6 +8,7 @@ import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { saleCategory } from './ledger.js';
 import { perk } from './research.js';
+import { recordOverflow } from './overflow.js';
 
 export const STORAGE_KINDS = ['silo', 'cold'];
 const NAMES = { silo: 'Silo', cold: 'Gudang dingin' };
@@ -123,6 +124,7 @@ export function storeProduct(game, productId, qty) {
   st.productsSold = round2(st.productsSold + overflow);
   st.salesValue = round2((st.salesValue || 0) + earned);
   game.earn(earned, saleCategory(game, productId));
+  recordOverflow(game, kind, overflow * tonsPerUnit(p), earned, overflow * (state.market[productId] ?? 0)); // daily summary (overflow.js)
   game.emit(`${kind}_overflow`, `${NAMES[kind]} penuh! ${fmtNum(overflow)} ${p.unit} ${p.name} dijual paksa seharga ${fmtMoney(earned)} (${Math.round(rate * 100)}% harga pasar).`,
     { kind, productId, qty: overflow, earned });
   return { stored, overflow, earned };

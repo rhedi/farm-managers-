@@ -14,7 +14,7 @@ import { renderAchievements, updateAchievements } from './ui/achievements.js';
 import { updateBadges } from './ui/badges.js';
 import { flushLevelUps } from './ui/levelUp.js';
 import { initOnboarding, updateOnboarding, resetOnboarding } from './ui/onboarding.js';
-import { notifyEvent } from './ui/notify.js';
+import { notifyEvent, announceChapterNotice } from './ui/notify.js';
 import { backupSave, loadTab, saveTab, trackTopbarHeight } from './ui/shell.js';
 import { feedbackEvent, initClickSounds } from './ui/feedback.js';
 import { tickMoneyFx, resetMoneyFx } from './ui/fx.js';
@@ -22,6 +22,7 @@ import { openSettings } from './ui/settings.js';
 import { initPwa } from './ui/pwa.js';
 import { initTheme } from './ui/theme.js';
 import { initSubtabSwipe } from './ui/subtabs.js';
+import { showMorningReport, MIN_AWAY_S } from './ui/morningReport.js';
 
 const VIEWS = {
   farm: { render: renderFarm, update: updateFarm },
@@ -93,6 +94,7 @@ function start(game) {
   app.game = game;
   unsubscribe = game.on(onGameEvent);
   resetMoneyFx();
+  announceChapterNotice(game); // old save: one summary toast for chapter steps it had already met
   updateTopbar(game);
   renderView();
 }
@@ -109,11 +111,15 @@ function loadOrCreate() {
   }
   if (!game) return createGame({ seed: Date.now() });
   const away = (Date.now() - (game.state.savedAt ?? Date.now())) / 1000;
-  if (away > 0) {
-    const hours = game.catchUp(away);
-    if (hours >= 0.5) setTimeout(() => toast(`Selama kamu pergi, ${fmtHours(hours)} waktu permainan berlalu.`), 0);
-  }
+  if (away > 0) welcomeBack(game, away);
   return game;
+}
+
+/** Offline catch-up (exact 48 h + coarse "mode hemat", engine catchUpReport); ☀️ Laporan Pagi after ≥ 10 real min. */
+function welcomeBack(game, away) {
+  const { hours, report } = game.catchUpReport(away);
+  if (away >= MIN_AWAY_S && hours > 0) setTimeout(() => showMorningReport(report), 0);
+  else if (hours >= 0.5) setTimeout(() => toast(`Selama kamu pergi, ${fmtHours(hours)} waktu permainan berlalu.`), 0);
 }
 
 function setTab(tab) {
@@ -171,8 +177,7 @@ document.addEventListener('visibilitychange', () => {
   const away = (Date.now() - hiddenAt) / 1000;
   hiddenAt = null;
   lastFrame = performance.now();
-  const hours = app.game.catchUp(away);
-  if (hours >= 0.5) toast(`Selama kamu pergi, ${fmtHours(hours)} waktu permainan berlalu.`);
+  welcomeBack(app.game, away);
   app.requestRender();
 });
 initTheme();

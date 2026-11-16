@@ -74,9 +74,9 @@ export function ensureResearch(game) {
   r.respecs = r.respecs || 0;
 }
 
-/** {earned, spent, available}: 1 point per level-up (level − 1). */
+/** {earned, spent, available}: 1 point per level-up (level − 1) plus bonus points from missions/chapters/achievements. */
 export function researchPoints(game) {
-  const earned = Math.max(0, (game.state.level || 1) - 1);
+  const earned = Math.max(0, (game.state.level || 1) - 1) + (rs(game).bonus || 0);
   const spent = rs(game).unlocked.reduce((sum, id) => sum + (nodeOf(game, id)?.cost ?? 0), 0);
   return { earned, spent, available: earned - spent };
 }

@@ -58,32 +58,51 @@ function markTargets(label) {
   }
 }
 
+/** Step 5 ("Panen") while nothing is ready yet: a waiting text with the growth %, no 👆 on Panen. */
+let waitingPct = null;
+
 function render(tab, force = false) {
   if (!el) return;
   const done = tut.step >= STEPS.length;
   const visible = !tut.dismissed && !done && (tab === 'farm' || (tut.step === 5 && (tab === 'silo' || tab === 'market')));
-  const sig = `${visible}|${tut.step}`;
+  const sig = `${visible}|${tut.step}|${waitingPct}`;
   if (sig === shownSig && !force) return;
   shownSig = sig;
   el.hidden = !visible;
   if (!visible) { mount(el); return; }
   const s = STEPS[tut.step];
+  const text = waitingPct != null
+    ? `Tanaman sedang tumbuh (${waitingPct}%). Biarkan waktu berjalan 5× — tombol 🌾 Panen muncul saat siap.` : s.text;
   mount(el, h('div.coach',
     h('div.coach-steps', STEPS.map((x, i) => h(`span.coach-step${i < tut.step ? '.done' : i === tut.step ? '.current' : ''}`, x.label))),
     h('div.coach-row',
-      h('div.coach-text', h('b', `Langkah ${tut.step + 1}/${STEPS.length}: `), s.text),
+      h('div.coach-text', h('b', `Langkah ${tut.step + 1}/${STEPS.length}: `), text),
       h('button.coach-close', { 'aria-label': 'Tutup panduan', title: 'Tutup panduan', onclick: dismiss }, '✕'))));
+}
+
+/** Highest growth % of an owned growing field (null when none grows). */
+function growthPct(game) {
+  let best = null;
+  for (const f of Object.values(game.state.fields)) {
+    const crop = f.state === 'growing' && game.idx.crops.get(f.cropId);
+    if (crop) best = Math.max(best ?? 0, Math.min(99, Math.floor((100 * (f.growHours || 0)) / (crop.growDays * 24))));
+  }
+  return best;
 }
 
 /** Main-loop hook: speed step, banner visibility, button highlights. */
 export function updateOnboarding(game, tab) {
   if (!tut.dismissed && tut.step === 3 && game.state.speed === 5) advanceTo(4);
+  const ready = game.fieldsView().some((f) => f.owned && f.state === 'ready');
   // Withered or skipped steps: jump straight to harvest when a field is ready.
-  if (!tut.dismissed && tut.step < 4 && tut.step >= 2 && game.fieldsView().some((f) => f.owned && f.state === 'ready')) advanceTo(4);
+  if (!tut.dismissed && tut.step < 4 && tut.step >= 2 && ready) advanceTo(4);
+  // "Tanaman siap! Ketuk Panen" only when a field really is ready (5× pressed early → growth % instead).
+  waitingPct = !tut.dismissed && tut.step === 4 && !ready ? growthPct(game) ?? 0 : null;
   render(tab);
   let target = null;
   if (!tut.dismissed && tut.step < STEPS.length) {
     if (tut.step === 3) target = '5×';
+    else if (tut.step === 4 && !ready) target = game.state.speed === 5 ? null : '5×';
     else if (tut.step === 5) target = tab === 'silo' || tab === 'market' ? 'Jual' : 'tab:silo';
     else if (tab === 'farm') target = STEPS[tut.step].label;
   }

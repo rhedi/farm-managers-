@@ -252,7 +252,7 @@ button { font: inherit; color: inherit; }
 .xp-text { min-width: 0; font-size: .72rem; font-weight: 600; line-height: 1; color: #e9e3c2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stat-weather { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.1; font-size: .95rem; }
 #topbar .season-chip {
-  font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; line-height: 1.35;
+  font-size: .68rem; font-weight: 700; letter-spacing: .01em; line-height: 1.35; white-space: nowrap;
   padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #e9e3c2;
 }
 #topbar .season-chip[hidden] { display: none; }
@@ -281,7 +281,8 @@ button { font: inherit; color: inherit; }
 #view {
   max-width: var(--wrap);
   margin: 0 auto;
-  padding: 12px 12px 20px;
+  /* bottom: room to scroll the last buttons above the toast stack (#toast-root sits 46px over the tabs) */
+  padding: 12px 12px 96px;
 }
 .section { margin-bottom: 18px; }
 .section-title {
@@ -611,7 +612,7 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
    With a modal open (sheet covers the bottom), they sit over the dimmed topbar so they never cover the sheet header/✕. */
 body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; }
 body.modal-open .toast { animation-name: toast-in-top; }
-.toast-msg { flex: 1; min-width: 0; }
+.toast-msg { flex: 1; min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .toast .btn { pointer-events: auto; flex: none; }
 .pwa-install { margin: 6px 0; }
 .pwa-install p { margin: 0; }

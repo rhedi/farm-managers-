@@ -37,22 +37,27 @@ export async function sellItem(it) {
   act(app.game.sellProduct(it.id), (r) => `Terjual ${it.emoji} ${it.name} senilai ${fmtMoney(r.earned)}.`);
 }
 
-/** Sell every sellable item of a group (feed reserves stay), after a confirmation. */
+/** What "Jual semua" sells of an item: stock minus feed (reserve / auto-feed), contracts and Manajer Pabrik inputs. */
+const bulkQty = (it) => Math.max(0, it.bulk ?? sellableQty(it));
+
+/** Sell every item of a group except kept stock (feed, contracts, factory inputs), after a confirmation. */
 export async function sellGroup(items, label) {
-  const list = items.filter((it) => sellableQty(it) > 0);
+  const list = items.filter((it) => bulkQty(it) > 0);
   if (!list.length) return;
-  const total = list.reduce((s, it) => s + sellableQty(it) * it.price, 0);
-  const feedRisk = list.some((it) => it.isFeed && !(it.reserve > 0));
+  const total = list.reduce((s, it) => s + bulkQty(it) * it.price, 0);
+  const feedRisk = list.some((it) => it.isFeed && !(it.reserve > 0) && !(it.kept > 0));
+  const kept = items.some((it) => it.kept > 0);
   const ok = await confirmModal({
     title: `Jual semua ${label.toLowerCase()}?`,
     message: `${list.length} produk dijual dengan harga pasar saat ini, total ≈ ${fmtMoney(total)}.`
-      + (feedRisk ? ' ⚠️ Termasuk pakan ternak tanpa cadangan!' : list.some((it) => it.reserve > 0) ? ' Cadangan pakan tetap disimpan.' : ''),
+      + (feedRisk ? ' ⚠️ Termasuk pakan ternak tanpa cadangan!' : '')
+      + (kept ? ' 🔒 Stok untuk pakan, kontrak aktif, dan bahan Manajer Pabrik tetap disimpan.' : ''),
     confirmLabel: 'Jual semua', danger: feedRisk,
   });
   if (!ok) return;
   let earned = 0;
   for (const it of list) {
-    const r = app.game.sellProduct(it.id);
+    const r = app.game.sellProduct(it.id, bulkQty(it));
     if (!r.ok) return act(r);
     earned += r.earned;
   }

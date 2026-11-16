@@ -4,6 +4,9 @@ import { STORAGE_KINDS, stockTons, upgradesFor } from './storage.js';
 import { HERD_DEFAULTS } from './breeding.js';
 import { upgradesOf } from './upgrades.js';
 import { normalizeLedger } from './ledger.js';
+import { ensureAutoFeed } from './autoFeed.js';
+import { ensureOverflow } from './overflow.js';
+import { ensureCalendar } from './calendar.js';
 
 export const SAVE_KEY = 'farm-manager-save';
 export const SAVE_VERSION = 1;
@@ -16,8 +19,10 @@ export const STATS_KEYS = ['harvests', 'fieldsOwned', 'machinesOwned', 'machineM
 
 export const newStats = () => Object.fromEntries(STATS_KEYS.map((k) => [k, 0]));
 
+/** A pause caused by the level-up modal (`modalPause` = speed before it) is never saved: the save keeps that speed. */
 export function serializeState(state) {
-  return JSON.stringify({ ...state, version: SAVE_VERSION, savedAt: Date.now() });
+  const { modalPause, ...rest } = state;
+  return JSON.stringify({ ...rest, ...(modalPause > 0 ? { speed: modalPause } : {}), version: SAVE_VERSION, savedAt: Date.now() });
 }
 
 /** Parse + validate a save. Returns the state object or throws Error on corrupt input. */
@@ -36,6 +41,8 @@ export function parseSave(json) {
  * market entries and herds; drop machines/fields/animals whose definitions are gone.
  */
 export function normalizeState(s, data, idx) {
+  if (s.modalPause > 0) s.speed = s.modalPause; // defensive: older v16 builds could save it
+  delete s.modalPause;
   s.speed ??= 1; s.xp ??= 0; s.level ??= 1; s.loan ??= 0;
   // Raised level cap (30 → 50): a save that kept earning XP at the old max would skip several levels at once.
   // Banked XP is cut to the next level's threshold, so the next XP gain levels up exactly once (with its modal).
@@ -49,6 +56,11 @@ export function normalizeState(s, data, idx) {
   for (const id of Object.keys(s.factories)) if (!(data.FACTORIES || []).some((f) => f.id === id)) delete s.factories[id];
   s.stats = { ...newStats(), ...(s.stats || {}) };
   normalizeLedger(s); // income/expense report: old saves start with an empty ledger
+  // v16 Hadiah Berskala / Bab Petani: XP per game day (missions.ensureMissions measures from now on), bonus research
+  // points, chapter chain (chapters.ensureChapters claims already-met steps silently when `seeded` is false).
+  if (s.missions && typeof s.missions === 'object' && !Array.isArray(s.missions.xpDays)) s.missions.xpDays = [];
+  if (s.research?.bonus != null) s.research.bonus = Math.max(0, Number(s.research.bonus) || 0); // missing = 0
+  if (!s.chapters || typeof s.chapters !== 'object') s.chapters = { claimed: [], seeded: false, notice: 0 };
   for (const id of Object.keys(s.fields)) {
     if (!idx.fields.has(id)) { delete s.fields[id]; continue; }
     s.fields[id] = { ...newFieldState(idx.fields.get(id)), ...s.fields[id] };
@@ -84,6 +96,11 @@ export function normalizeState(s, data, idx) {
       autoRestock: false, readyDays: 0, dead: 0, alert: 'ok', ...p }));
   const maxPond = s.ponds.reduce((mx, p) => Math.max(mx, Number(String(p.uid).slice(1)) || 0), 0);
   s.nextPondUid = Math.max(s.nextPondUid || 1, maxPond + 1);
+  // v16: Beli pakan otomatis (missing = on: it only buys feed that prevents starvation), Gudang overflow tally,
+  // Kalender Panen + timed boosters (missing = no claims, no boosters).
+  ensureAutoFeed(s);
+  ensureOverflow(s);
+  ensureCalendar(s);
   if (s.history.length > HISTORY_SIZE) s.history.splice(0, s.history.length - HISTORY_SIZE);
   return s;
 }

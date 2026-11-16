@@ -103,7 +103,14 @@ export function updateTopbar(game) {
   if (last.xpTitle !== lvlTitle) { last.xpTitle = lvlTitle; els.level.closest('.stat-level').title = lvlTitle; }
   if (els.xptext) updateXpText(els.xptext, li);
   const c = game.clock();
-  setText(els.clock, 'clock', fmtClock(c.day, c.hour));
+  // Compact "H1069 · 14:00" so 4-digit days stay readable next to the speed buttons at 360 px; full text as label.
+  const clockText = `H${c.day} · ${String(c.hour).padStart(2, '0')}:00`;
+  if (last.clock !== clockText) {
+    setText(els.clock, 'clock', clockText);
+    const full = fmtClock(c.day, c.hour);
+    els.clock.title = full;
+    els.clock.setAttribute('aria-label', full);
+  }
   if (last.speed !== c.speed) {
     last.speed = c.speed;
     for (const b of els.speeds) b.classList.toggle('active', Number(b.dataset.speed) === c.speed);
@@ -117,7 +124,9 @@ export function updateTopbar(game) {
     // Weather emoji + temp; season as a short text chip so the two emojis never contradict.
     setText(els.weatherNow ?? els.weather, 'weather', `${weatherEmoji(w0)} ${Math.round(w0.temp)}°C`);
     if (els.season) {
-      setText(els.season, 'season', (w0.season?.name ?? '').replace(/^Musim\s+/i, ''));
+      // Line 2: the season as words ("Musim hujan"), so a sunny icon on line 1 never reads as "☀️ HUJAN".
+      const sn = w0.season?.name ?? '';
+      setText(els.season, 'season', sn ? `Musim ${sn.replace(/^Musim\s+/i, '').toLowerCase()}` : '');
       els.season.hidden = !w0.season;
     }
     const title = wv.map((r) => `${r.name}: ${r.season ? `${r.season.name}, ` : ''}${weatherEmoji(r)} ${Math.round(r.temp)}°C${r.rain ? ' hujan' : ''}`)

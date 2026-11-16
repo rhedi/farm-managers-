@@ -11,6 +11,7 @@ import { fieldUnlockLevel } from './defs.js';
 import { orchardFactors, stepOrchardHour, orchardView } from './orchard.js';
 import { greenhouseFactors, greenhouseView, hasGreenhouse } from './greenhouse.js';
 import { perk } from './research.js';
+import { boostMult } from './calendar.js';
 
 export const WITHER_AFTER_HOURS = 72;
 export const WITHER_PER_DAY = 0.1;
@@ -109,9 +110,10 @@ export function expectedYield(game, fieldId, cropId, assume = {}) {
   return round2(tons);
 }
 
+/** Rolled harvest: expected × rand(0.9–1.1) × the 🧪 Pupuk Super booster (calendar.js), if active. */
 export function rollYield(game, fieldId) {
   const f = game.state.fields[fieldId];
-  return round2(expectedYield(game, fieldId, f.cropId) * randRange(game.state, 0.9, 1.1));
+  return round2(expectedYield(game, fieldId, f.cropId) * randRange(game.state, 0.9, 1.1) * boostMult(game, 'yield'));
 }
 
 /** One game hour of growth for every owned field. */

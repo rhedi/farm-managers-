@@ -79,6 +79,7 @@ test('building and stocking cost money, book kolam / benih_ikan, and stocking ne
 
 test('fish eat pelet from the silo each day: count × harvestKg × fcr / growDays kg', () => {
   const { g, p, def } = pondGame('lele', { pellet: 5 });
+  g.setAutoFeed({ fish: false }); // 🛒 auto-feed (on by default) would top the pelet up
   const n = p().count;
   day(g);
   near(g.state.silo[C.feed], 5 - n * def.harvestKg * def.fcr / def.growDays / 1000, 1e-5);

@@ -1,9 +1,10 @@
 // Read-only view helpers for the UI.
 import { round2 } from './rng.js';
-import { loanCap, loanRate, machineResale } from './economy.js';
+import { loanCap, loanRate, machineResale, statValue } from './economy.js';
 import { conditionOf, repairCost } from './wear.js';
 import { effectiveStats, upgradesOf, upgradeSpent } from './upgrades.js';
 import { kindOf, tonsPerUnit } from './storage.js';
+import { achievementReward } from './rewards.js';
 
 /**
  * Stock items. `reserve` = feed reserve (t) that sellProduct keeps; `isFeed` = an owned herd eats it;
@@ -63,5 +64,5 @@ export function loanInfo(game) {
 export function achievementsView(game) {
   const s = game.state;
   return game.data.ACHIEVEMENTS.map((a) => ({ ...a, unlocked: s.achievements.includes(a.id),
-    value: s.stats[a.condition.stat] ?? 0 }));
+    value: statValue(game, a.condition.stat), payout: achievementReward(game, a) })); // payout: {money, rp} if unlocked now
 }

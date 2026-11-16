@@ -31,6 +31,7 @@ test('animals produce when fed and stay healthy', () => {
 
 test('unfed animals degrade, produce nothing, and warn once per change (B13)', () => {
   const { g, a } = herdGame(false);
+  g.setAutoFeed({ animals: false }); // 🛒 auto-feed (on by default) would prevent the starvation
   const warnings = [];
   g.on((e) => e.type === 'low_feed' && warnings.push(e));
   g.advance(24 * 5);

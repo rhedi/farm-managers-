@@ -3,6 +3,7 @@ import { h, fmtMoney, fmtNum } from './dom.js';
 import { app, act } from './app.js';
 import { fold } from './subtabs.js';
 import { iconOf } from './fishArt.js';
+import { autoFeedToggle } from './autoFeedToggle.js';
 
 /** Pelet stock, days left and 3/7-day buttons (replaced as a whole by the in-place patch). */
 export function pelletPanel(v) {
@@ -18,6 +19,7 @@ export function pelletPanel(v) {
     h('div', `${low ? '⚠️' : '🟤'} Pelet ikan: `, h('b', `${fmtNum(pl.stock, 2)} t`),
       pl.daysLeft != null ? ` · cukup ${pl.daysLeft} hari (${fmtNum(pl.needPerDay * 1000)} kg/hari)` : ' · belum ada ikan'),
     h('div.card-actions', btn(3, '🟤 Pelet 3 hari', low), btn(7, '7 hari', false)),
+    autoFeedToggle('fish'),
     h('div.small.muted', 'Pelet juga bisa diproduksi di Pabrik Pakan Ikan (kedelai + jagung) atau dibeli di Pasar.'));
 }
 

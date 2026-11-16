@@ -69,9 +69,10 @@ test('save/loadFrom via injected storage and offline catch-up cap', () => {
   const b = loadFrom(storage, { data: DATA });
   assert.deepEqual(comparable(a), comparable(b));
   const t0 = b.state.time;
-  const h = b.catchUp(10 * 24 * 3600);
-  assert.equal(h, 48);
-  assert.equal(b.state.time, t0 + 48);
+  const h = b.catchUp(10 * 24 * 3600); // capped at 8 real hours: 48 h exact + coarse days
+  assert.equal(h, 8 * 3600 / DATA.BALANCE.realSecondsPerGameHour);
+  assert.equal(b.lastCatchUp.exactHours, 48);
+  assert.equal(b.state.time, t0 + h);
   assert.throws(() => loadGame('{"version":999}'));
 });
 

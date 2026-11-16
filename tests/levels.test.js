@@ -6,10 +6,38 @@ import { fieldUnlockLevel } from '../js/engine/defs.js';
 
 const { LEVELS, CROPS, PRODUCTS, MACHINES, ANIMALS, FIELDS, REGIONS, ACHIEVEMENTS, BALANCE, STARTING } = DATA;
 
-test('LEVELS: 50 strictly increasing thresholds, first 10 unchanged', () => {
+test('LEVELS: 50 strictly increasing thresholds; v16 flattens Lv 5–12 only, never above the old thresholds', () => {
   assert.equal(LEVELS.length, 50);
-  assert.deepEqual(LEVELS.slice(0, 10), [0, 250, 900, 2200, 4500, 8000, 13000, 20000, 30000, 45000]);
+  assert.deepEqual(LEVELS.slice(0, 4), [0, 250, 900, 2200]);
+  assert.equal(LEVELS[12], 92000, 'Lv 13+ unchanged');
+  const old = [4500, 8000, 13000, 20000, 30000, 45000, 57000, 73000];
+  for (let i = 4; i < 12; i++) assert.ok(LEVELS[i] <= old[i - 4], `Lv ${i + 1} not raised (old saves keep their level)`);
   for (let i = 1; i < LEVELS.length; i++) assert.ok(LEVELS[i] > LEVELS[i - 1], `level ${i + 1}`);
+  // Gaps never shrink through the flattened band (no new hump inside Lv 4→13).
+  for (let i = 4; i < 12; i++) assert.ok(LEVELS[i] - LEVELS[i - 1] <= LEVELS[i + 1] - LEVELS[i], `gap ${i + 1}`);
+});
+
+test('old saves never lose a level or XP after the Lv 5–12 change', async () => {
+  const { loadGame } = await import('../js/engine.js');
+  for (const [level, xp] of [[4, 4499], [5, 7999], [6, 12999], [7, 19999], [8, 29999], [9, 44999], [10, 56999], [11, 72999], [12, 91999]]) {
+    const g = newGame(level);
+    Object.assign(g.state, { level, xp });
+    const b = loadGame(g.serialize(), { data: DATA });
+    assert.ok(b.state.level >= level, `Lv ${level}`);
+    assert.equal(b.state.xp, xp, 'banked XP kept');
+  }
+});
+
+test('a level-up modal pause (state.modalPause) is never saved', async () => {
+  const { loadGame } = await import('../js/engine.js');
+  const g = newGame(7);
+  g.setSpeed(5);
+  g.state.modalPause = 5; g.setSpeed(0); // what the level-up modal does while open
+  const saved = JSON.parse(g.serialize());
+  assert.equal(saved.speed, 5);
+  assert.equal('modalPause' in saved, false);
+  const old = { ...saved, speed: 0, modalPause: 2 }; // a save written by a build that stored the pause
+  assert.equal(loadGame(old, { data: DATA }).state.speed, 2);
 });
 
 test('every level 2–50 unlocks at least one thing (factories included when present)', () => {

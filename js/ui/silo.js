@@ -7,6 +7,7 @@ import { factoriesSection, factoriesSig } from './factories.js';
 import { subTabBar, getSub, goTo } from './subtabs.js';
 import { CATEGORIES, stockByCategory, groupValue, sellGroup, stockRow } from './stock.js';
 import { iconOf } from './fishArt.js';
+import { overflowCard, overflowSig } from './overflowCard.js';
 
 const SUBS = CATEGORIES.map((c) => c.sub);
 let sig = '';
@@ -20,7 +21,7 @@ export const nearlyFull = (info) => !!info && fill(info) >= 0.9;
 function computeSig(game) {
   const info = (k) => { const i = game.storageInfo(k); return `${i.capacity}:${i.used}:${i.nextUpgradeCost <= game.state.money ? 1 : 0}`; };
   return `${getSub('silo', SUBS)}|` + game.siloView().items.map((i) => `${i.id}:${i.qty}:${i.price}:${i.reserve ?? 0}:${i.isFeed ? 1 : 0}`).join(',')
-    + `|${info('silo')}|${info('cold')}|${factoriesSig(game)}`;
+    + `|${info('silo')}|${info('cold')}|${factoriesSig(game)}|${overflowSig(game)}`;
 }
 
 const LABEL = { silo: { icon: '🏚️', title: 'Silo' }, cold: { icon: '❄️', title: 'Gudang Dingin' } };
@@ -120,6 +121,7 @@ export function renderSilo(root) {
       badge: full[c.id] ? '!' : c.id === 'processed' && blocked ? blocked : null,
       warn: true,
     })), sub),
+    STORE[cat.id] ? overflowCard(game, STORE[cat.id], upgradeFlow) : null,
     STORE[cat.id] ? capacityCard(game, STORE[cat.id], groups) : storeNote(groups.processed),
     stockGroup(cat, groups[cat.id]),
     cat.id === 'animal' ? h('button.btn.btn-secondary.btn-block', { type: 'button', onclick: () => goTo('animals') }, '🐄 Kelola ternak & pakan') : null,

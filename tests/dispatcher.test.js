@@ -250,7 +250,8 @@ test('offline catch-up: 48 h of dispatching is bounded and keeps sending trucks'
   const t0 = performance.now();
   const hours = g.catchUp(48 * DATA.BALANCE.realSecondsPerGameHour * 10);
   const ms = performance.now() - t0;
-  assert.equal(hours, 48);
+  assert.equal(hours, 480); // 48 h exact, the rest in coarse "mode hemat" days (offline.js)
+  assert.equal(g.lastCatchUp.exactHours, 48);
   const v = g.dispatcherView();
   assert.ok(v.stats.trips >= 10, `trips ${v.stats.trips}`);
   assert.ok(v.stats.extraProfit > 0);

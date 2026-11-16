@@ -4,6 +4,7 @@ import { syncCounts } from './economy.js';
 import { xpForValue } from './taskrun.js';
 import { HERD_DEFAULTS, breedingMods, stepBreedingDay, mixQuality, breedingView } from './breeding.js';
 import { storeProduct } from './storage.js';
+import { boostMult } from './calendar.js';
 
 export const LOW_FEED_DAYS = 3;
 const ok = (extra = {}) => ({ ok: true, ...extra });
@@ -91,7 +92,7 @@ export function stepAnimalsDay(game) {
       h.happiness = clamp(h.happiness - 0.25 * (1 - fed), 0, 1);
       h.quality = clamp(h.quality - 0.15 * (1 - fed), 0.1, 1);
     }
-    const produced = round2(h.count * a.productPerDay * h.quality * fed * mods.production);
+    const produced = round2(h.count * a.productPerDay * h.quality * fed * mods.production * boostMult(game, 'animalProd')); // 🐄 booster (calendar.js)
     if (produced > 0) {
       storeProduct(game, a.product, produced); // Gudang dingin; what doesn't fit is force-sold
       producedValue += produced * (game.idx.products.get(a.product)?.basePrice ?? 0);

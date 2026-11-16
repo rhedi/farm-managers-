@@ -1,0 +1,74 @@
+/* v16: Gudang penuh card, 🛒 auto-feed switch, Manajer Pabrik blocked box, 📅 Kalender Panen, ☀️ Laporan Pagi. */
+
+/* Gudang penuh */
+.overflow-card { border: 2px solid var(--red-line); background: var(--red-l2); color: var(--ink); display: grid; gap: 8px;
+  animation: overflow-pulse 1.6s ease-in-out 2; }
+.overflow-head { display: flex; gap: 10px; align-items: flex-start; }
+.overflow-icon { font-size: 1.6rem; line-height: 1; animation: overflow-shake .5s ease-in-out 2 .3s; }
+.overflow-head strong { color: var(--red-d); display: block; }
+.overflow-loss { font-size: .85rem; color: var(--ink-soft); }
+.overflow-up.btn-danger { background: var(--red-fill); border-color: var(--red-press); color: #fff; min-height: 44px; }
+.overflow-up:disabled { opacity: .55; }
+@keyframes overflow-pulse { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 4px var(--red-line); } }
+@keyframes overflow-shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+
+/* 🛒 Beli pakan / pelet otomatis */
+.autofeed { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 10px; margin: 6px 0 10px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+.autofeed.on { border-color: var(--pos-line); background: var(--leaf-bg); }
+.autofeed-switch { display: flex; align-items: center; gap: 10px; flex: 1 1 220px; min-height: 44px; cursor: pointer; }
+.autofeed-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.autofeed-track { flex: 0 0 46px; height: 26px; border-radius: 13px; background: var(--line-strong); position: relative; transition: background .25s; }
+.autofeed-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.autofeed-switch input:checked + .autofeed-track { background: var(--green); }
+.autofeed-switch input:checked + .autofeed-track .autofeed-knob { transform: translateX(20px); }
+.autofeed-switch input:focus-visible + .autofeed-track { outline: 2px solid var(--sky); outline-offset: 2px; }
+.autofeed-text { display: grid; gap: 2px; min-width: 0; }
+.autofeed-days select { min-height: 44px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--input-bg); color: var(--ink); padding: 0 8px; }
+.autofeed-days { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+/* Manajer Pabrik menganggur */
+.fm-blocked { display: grid; gap: 8px; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid var(--red-line);
+  background: var(--red-l2); color: var(--ink); animation: overflow-pulse 1.6s ease-in-out 1; }
+.fm-blocked b { color: var(--red-d); }
+
+/* 📅 Kalender Panen */
+.cal-card { display: grid; gap: 8px; }
+.cal-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 8px; }
+.cal-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-day { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface-2); min-height: 64px; text-align: center; }
+.cal-num { font-size: .7rem; color: var(--ink-mute); font-weight: 700; }
+.cal-emoji { font-size: 1.25rem; line-height: 1.2; }
+.cal-name { font-size: .62rem; line-height: 1.15; color: var(--ink-soft); overflow-wrap: anywhere; }
+.cal-day.done { background: var(--green-l); border-color: var(--pos-line); }
+.cal-day.today { background: var(--gold-l); border: 2px solid var(--wheat); animation: cal-bob 1.4s ease-in-out infinite; }
+.cal-day.big:not(.done) { background: var(--gold-soft); border-color: var(--gold-line); }
+.cal-today { color: var(--gold-d); font-weight: 600; }
+.cal-broken { color: var(--red-d); }
+.cal-claim:not(:disabled) { animation: cal-glow 1.8s ease-in-out infinite; }
+@keyframes cal-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes cal-glow { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 4px var(--gold-line); } }
+.booster-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.booster-chip { padding: 4px 10px; border-radius: 999px; background: var(--teal-l); color: var(--teal-d); font-size: .8rem; font-weight: 600;
+  animation: booster-in .4s ease-out both; }
+@keyframes booster-in { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+
+/* ☀️ Laporan Pagi */
+.morning-report { display: grid; gap: 10px; }
+.mr-intro { margin: 0; font-size: .9rem; color: var(--ink-soft); }
+.mr-hero { display: grid; justify-items: center; padding: 12px; border-radius: 14px; background: linear-gradient(135deg, var(--banner-a), var(--banner-b));
+  border: 1px solid var(--banner-line); animation: booster-in .5s ease-out both; }
+.mr-hero-num { font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.mr-hero.pos .mr-hero-num { color: var(--green-d); }
+.mr-hero.neg .mr-hero-num { color: var(--red-d); }
+.mr-list { display: grid; gap: 4px; }
+.mr-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px;
+  background: var(--surface-2); animation: mr-in .45s ease-out both; }
+.mr-icon { font-size: 1.2rem; text-align: center; }
+.mr-val { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mr-row.pos .mr-val { color: var(--green-d); }
+.mr-row.neg .mr-val { color: var(--red-d); }
+.mr-start { min-height: 48px; font-size: 1rem; }
+@keyframes mr-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }

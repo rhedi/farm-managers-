@@ -9,6 +9,7 @@ import { round2 } from './rng.js';
 import { fmtMoney } from './defs.js';
 import { stateOf, defOf, recipeOf, setRecipe, startBatch } from './factories.js';
 import { buyProduct } from './purchase.js';
+import { storageInfo } from './storage.js';
 import { planPass, controlledIds, WAIT } from './factoryPlanner.js';
 import { staffCfg, staffTier, staffWage, hireStaff, staffSwapCost, replaceStaff, fireStaff, payStaffDay, staffCandidates } from './staff.js';
 
@@ -41,7 +42,7 @@ export const factoryManagerWage = (game) => staffWage(game, ROLE);
 /** createGame / load migration: absent = not hired, default settings; unknown ids are dropped. */
 export function ensureFactoryManager(game) {
   const s = game.state;
-  const d = s.factoryManager = { hired: null, on: true, settings: {}, lastPass: null, waits: {}, stats: {}, today: {}, recent: [], note: '', last: null, ...(s.factoryManager || {}) };
+  const d = s.factoryManager = { hired: null, on: true, settings: {}, lastPass: null, waits: {}, stats: {}, today: {}, recent: [], note: '', last: null, idleSince: null, ...(s.factoryManager || {}) };
   if (d.hired && !tierOf(game, d.hired.tierId)) d.hired = null;
   d.settings = sanitize(game, { ...defaultSettings(), ...d.settings });
   d.stats = { runs: 0, batches: 0, estProfit: 0, bought: 0, ...d.stats };
@@ -114,10 +115,11 @@ export function setFactoryManagerSettings(game, patch = {}) {
 }
 
 /**
- * Inputs the Manajer Pabrik keeps from the Manajer Logistik: queued batches of its factories not started yet plus
- * what the next pass would use (dry run, no buying). {} when not working.
+ * Inputs the Manajer Pabrik keeps from automatic selling/shipping: queued batches of its factories not started yet
+ * plus what the next pass would use (dry run, no buying). `hours` > interval widens the dry run to that many hours of
+ * queue room (plan auto-sell keeps a day of inputs, js/engine/stockKeep.js). {} when not working.
  */
-export function factoryHold(game) {
+export function factoryHold(game, { hours = 0 } = {}) {
   if (!working(game)) return {};
   const d = st(game), tier = tierOf(game, d.hired.tierId), ids = new Set(controlledIds(game, tier, d.settings));
   const hold = {};
@@ -126,7 +128,7 @@ export function factoryHold(game) {
     const f = stateOf(game, def.id), r = recipeOf(def, f.recipeId), n = f.queued - (f.running ? 1 : 0);
     if (r && n > 0) for (const [id, q] of Object.entries(r.inputs)) add(id, q * (f.inMult ?? 1) * n);
   }
-  for (const p of planPass(game, tier, d.settings, factoryManagerWage(game), { ahead: true }).plans) for (const [id, q] of Object.entries(p.use)) add(id, q);
+  for (const p of planPass(game, tier, d.settings, factoryManagerWage(game), { ahead: true, horizon: hours }).plans) for (const [id, q] of Object.entries(p.use)) add(id, q);
   return hold;
 }
 
@@ -159,6 +161,7 @@ export function runFactoryManager(game, { force = false } = {}) {
   const why = [...new Set(idle.map((id) => d.waits[id]).filter(Boolean))];
   d.note = !plan.ids.length ? 'Belum punya pabrik. Beli di Gudang › Olahan.'
     : idle.length ? `${idle.length} pabrik menunggu: ${why.join(', ') || WAIT.input}.` : '';
+  d.idleSince = idle.length ? (d.idleSince ?? s.time) : null; // a factory left idle ≥ 1 game day → card shows a fix
   return runs;
 }
 
@@ -213,6 +216,7 @@ export function factoryManagerView(game) {
     hired: hiredTier ? { ...tierView(hiredTier), hiredDay: d.hired.hiredDay, wagePaid: factoryManagerWage(game) } : null,
     on: d.on, note: d.note, candidates: staffCandidates(game, ROLE, tierView), settings: structuredClone(set), steps: STEPS,
     stats: { ...d.stats }, today: { runs: today.runs, batches: today.batches, profit: today.profit }, nextPassHours: next, lastRun,
+    blocked: hiredTier && d.on ? blockedInfo(game, hiredTier, factories) : null,
     queuedBatches: factories.filter((f) => f.managed).reduce((a, f) => a + f.queued, 0),
     busy: factories.filter((f) => f.managed && (f.running || f.queued)).length,
     recent: d.recent.map((r) => {
@@ -221,6 +225,29 @@ export function factoryManagerView(game) {
     }),
     factories, products, owned: factories.length,
   };
+}
+
+/**
+ * A managed factory idle for ≥ 1 game day: {hours, reason, missing:[product names], fix: null | {action, label, cost?}}.
+ * Fixes: 'buyInputs' (Direktur, setting off), 'storage' (store near full), 'margin' (min margin to 0), 'market' (go buy).
+ */
+function blockedInfo(game, tier, factories) {
+  const d = st(game), s = game.state;
+  if (d.idleSince == null || s.time - d.idleSince < 24 - 1e-9) return null;
+  const idle = factories.filter((f) => f.managed && !f.running && !f.queued);
+  if (!idle.length) return null;
+  const waits = new Set(idle.map((f) => f.wait ?? WAIT.input));
+  const missing = [...new Set(idle.flatMap((f) => {
+    const r = recipeOf(defOf(game, f.id), stateOf(game, f.id).recipeId);
+    return r ? Object.entries(r.inputs).filter(([id, q]) => (s.silo[id] || 0) < q).map(([id]) => pname(game, id)) : [];
+  }))];
+  const reason = waits.has(WAIT.input) ? WAIT.input : waits.has(WAIT.room) ? WAIT.room : WAIT.margin;
+  const silo = storageInfo(game, 'silo');
+  const fix = reason === WAIT.room ? { action: 'storage', kind: 'silo', label: `Perbesar silo (${fmtMoney(silo.nextUpgradeCost)})`, cost: silo.nextUpgradeCost }
+    : reason === WAIT.margin ? { action: 'margin', label: 'Turunkan margin min. ke 0%' }
+      : tier.buyInputs && !d.settings.buyInputs ? { action: 'buyInputs', label: 'Aktifkan beli bahan' }
+        : { action: 'market', label: 'Beli bahan di Pasar' };
+  return { hours: round2(s.time - d.idleSince), reason, factories: idle.map((f) => f.name), missing, fix };
 }
 
 /** Display name of a recipe: its own name, else the first output product's. */

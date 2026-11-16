@@ -10,6 +10,7 @@ import { fold, goTo, subTabBar, getSub } from './subtabs.js';
 import { stockByCategory, groupValue } from './stock.js';
 import { fishPane, fishSig, fishLiveSig, fishAlerts, patchFish } from './fish.js';
 import { iconOf } from './fishArt.js';
+import { autoFeedToggle } from './autoFeedToggle.js';
 
 const qty = new Map(); // animalId → typed count (survives re-render)
 const manageOpen = new Set(); // herds whose "Kelola kawanan" panel is open
@@ -96,6 +97,44 @@ function managePanel(a, free) {
   }, `🏗️ Perluas kandang +${a.barnCapacity} (${fmtMoney(a.barnCost)})`)));
 }
 
+// ---- Kandang hidup (v16 Juice Pass): idle animals walk, graze or peck; now and then one "says" something or a
+// product pops up. CSS-only loops (transform/opacity), paused while the tab is hidden; reduced motion only slows them.
+const SAYS = { cows: 'Mooo!', buffalo: 'Mooo!', sheep: 'Mbeee!', goats: 'Mbek!', pigs: 'Oink!', chickens: 'Petok!',
+  ducks: 'Kwek!', bees: 'Bzzz', alpaca: 'Hmm~' };
+const PECKERS = new Set(['chickens', 'ducks']);
+const FLYERS = new Set(['bees']);
+if (typeof document !== 'undefined' && !window.__herdVis) {
+  window.__herdVis = true;
+  document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('anim-paused', document.hidden));
+}
+
+/** Small paddock strip: up to 6 animals (more head = more of them), deterministic spots so re-renders don't jump. */
+function herdPen(a, prod) {
+  const n = Math.max(1, Math.min(6, Math.ceil(Math.sqrt(a.count))));
+  const style = FLYERS.has(a.id) ? 'fly' : PECKERS.has(a.id) ? 'peck' : 'graze';
+  const kids = [];
+  for (let i = 0; i < n; i++) {
+    const el = h(`span.herd-ani.${style}`, h('span.herd-body', a.emoji));
+    const s = el.style;
+    s.setProperty('--x0', `${(6 + (i * 82) / n).toFixed(1)}%`);
+    s.setProperty('--dx', `${(i % 2 ? -1 : 1) * (14 + ((i * 23) % 22))}px`);
+    s.setProperty('--dur', `${6 + ((i * 13) % 5)}s`);
+    s.setProperty('--del', `${-((i * 1.7) % 6).toFixed(1)}s`);
+    s.setProperty('--y', `${i % 2 ? 4 : 18}px`);
+    kids.push(el);
+  }
+  const pop = (cls, text, i, period) => {
+    const el = h(`span.${cls}`, text);
+    el.style.setProperty('--x0', `${(4 + ((i % n) * 82) / n).toFixed(1)}%`);
+    el.style.setProperty('--del', `${(i * 2.3 + 1).toFixed(1)}s`);
+    el.style.setProperty('--period', `${period}s`);
+    return el;
+  };
+  return h(`div.herd-pen.pen-${style}`, { 'aria-hidden': 'true' }, kids,
+    pop('herd-say', SAYS[a.id] ?? '♪', 0, 11), n > 2 ? pop('herd-say', SAYS[a.id] ?? '♪', 2, 13) : null,
+    prod ? pop('herd-pop', prod.emoji, 1, 7) : null, prod && n > 3 ? pop('herd-pop', prod.emoji, 3, 9) : null);
+}
+
 /** Herd with a barn: daily essentials on top (production, feed + buy, quality, happiness). */
 function herdCard(a) {
   const prod = productOf(a);
@@ -110,9 +149,11 @@ function herdCard(a) {
         h('div.card-title', a.name),
         h('div.card-sub', `${prod ? prod.emoji + ' ' : ''}${fmtNum(perDay, 1)} ${prod?.unit ?? ''}/hari · `, starRating(a.stars ?? 3), ` ${fmtGene(a.breedQuality ?? 1)}`)),
       h('span.badge.badge-green', `${a.count}/${a.capacity}`)),
+    a.count > 0 ? herdPen(a, prod) : null,
     a.count > 0
       ? [h(`div.herd-feedline${lowFeed ? '.neg' : ''}`, `${lowFeed ? '⚠️' : '🌾'} Stok pakan ${feedText(a)}`,
-        q ? h('span.small.muted', ` · beli ${q.name} (termurah)`) : null),
+        app.game.state.autoFeed?.animals ? h('span.stock-tag.autofeed-tag', '🛒 otomatis')
+          : q ? h('span.small.muted', ` · beli ${q.name} (termurah)`) : null),
       h('div.herd-meters', meter('Kualitas', a.quality, 'gold'), meter('Kebahagiaan', a.happiness, 'blue')),
       h('div.card-actions.herd-feed', feedButton(a, 3, '🌾 Pakan 3 hari', lowFeed), feedButton(a, 7, '7 hari', false))]
       : h('p.small.muted', 'Kandang masih kosong — beli ternak di "Kelola kawanan".'),
@@ -173,6 +214,7 @@ function animalsPane(game) {
   return [
     h('section.section',
       h('div.section-title', '🐄 Kandangku', h('span.small.muted', `${herds.length} kawanan`)),
+      herds.length ? autoFeedToggle('animals') : null,
       herds.length ? h('div.cards', herds.map(herdCard))
         : h('div.empty.compact', 'Belum punya kandang. Bangun kandang pertama di bawah.'),
       h('p.hint', 'Ternak makan pakan termurah dari gudang setiap hari. Jaga stok pakan agar kualitas tetap tinggi.')),

@@ -7,6 +7,7 @@ import { upgradeSpent, emptyUpgrades, cfg as upgradeCfg } from './upgrades.js';
 import { saleCategory } from './ledger.js';
 import { perk } from './research.js';
 import { pondsValue } from './fishView.js';
+import { achievementReward, grantResearchPoints } from './rewards.js';
 
 export const FIELD_REFUND = 0.7;
 export const MACHINE_REFUND = 0.6;
@@ -232,16 +233,26 @@ export function addXp(game, n) {
   game.checkAchievements();
 }
 
+/** Achievement progress: state.stats, plus values that live elsewhere (fish ponds, Manajer Pabrik runs). */
+export function statValue(game, key) {
+  if (key === 'pondsOwned') return (game.state.ponds || []).length;
+  if (key === 'factoryManagerRuns') return game.state.factoryManager?.stats?.runs ?? 0;
+  return game.state.stats[key] ?? 0;
+}
+
 export function checkAchievements(game) {
   const s = game.state;
   const unlocked = [];
   for (const a of game.data.ACHIEVEMENTS) {
     if (s.achievements.includes(a.id)) continue;
-    if ((s.stats[a.condition.stat] ?? 0) < a.condition.gte) continue;
+    if (statValue(game, a.condition.stat) < a.condition.gte) continue;
     s.achievements.push(a.id);
-    game.earn(a.reward || 0, 'hadiah', { stat: false });
+    const r = achievementReward(game, a); // Hadiah Berskala: fixed reward or a share of recent daily income
+    game.earn(r.money, 'hadiah', { stat: false });
+    grantResearchPoints(game, r.rp);
     unlocked.push(a.id);
-    game.emit('achievement', `🏆 Pencapaian: ${a.name}! Hadiah ${fmtMoney(a.reward || 0)}.`, { achievementId: a.id });
+    game.emit('achievement', `🏆 Pencapaian: ${a.name}! Hadiah ${fmtMoney(r.money)}${r.rp ? ` + ${r.rp} poin riset` : ''}.`,
+      { achievementId: a.id, reward: r.money, researchPoints: r.rp });
   }
   return unlocked;
 }

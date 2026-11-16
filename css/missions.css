@@ -37,3 +37,33 @@
 .lb-ch.up { color: var(--green-d); }
 .lb-ch.down { color: var(--red); }
 .lb-note { margin: 8px 0 0; }
+.ms-hint { margin-top: 2px; }
+
+/* 📖 Bab Petani chapter card (Prestasi › Misi) and the Ladang pill (v16). */
+.ch-card { display: flex; flex-direction: column; gap: 10px; }
+.ch-card.ch-ready { box-shadow: 0 0 0 2px var(--wheat); animation: ch-glow 2s ease-in-out infinite; }
+@keyframes ch-glow { 50% { box-shadow: 0 0 0 2px var(--wheat), 0 0 18px rgba(226, 183, 67, .45); } }
+.ch-head { display: flex; align-items: center; gap: 10px; }
+.ch-emoji { flex: none; width: 40px; height: 40px; display: grid; place-items: center; font-size: 1.4rem; border-radius: 50%;
+  background: var(--green-l); }
+.ch-main { min-width: 0; }
+.ch-title { font-weight: 700; }
+.ch-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ch-step { display: flex; align-items: center; gap: 8px; font-size: .86rem; min-height: 28px; }
+.ch-step.claimed .ch-goal { text-decoration: line-through; opacity: .6; }
+.ch-step.active, .ch-step.ready { font-weight: 700; }
+.ch-step.locked:not(.claimed) { opacity: .6; }
+.ch-goal { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ch-mark { flex: none; width: 22px; text-align: center; }
+.ch-step.ready .ch-mark { display: inline-block; animation: ch-bounce 1s ease-in-out infinite; }
+@keyframes ch-bounce { 50% { transform: translateY(-3px) scale(1.15); } }
+.ch-current { padding-top: 10px; border-top: 1px dashed var(--line); }
+.ch-goal-big { font-weight: 700; margin-bottom: 4px; }
+.ch-actions { margin-top: 8px; }
+.ch-actions .btn { min-height: 44px; }
+.ch-pill { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; margin: 0 0 10px; padding: 8px 12px;
+  border: 0; border-radius: 999px; background: var(--wheat); color: var(--on-wheat); font: inherit; font-weight: 700;
+  font-size: .88rem; text-align: left; cursor: pointer; animation: ch-pill-in .5s cubic-bezier(.2, 1.4, .4, 1), ms-pulse 1.6s ease-in-out .5s infinite; }
+.ch-pill-ico { flex: none; font-size: 1.1rem; display: inline-block; animation: ch-bounce 1.2s ease-in-out infinite; }
+.ch-pill-go { margin-left: auto; font-size: 1.2rem; }
+@keyframes ch-pill-in { from { opacity: 0; transform: translateY(-8px) scale(.9); } to { opacity: 1; transform: none; } }

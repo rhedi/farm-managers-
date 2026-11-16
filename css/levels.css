@@ -69,3 +69,21 @@
 @media (max-width: 380px) {
   #topbar .topbar-row:first-child { gap: 8px; }
 }
+
+/* v16 level-up: game paused while open; reward/research lines and unlock cards drop in one by one (--i × 140 ms). */
+.lu-paused { margin: 0 0 6px; text-align: center; animation: lu-blink 1.6s ease-in-out infinite; }
+@keyframes lu-blink { 50% { opacity: .45; } }
+.lu-cards { list-style: none; padding-left: 0; display: grid; gap: 6px; }
+.lu-card { padding: 8px 10px; border-radius: var(--radius-s); background: var(--green-l); border: 1px solid var(--line);
+  font-weight: 600; min-height: 36px; display: flex; align-items: center; gap: 6px; }
+.lu-card, .lu-pop { opacity: 0; animation: lu-in .45s cubic-bezier(.2, 1.4, .4, 1) forwards; animation-delay: calc(var(--i, 0) * 140ms + 200ms); }
+@keyframes lu-in {
+  from { opacity: 0; transform: translateY(14px) scale(.9) rotate(-1.5deg); }
+  70% { opacity: 1; transform: translateY(-3px) scale(1.03); }
+  to { opacity: 1; transform: none; }
+}
+/* Reduced motion: still revealed one by one, just a short fade (animations stay on). */
+@media (prefers-reduced-motion: reduce) {
+  .lu-card, .lu-pop { animation-name: lu-fade; animation-duration: .25s; }
+  @keyframes lu-fade { from { opacity: 0; } to { opacity: 1; } }
+}

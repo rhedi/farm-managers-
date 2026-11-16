@@ -38,6 +38,7 @@ test('fed, happy herds with room give birth every cycle; newborns, event and XP'
 
 test('no births when unfed, unhappy, alone or full (herd_full fires once)', () => {
   const unfed = herd(100);
+  unfed.g.setAutoFeed({ animals: false }); // 🛒 auto-feed (on by default) would feed them
   days(unfed.g, 12, false);
   assert.equal(unfed.h.bornTotal, 0);
   const sad = herd(100);

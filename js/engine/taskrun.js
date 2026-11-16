@@ -2,9 +2,9 @@
 import { round2 } from './rng.js';
 import { TASK_NAMES, fmtMoney, fmtNum } from './defs.js';
 import { resetCropCycle } from './fields.js';
-import { sellProduct, sellableStock } from './economy.js';
+import { sellProduct } from './economy.js';
 import { applyLime, onFertilize, onHarvest } from './soil.js';
-import { storeProduct } from './storage.js';
+import { storeHarvest } from './stockKeep.js';
 import { onTaskDone } from './workers.js';
 import { wearMachines, conditionOf, repairCost, repairMachine } from './wear.js';
 import { isTree, plantOrchard, afterOrchardHarvest, clearOrchard } from './orchard.js';
@@ -97,11 +97,12 @@ export function completeTask(game, fieldId) {
     case 'harvest': {
       const crop = idx.crops.get(f.cropId);
       const tons = job.yieldTons > 0 ? job.yieldTons : 0;
-      let stored = 0;
+      let stored = 0, sold = 0, soldValue = 0;
       extra.cropId = f.cropId;
       extra.tons = tons;
       if (tons > 0) {
-        ({ stored } = storeProduct(game, f.cropId, tons));
+        // Plan option `sell`: sold at market before storing; keeps feed, contract and Manajer Pabrik stock (stockKeep.js).
+        ({ stored, sold, soldValue } = storeHarvest(game, f.cropId, tons, { sell: !!f.plan?.sell }));
         state.stats.harvests++;
         state.stats.tonsHarvested = round2(state.stats.tonsHarvested + tons);
         const base = idx.products.get(f.cropId)?.basePrice ?? 0;
@@ -110,12 +111,7 @@ export function completeTask(game, fieldId) {
       } else msg = `Panen di ${fname} gagal: tanaman sudah layu habis.`;
       onHarvest(game, fieldId, f.cropId);
       msg += payHarvest(game, f.cropId, job.cost ?? 0, job.costSplit);
-      // Plan option `sell`: sell this harvest at market (feed reserve respected).
-      const sellQty = f.plan?.sell ? Math.min(stored, sellableStock(game, f.cropId)) : 0;
-      if (sellQty > 0) {
-        const r = sellProduct(game, f.cropId, sellQty, { quiet: true });
-        if (r.ok) msg += ` ${fmtNum(r.qty)} t dijual otomatis (${fmtMoney(r.earned)}).`;
-      }
+      if (sold > 0) msg += ` ${fmtNum(sold)} t dijual otomatis (${fmtMoney(soldValue)}).`;
       if (f.plan && !f.plan.repeat) f.plan = null;
       if (f.orchard) { afterOrchardHarvest(f); break; } // trees stay: next fruit cycle
       Object.assign(f, { state: 'idle', cropId: null, fertilized: false, irrigated: false, limed: false,

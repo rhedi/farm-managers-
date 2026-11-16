@@ -24,6 +24,8 @@ import * as factories from './engine/factories.js';
 import { factoriesView } from './engine/factoryView.js';
 import * as missions from './engine/missions.js';
 import * as rivals from './engine/rivals.js';
+import * as chapters from './engine/chapters.js';
+import { recentIncome } from './engine/rewards.js';
 import * as ledger from './engine/ledger.js';
 import * as orchard from './engine/orchard.js';
 import * as greenhouse from './engine/greenhouse.js';
@@ -34,6 +36,12 @@ import * as factoryManager from './engine/factoryManager.js';
 import * as research from './engine/research.js';
 import * as fish from './engine/fish.js';
 import * as fishView from './engine/fishView.js';
+import * as autoFeed from './engine/autoFeed.js';
+import * as overflowLog from './engine/overflow.js';
+import * as calendar from './engine/calendar.js';
+import * as offline from './engine/offline.js';
+import * as report from './engine/report.js';
+import * as stockKeep from './engine/stockKeep.js';
 import { SAVE_VERSION, MAX_CATCHUP_HOURS, HISTORY_SIZE, newStats, normalizeState, serializeState, parseSave,
   writeStorage, readStorage } from './engine/persist.js';
 
@@ -55,7 +63,9 @@ export class Game {
     const ev = { type, msg, day: this.day, hour: this.hour, ...extra };
     this.state.log.push({ type, msg, day: ev.day, hour: ev.hour });
     if (this.state.log.length > LOG_SIZE) this.state.log.splice(0, this.state.log.length - LOG_SIZE);
+    if (this.tally) this.tally[type] = (this.tally[type] || 0) + 1; // catch-up report (catchUpReport)
     if (!type.startsWith('mission_')) missions.trackEvent(this, ev); // daily-mission progress (stream C)
+    if (this.muted) return ev; // coarse offline days: no toast flood; the morning report sums them up
     for (const fn of this.listeners) { try { fn(ev); } catch { /* listener errors never break the sim */ } }
     return ev;
   }
@@ -111,12 +121,36 @@ export class Game {
     if (h > 0) this.advance(h);
     return h;
   }
-  /** Offline progress (max 48 game hours at 1×). Returns 0 while paused. */
+  /**
+   * Offline progress, 0 while paused. The first MAX_CATCHUP_HOURS (48) game hours are simulated exactly, the rest
+   * (up to BALANCE.offline.maxRealHours = 8 real hours away in total) in coarse daily steps at 50% efficiency
+   * ("mode hemat", js/engine/offline.js; listeners are muted there). Returns the game hours simulated;
+   * `lastCatchUp` = {exactHours, coarseHours, coarseDays}.
+   */
   catchUp(realSecondsElapsed) {
+    this.lastCatchUp = { exactHours: 0, coarseHours: 0, coarseDays: 0 };
     if (!this.state.speed) return 0;
-    const h = Math.min(MAX_CATCHUP_HOURS, Math.max(0, realSecondsElapsed / this.data.BALANCE.realSecondsPerGameHour));
-    if (h > 0) this.advance(h);
-    return h;
+    const cfg = offline.offlineCfg(this);
+    const total = Math.min(cfg.maxRealHours * 3600, Math.max(0, Number(realSecondsElapsed) || 0)) / this.data.BALANCE.realSecondsPerGameHour;
+    const exact = Math.min(MAX_CATCHUP_HOURS, total), coarse = total - exact;
+    if (exact > 0) this.advance(exact);
+    let coarseDays = 0;
+    if (coarse > 1e-9) {
+      const was = this.muted;
+      this.muted = true;
+      try { coarseDays = offline.runCoarse(this, coarse, { rollover: (light) => this.#dailyRollover(light), advance: (h) => this.advance(h) }); }
+      finally { this.muted = was; }
+    }
+    this.lastCatchUp = { exactHours: exact, coarseHours: coarse, coarseDays };
+    return total;
+  }
+  /** catchUp plus a "Laporan Pagi" {hours, report} built from before/after snapshots (js/engine/report.js). */
+  catchUpReport(realSecondsElapsed) {
+    const before = report.snapshot(this);
+    this.tally = {};
+    let hours = 0;
+    try { hours = this.catchUp(realSecondsElapsed); } finally { this.tallied = this.tally; this.tally = null; }
+    return { hours, ...this.lastCatchUp, report: report.buildReport(this, before, this.tallied, this.lastCatchUp) };
   }
   advance(hours) {
     let left = hours;
@@ -138,13 +172,15 @@ export class Game {
       } else if (finished) { runPlans(this); dispatcher.runDispatcher(this); }
     }
   }
-  #dailyRollover() {
+  /** `light`: a coarse offline day (offline.js) that is not the last one — no daily missions or rival ranking. */
+  #dailyRollover(light = false) {
     const day = this.day;
     worldEvents.stepEventsDay(this, day); // before weather: storms/heatwaves override it
     rollWeather(this, day);
     applyWeatherToFields(this);
     seasons.stepSeasonsDay(this, day);
     stepMarket(this, day);
+    autoFeed.stepAutoFeedDay(this); // 🛒 Beli pakan otomatis: before the animals eat
     animals.stepAnimalsDay(this);
     fish.stepFishDay(this); // kolam ikan: pelet, kualitas air, panen otomatis
     eco.chargeInterest(this);
@@ -156,9 +192,13 @@ export class Game {
     const h = this.state.history;
     h.push({ day: day - 1, money: this.state.money, netWorth: eco.netWorth(this) });
     if (h.length > HISTORY_SIZE) h.splice(0, h.length - HISTORY_SIZE);
-    rivals.stepRivalsDay(this, day);
-    missions.stepMissionsDay(this, day);
+    if (!light) {
+      rivals.stepRivalsDay(this, day);
+      missions.stepMissionsDay(this, day);
+    }
     ledger.closeDay(this.state, day); // midnight costs (wages, interest, penalties) belong to the day that ended
+    overflowLog.closeOverflowDay(this, day - 1); // one storage_overflow_summary per day (incl. midnight production)
+    calendar.pruneBoosters(this);
     const rainy = this.data.REGIONS.filter((r) => this.state.weather[r.id]?.rain).map((r) => r.name);
     this.emit('weather', rainy.length ? `Hari ${day}: hujan di ${rainy.join(', ')}.` : `Hari ${day}: cerah di semua wilayah.`, { weather: this.state.weather });
   }
@@ -230,6 +270,20 @@ export class Game {
   harvestPond(uid) { return fish.harvestPond(this, uid); }
   pelletQuote(days) { return fishView.pelletQuote(this, days); }
   buyPellet(days) { return fishView.buyPellet(this, days); }
+  // ---- 🛒 Beli pakan otomatis (js/engine/autoFeed.js) ----
+  /** {animals, fish, days, steps}: herds/ponds kept at ≥ `days` days of feed, bought daily at market ×1.2 (ledger 'pakan'). */
+  autoFeedView() { return autoFeed.autoFeedView(this); }
+  /** Partial patch {animals?, fish?, days?} → {ok, autoFeed}. */
+  setAutoFeed(patch) { return autoFeed.setAutoFeed(this, patch); }
+  // ---- Gudang penuh (js/engine/overflow.js) + kept stock (js/engine/stockKeep.js) ----
+  /** Yesterday's / today's force-sold overflow per store with the next upgrade, or null. */
+  overflowView() { return overflowLog.overflowView(this); }
+  /** {productId: qty} kept from auto/bulk selling (feed, contracts, Manajer Pabrik hold). */
+  keptStock() { return stockKeep.keptStock(this); }
+  // ---- 📅 Kalender Panen + boosters (js/engine/calendar.js); `date` = local 'YYYY-MM-DD', `nowMs` = Date.now() ----
+  calendarView(date, nowMs) { return calendar.calendarView(this, date, nowMs); }
+  claimCalendar(date, nowMs) { return calendar.claimCalendar(this, date, nowMs); }
+  activeBoosters() { return calendar.activeBoosters(this); }
 
   // ---- contracts (js/engine/contracts.js) ----
   contractsView() { return contracts.contractsView(this); }
@@ -257,7 +311,8 @@ export class Game {
   activeEvents() { return worldEvents.activeEventsView(this); }
   treatPest(fieldId) { return worldEvents.treatPest(this, fieldId); }
   treatPestCost(fieldId) { return worldEvents.treatPestCost(this, fieldId); }
-  siloView() { return views.siloView(this); }
+  /** Stock items; `kept`/`bulk` = stock "Jual semua" keeps / sells (stockKeep.js). */
+  siloView() { return stockKeep.withBulk(this, views.siloView(this)); }
   machinesView() { return views.machinesView(this); }
   shopView() { return views.shopView(this); }
   levelInfo() { return views.levelInfo(this); }
@@ -268,6 +323,14 @@ export class Game {
   missionsView() { return missions.missionsView(this); }
   claimMission(id) { return missions.claimMission(this, id); }
   leaderboard() { return rivals.leaderboard(this); }
+  // ---- Bab Petani chapter chain (js/engine/chapters.js) ----
+  chaptersView() { return chapters.chaptersView(this); }
+  /** Claim the current step once its goal is met → {ok, stepId, money, xp, rp}. */
+  claimChapterStep(stepId) { return chapters.claimChapterStep(this, stepId); }
+  /** Steps an old save completed silently on load (once; 0 afterwards). */
+  takeChapterNotice() { return chapters.takeChapterNotice(this); }
+  /** Average daily production income of the last 3 closed game days (rewards.js, Hadiah Berskala). */
+  recentIncome() { return recentIncome(this); }
   // ---- kebun buah + rumah kaca (js/engine/orchard.js, greenhouse.js) ----
   /** Planting outlook for a tree on a field: tons/harvest, harvestsPerYear, yearly revenue/cost/profit, paybackDays… */
   orchardOutlook(fieldId, treeId) { return orchard.orchardOutlook(this, fieldId, treeId); }
@@ -339,8 +402,12 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
   dispatcher.ensureDispatcher(game);
   factoryManager.ensureFactoryManager(game);
   eco.syncCounts(game);
+  autoFeed.ensureAutoFeed(state); // v16 state (also migrated by persist.normalizeState)
+  overflowLog.ensureOverflow(state);
+  calendar.ensureCalendar(state);
   missions.ensureMissions(game);
   rivals.ensureRivals(game);
+  chapters.ensureChapters(game);
   return game;
 }
 
@@ -356,6 +423,7 @@ export function loadGame(json, { data = DEFAULT_DATA } = {}) {
   research.ensureResearch(game);
   missions.ensureMissions(game); // pre-missions saves: today's missions + rival ranks
   rivals.ensureRivals(game);
+  chapters.ensureChapters(game); // pre-v16 saves: already-met chapter steps complete silently (one notice)
   return game;
 }
 

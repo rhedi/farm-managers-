@@ -155,6 +155,7 @@
 .fx-float.gain { color: #ffe08a; }
 .fx-float.loss { color: #ffb4a6; font-size: .8rem; }
 .fx-float.xp { color: #bfe6ff; font-size: .8rem; }
+.fx-float.top.xp { font-size: .68rem; padding: 0 6px; line-height: 1.25; } /* sits in the gap under the XP bar */
 .fx-confetti { position: absolute; width: 0; height: 0; }
 .fx-confetti i { position: absolute; left: -5px; top: -7px; width: 9px; height: 13px; animation: confetti var(--d, .9s) cubic-bezier(.15, .7, .35, 1) forwards; }
 .stat-money.fx-bump { animation: bump .45s ease-out; }
@@ -168,3 +169,41 @@
   100% { transform: translate(calc(var(--dx) * 1.15), calc(var(--dy) + 150px)) rotate(var(--r)); opacity: 0; }
 }
 @keyframes bump { 40% { transform: scale(1.15); } }
+
+/* ---------- Kandang hidup (Ternak › Hewan, v16): idle walk / graze / peck / fly + "Mooo!" bubbles + product pops ---------- */
+.herd-pen { position: relative; height: 54px; margin: 8px 0 4px; border-radius: var(--radius-s); overflow: hidden;
+  background: linear-gradient(180deg, transparent 0 45%, var(--green-l) 45% 100%), var(--surface-2, var(--bg));
+  border: 1px solid var(--line); contain: layout paint; }
+.herd-pen::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 6px;
+  background: repeating-linear-gradient(90deg, var(--line) 0 2px, transparent 2px 9px); opacity: .7; }
+.herd-ani { position: absolute; left: var(--x0); bottom: var(--y); font-size: 1.35rem; line-height: 1;
+  animation: herd-walk var(--dur) ease-in-out var(--del) infinite alternate; will-change: transform; }
+.herd-body { display: inline-block; transform-origin: 50% 90%; animation: herd-graze 2.4s ease-in-out var(--del) infinite; }
+.herd-ani.peck .herd-body { animation-name: herd-peck; animation-duration: 1.1s; }
+.herd-ani.fly { bottom: auto; top: 6px; font-size: 1.05rem; animation-name: herd-fly; }
+.herd-ani.fly .herd-body { animation-name: herd-buzz; animation-duration: .35s; }
+.herd-say, .herd-pop { position: absolute; left: var(--x0); top: 2px; font-size: .68rem; font-weight: 800; opacity: 0;
+  pointer-events: none; animation: herd-bubble var(--period) ease-out var(--del) infinite; }
+.herd-say { padding: 1px 6px; border-radius: 999px; background: var(--surface, #fff); color: var(--ink); border: 1px solid var(--line); }
+.herd-pop { font-size: 1rem; animation-name: herd-popup; }
+.herd-hungry .herd-ani { animation-duration: calc(var(--dur) * 2); filter: saturate(.6); }
+.anim-paused .herd-pen * { animation-play-state: paused !important; }
+@keyframes herd-walk {
+  0%, 12% { transform: translateX(0) scaleX(1); }
+  46% { transform: translateX(var(--dx)) scaleX(1); }
+  50%, 62% { transform: translateX(var(--dx)) scaleX(-1); }
+  96%, 100% { transform: translateX(0) scaleX(-1); }
+}
+@keyframes herd-graze { 0%, 55%, 100% { transform: rotate(0); } 65% { transform: rotate(-14deg) translateY(2px); } 80% { transform: rotate(-10deg) translateY(2px); } }
+@keyframes herd-peck { 0%, 40%, 100% { transform: rotate(0); } 55% { transform: rotate(-28deg) translateY(3px); } 70% { transform: rotate(0); } }
+@keyframes herd-fly { 0% { transform: translate(0, 0); } 33% { transform: translate(calc(var(--dx) * .6), 10px); } 66% { transform: translate(var(--dx), -2px); } 100% { transform: translate(calc(var(--dx) * .3), 6px); } }
+@keyframes herd-buzz { 50% { transform: translateY(-2px) rotate(6deg); } }
+@keyframes herd-bubble { 0% { opacity: 0; transform: translateY(6px) scale(.6); } 4% { opacity: 1; transform: translateY(0) scale(1.08); }
+  14% { opacity: 1; transform: translateY(-2px) scale(1); } 20%, 100% { opacity: 0; transform: translateY(-8px) scale(.9); } }
+@keyframes herd-popup { 0% { opacity: 0; transform: translateY(26px) scale(.4); } 5% { opacity: 1; transform: translateY(8px) scale(1.25); }
+  16% { opacity: 1; transform: translateY(-4px) scale(1); } 24%, 100% { opacity: 0; transform: translateY(-14px) scale(.8); } }
+/* Reduced motion: same scene, slower and calmer (the player wants the animations on). */
+@media (prefers-reduced-motion: reduce) {
+  .herd-ani { animation-duration: calc(var(--dur) * 3); }
+  .herd-body { animation-duration: 6s; }
+}

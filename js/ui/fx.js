@@ -1,6 +1,6 @@
 // Visual feedback: floating "+$1.234" texts, confetti bursts, money counter tween.
 // All motion is CSS-driven; elements remove themselves when their animation ends.
-import { fmtMoney, fmtNum } from './dom.js';
+import { fmtMoney, fmtNum, fmtCompact } from './dom.js';
 
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 let layer = null;
@@ -19,12 +19,11 @@ function fxLayer() {
 export function floatText(anchor, text, kind = '') {
   const r = anchor?.getBoundingClientRect?.();
   let p = r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : anchor;
-  // Top-bar pills stay inside the top bar: just under the money (over the date text, left of the speed buttons),
-  // XP one line lower, so they never land on cards, switches or toasts.
-  if (kind.includes('top') && r) {
-    const barBottom = document.getElementById('topbar')?.getBoundingClientRect().bottom ?? Infinity;
-    p = { x: Math.max(p.x, 48), y: Math.min(r.bottom + 9 + (kind.includes('xp') ? 18 : 0), barBottom - 12) };
-  }
+  // Top-bar pills (v16): the money delta rises over the money amount itself; the XP pill sits on the XP bar (right
+  // of the level number, above the gap to the speed buttons). Neither covers the level number, the date or the speed
+  // buttons, nor cards/toasts below.
+  const bar = kind.includes('xp') ? document.querySelector('#topbar .progress-xp')?.getBoundingClientRect() : null;
+  if (kind.includes('top') && r) p = bar?.width ? { x: bar.left + bar.width / 2, y: bar.top } : { x: p.x, y: r.top };
   if (!p || (r && !r.width)) return;
   const L = fxLayer();
   if (L.childElementCount > 24) return; // offline catch-up bursts: don't flood
@@ -37,6 +36,16 @@ export function floatText(anchor, text, kind = '') {
   el.style.top = `${p.y}px`;
   el.addEventListener('animationend', () => el.remove());
   L.appendChild(el);
+  if (kind.includes('top')) { // clamp: money pill inside the money stat, XP pill inside the level stat
+    const w = el.offsetWidth, hgt = el.offsetHeight;
+    const box = document.querySelector(kind.includes('xp') ? '#topbar .stat-level' : '#topbar .stat-money')?.getBoundingClientRect();
+    if (box?.width) {
+      const lo = box.left + w / 2, hi = box.right - w / 2;
+      el.style.left = `${lo <= hi ? Math.min(Math.max(p.x, lo), hi) : (kind.includes('xp') ? hi : lo)}px`;
+      if (!kind.includes('xp')) el.style.top = `${r.top + (r.height - hgt) / 2}px`; // centred on the money text
+      else if (bar?.width) el.style.top = `${bar.top + bar.height / 2 - hgt / 2 + 1}px`; // centred on the XP bar
+    }
+  }
   setTimeout(() => el.remove(), 2000);
 }
 
@@ -124,12 +133,12 @@ export function tickMoneyFx(game, now = performance.now()) {
   if (flushAt && now >= flushAt) {
     flushAt = 0;
     if (Math.abs(pendingMoney) >= 1 && moneyEl) {
-      floatText(moneyEl, `${pendingMoney > 0 ? '+' : '−'}${fmtMoney(Math.abs(pendingMoney))}`, pendingMoney > 0 ? 'gain top' : 'loss top');
+      floatText(moneyEl, `${pendingMoney > 0 ? '+' : '−'}$${fmtCompact(Math.abs(Math.round(pendingMoney)))}`, pendingMoney > 0 ? 'gain top' : 'loss top');
       moneyEl.parentElement?.classList.remove('fx-bump');
       void moneyEl.offsetWidth;
       if (pendingMoney > 0) moneyEl.parentElement?.classList.add('fx-bump');
     }
-    if (pendingXp >= 1) floatText(moneyEl, `+${fmtNum(pendingXp)} XP`, 'xp top');
+    if (pendingXp >= 1) floatText(moneyEl, `+${fmtCompact(Math.round(pendingXp))} XP`, 'xp top');
     pendingMoney = 0;
     pendingXp = 0;
   }

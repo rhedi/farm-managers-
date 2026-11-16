@@ -75,8 +75,11 @@ function roomLeft(game, headroom) {
   return room;
 }
 
-/** Every recipe option of the controlled factories with queue room, best first. `ahead`: as if every queue were empty. */
-function options(game, tier, set, ids, wagePerHour, ahead) {
+/**
+ * Every recipe option of the controlled factories with queue room, best first. `ahead`: as if every queue were empty;
+ * `horizon` (ahead only): plan the queue room of that many hours instead of one pass interval (stock hold of plans).
+ */
+function options(game, tier, set, ids, wagePerHour, ahead, horizon = 0) {
   const out = [], need = set.contracts ? contractNeed(game) : {};
   const mods = { inMult: tier.inputMult ?? 1, outMult: tier.outputMult ?? 1 };
   ids.forEach((fid, fi) => {
@@ -85,7 +88,7 @@ function options(game, tier, set, ids, wagePerHour, ahead) {
     recipes.forEach((base) => {
       const r = scaledRecipe(base, mods), hours = batchHours(base, f.level);
       const busy = Math.max(f.queued, f.running ? 1 : 0); // an auto batch started before the takeover has queued 0
-      const free = Math.max(1, Math.ceil(tier.intervalHours / hours - EPS)) - (ahead ? 0 : busy);
+      const free = Math.max(1, Math.ceil(Math.max(tier.intervalHours, ahead ? horizon : 0) / hours - EPS)) - (ahead ? 0 : busy);
       if (free <= 0) return;
       const outV = sum(r.outputs, (id, q) => q * price(game, id)), inV = sum(r.inputs, (id, q) => q * price(game, id));
       const run = wagePerHour * hours / ids.length, margin = outV - inV - run;
@@ -109,13 +112,14 @@ const roomCap = (o, room, k, extra = {}) => Object.keys({ ...o.net, ...extra })
  * One pass: `{ plans: [{factoryId, recipeId, batches, use, buy, buyCost, estProfit}], waits: {factoryId: WAIT reason}, ids }`.
  * Stock-only batches first; with buying allowed (tier + setting) the rest of the queue is bought when the all-bought
  * margin still passes the minimum and the money is there. `ahead`: dry run of the next pass (no buying) for the
- * logistics hold. Room: inputs leave only when a batch starts, so they never free room for this pass.
+ * stock hold; `horizon` widens that dry run to the queue room of `horizon` hours. Room: inputs leave only when a
+ * batch starts, so they never free room for this pass.
  */
-export function planPass(game, tier, set, wage, { ahead = false } = {}) {
+export function planPass(game, tier, set, wage, { ahead = false, horizon = 0 } = {}) {
   const ids = controlledIds(game, tier, set), usable = usableStock(game, set), room = roomLeft(game, set.headroom);
   const plans = [], waits = {}, done = new Set();
   let money = game.state.money;
-  for (const o of options(game, tier, set, ids, wage / 24, ahead)) {
+  for (const o of options(game, tier, set, ids, wage / 24, ahead, horizon)) {
     if (done.has(o.fid)) continue;
     if (o.pct < set.minMargin - EPS || o.margin <= 0) { waits[o.fid] ??= WAIT.margin; continue; }
     const byStock = Math.min(...Object.entries(o.r.inputs).map(([id, q]) => Math.floor(((usable[id] || 0) + EPS) / q)));
