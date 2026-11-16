@@ -1,8 +1,8 @@
 // Service worker: cache-first app shell (precached per VERSION), network-first navigation with the
-// cached index.html as offline fallback. A new version waits until the page asks it to take over
-// (toast "Versi baru tersedia" in js/ui/pwa.js). After changing any file, regenerate VERSION and
-// PRECACHE with the command in README → "Pasang di HP (PWA)".
-const VERSION = "527b623fe3";
+// cached index.html as offline fallback. A new version takes over as soon as it has precached
+// (skipWaiting + clients.claim); js/ui/pwa.js then saves and reloads open pages once. After changing
+// any file, regenerate VERSION and PRECACHE with the command in README → "Pasang di HP (PWA)".
+const VERSION = "01041b5db8";
 const PREFIX = 'farm-manager-';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = [
@@ -128,19 +128,22 @@ const PRECACHE = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) =>
-    cache.addAll(PRECACHE.map((url) => new Request(url, { cache: 'reload' })))));
+  event.waitUntil(caches.open(CACHE)
+    .then((cache) => cache.addAll(PRECACHE.map((url) => new Request(url, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    for (const key of await caches.keys()) if (key.startsWith(PREFIX) && key !== CACHE) await caches.delete(key);
+    const old = (await caches.keys()).filter((key) => key.startsWith(PREFIX) && key !== CACHE);
+    for (const key of old) await caches.delete(key);
     await self.clients.claim();
+    if (!old.length) return; // first install: the open page already runs these files
+    // Open pages still run the previous files, and pages from before automatic updates never reload
+    // themselves: navigate them once (pagehide saves the game). Not awaited — navigation fetches wait
+    // for this activation to finish.
+    for (const client of await self.clients.matchAll({ type: 'window' })) client.navigate(client.url).catch(() => {});
   })());
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 async function navigate(request) {

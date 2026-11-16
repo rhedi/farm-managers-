@@ -1,5 +1,7 @@
-// PWA: service worker registration (http/https only), "new version" toast, install button.
+// PWA: service worker registration (http/https only), automatic update reload, install button.
 import { h } from './dom.js';
+import { app } from './app.js';
+import { toast } from './modal.js';
 
 let installEvent = null; // deferred beforeinstallprompt
 const listeners = new Set();
@@ -8,44 +10,28 @@ const changed = () => { for (const fn of listeners) fn(); };
 const standaloneQuery = typeof matchMedia === 'function' ? matchMedia('(display-mode: standalone)') : null;
 const isInstalled = () => !!standaloneQuery?.matches || navigator.standalone === true;
 
-let updateToast = null;
-let updateAccepted = false;
-function showUpdateToast(worker) {
-  if (updateToast?.isConnected) return;
-  const root = document.getElementById('toast-root');
-  if (!root) return;
-  const accept = () => {
-    updateAccepted = true;
-    worker.postMessage({ type: 'SKIP_WAITING' });
-  };
-  updateToast = h('div.toast.success', { role: 'status' },
-    h('span.toast-msg', 'Versi baru tersedia'),
-    h('button.btn.btn-small', { type: 'button', onclick: accept }, 'Muat ulang'),
-    h('button.toast-close', { type: 'button', 'aria-label': 'Tutup notifikasi', onclick: () => updateToast.remove() }, '✕'));
-  root.appendChild(updateToast);
-}
+const RELOAD_DELAY_MS = 600;
 
 async function registerServiceWorker() {
   const sw = navigator.serviceWorker;
-  // The first install claims the page too; only an update the player accepted reloads it.
+  // A new sw.js skips waiting and claims this page. The first install (no previous controller) needs
+  // nothing; an update means the page still runs old files: save and reload once onto the new cache
+  // (sw.js also navigates open pages; whichever comes first wins, the page is gone after that).
+  let controlled = !!sw.controller;
   let reloading = false;
   sw.addEventListener('controllerchange', () => {
-    if (!updateAccepted || reloading) return;
+    if (!controlled) { controlled = true; return; }
+    if (reloading) return;
     reloading = true;
-    location.reload();
+    app.saveNow?.();
+    toast('Memperbarui ke versi baru…', 'success');
+    setTimeout(() => location.reload(), RELOAD_DELAY_MS);
   });
   const reg = await sw.register('./sw.js');
-  const offerWaiting = () => { if (reg.waiting && sw.controller) showUpdateToast(reg.waiting); };
-  offerWaiting();
-  reg.addEventListener('updatefound', () => {
-    const w = reg.installing;
-    w?.addEventListener('statechange', () => { if (w.state === 'installed') offerWaiting(); });
-  });
-  // Phones keep the tab alive for days: look for a new version whenever the game comes back.
+  reg.update().catch(() => {});
+  // Phones keep the app alive for days: look for a new version whenever the game comes back.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
-    reg.update().catch(() => {});
-    offerWaiting();
+    if (document.visibilityState === 'visible') reg.update().catch(() => {});
   });
 }
 
