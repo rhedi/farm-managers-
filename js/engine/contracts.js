@@ -26,7 +26,10 @@ function avgFieldHa(game) {
   return ids.reduce((s, id) => s + (game.idx.fields.get(id)?.sizeHa || 0), 0) / ids.length;
 }
 
-/** Products the player can supply: unlocked crops (one harvest of the average field) and owned herds (3 days). */
+/**
+ * Products the player can supply: unlocked crops (one harvest of the average field), owned herds (3 days) and built
+ * ponds (3 days of a full pond's harvest, summed per species).
+ */
 function candidates(game) {
   const s = game.state, ha = avgFieldHa(game), out = [];
   for (const c of game.data.CROPS) if (c.unlockLevel <= s.level) out.push({ productId: c.id, perRound: ha * c.baseYield });
@@ -34,6 +37,12 @@ function candidates(game) {
     const n = s.animals?.[a.id]?.count || 0;
     if (n > 0) out.push({ productId: a.product, perRound: n * a.productPerDay * 3 });
   }
+  const fish = new Map();
+  for (const p of s.ponds || []) {
+    const d = game.idx.ponds.get(p.pondId);
+    if (d) fish.set(d.product, (fish.get(d.product) || 0) + d.capacity * d.harvestKg / d.growDays * 3);
+  }
+  for (const [productId, perRound] of fish) out.push({ productId, perRound });
   return out.filter((c) => game.idx.products.has(c.productId) && c.perRound > 0);
 }
 

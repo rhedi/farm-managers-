@@ -3,6 +3,7 @@
 import { h, fmtMoney, fmtPrice, fmtNum, fmtHours, progressBar } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
+import { iconOf } from './fishArt.js';
 
 const pick = { truck: null, city: null };
 const cargo = new Map(); // productId → typed qty (survives re-render)
@@ -33,7 +34,7 @@ function cityChoice(c, truck) {
   }, h('b', `${c.emoji} ${c.name}`, h('span.small.muted', ok ? ` ${fmtNum(c.km)} km dari ${c.regionName}${trip}` : ` ${why}`)),
   h('span.ship-demand',
     h('span.badge', `Lainnya ${pctTxt(c.baseMult)}`),
-    top.map((d) => h('span.badge.badge-gold', `${d.emoji} ${pctTxt(d.mult)}`))));
+    top.map((d) => h('span.badge.badge-gold', iconOf({ id: d.productId, emoji: d.emoji }), ` ${pctTxt(d.mult)}`))));
 }
 
 /** Silo stock that can go on the truck, best city price first. */
@@ -48,7 +49,7 @@ function cargoRows(game, city) {
 function cargoRow(p, cap) {
   const max = p.unit === 't' ? Math.min(p.avail, cap) : p.avail;
   return h('div.ship-cargo-row',
-    h('span.ship-cargo-name', `${p.emoji} ${p.name}`,
+    h('span.ship-cargo-name', iconOf(p), ` ${p.name}`,
       h('span.small.muted', ` ${fmtAmt(p.avail, p.unit)} · ${fmtPrice(p.price)}→`),
       h(`span.small${p.mult > 1 ? '.pos' : p.mult < 1 ? '.neg' : '.muted'}`, `${fmtPrice(p.price * p.mult)} (${pctTxt(p.mult)})`)),
     h('input', { type: 'number', min: '0', step: 'any', inputmode: 'decimal', placeholder: p.unit, value: cargo.get(p.id) ?? '',

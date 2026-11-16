@@ -7,6 +7,7 @@ import { shippingPanel, shippingSig } from './shipping.js';
 import { dispatcherCard, dispatcherSig } from './dispatcher.js';
 import { subTabBar, getSub, fold } from './subtabs.js';
 import { CATEGORIES, stockByCategory, groupValue, sellGroup, stockRow, trendChip, sellableQty } from './stock.js';
+import { iconOf } from './fishArt.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SUBS = ['sell', 'contracts', 'ship', 'prices'];
@@ -125,7 +126,7 @@ function sellPane(game, byId) {
 function priceRow(p) {
   return h('details.eco-prow',
     h('summary',
-      h('span.mkt-pname', h('span.mkt-pname-text', `${p.emoji} ${p.name}`), eventBadge(p, true)),
+      h('span.mkt-pname', h('span.mkt-pname-text', iconOf(p), ' ', p.name), eventBadge(p, true)),
       h('span.mkt-pprice', h('span.num', `${fmtPrice(p.price)}/${p.unit}`), trendChip(p.change))),
     h('div.eco-prow-body', priceDetail(p),
       p.stock > 0 ? h('div.small', `Stok ${fmtAmt(p.stock, p.unit)} ≈ ${fmtMoney(p.stock * p.price)}`) : null,

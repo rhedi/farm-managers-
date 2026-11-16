@@ -117,10 +117,10 @@ export const PRODUCTS = [
   { id: 'blueberry', name: 'Bluberi', emoji: '🫐', basePrice: 3800, unit: 't', category: 'crop', volatility: 0.09 },
   // Peternakan ikan (PONDS, js/engine/fish.js): harvest in kg → Gudang dingin. Pelet ikan = pond feed (silo, t).
   { id: 'ikan_lele', name: 'Ikan Lele', emoji: '🐟', basePrice: 4, unit: 'kg', category: 'animal', volatility: 0.06 },
-  { id: 'ikan_nila', name: 'Ikan Nila', emoji: '🐠', basePrice: 5.5, unit: 'kg', category: 'animal', volatility: 0.06 },
-  { id: 'ikan_mas', name: 'Ikan Mas', emoji: '🎏', basePrice: 6.5, unit: 'kg', category: 'animal', volatility: 0.06 },
+  { id: 'ikan_nila', name: 'Ikan Nila', emoji: '🐟', basePrice: 5.5, unit: 'kg', category: 'animal', volatility: 0.06 },
+  { id: 'ikan_mas', name: 'Ikan Mas', emoji: '🐟', basePrice: 6.5, unit: 'kg', category: 'animal', volatility: 0.06 },
   { id: 'udang', name: 'Udang', emoji: '🦐', basePrice: 16, unit: 'kg', category: 'animal', volatility: 0.08 },
-  { id: 'salmon', name: 'Salmon', emoji: '🍣', basePrice: 12, unit: 'kg', category: 'animal', volatility: 0.07 },
+  { id: 'salmon', name: 'Salmon', emoji: '🐟', basePrice: 12, unit: 'kg', category: 'animal', volatility: 0.07 },
   { id: 'pelet_ikan', name: 'Pelet Ikan', emoji: '🟤', basePrice: 450, unit: 't', category: 'processed', volatility: 0.04, buyable: true },
 ];
 
@@ -220,10 +220,10 @@ export const ANIMALS = [
 // Profit/day at base prices (pelet bought ×1.2, ~2 water changes/cycle) ≈ 150–2400; payback 30–40 days.
 export const PONDS = [
   { id: 'lele', name: 'Kolam Lele', emoji: '🐟', product: 'ikan_lele', unlockLevel: 3, buildCost: 5000, capacity: 4000, fryPrice: 0.12, growDays: 12, harvestKg: 0.2, fcr: 1.0, waterDecay: 9, waterCost: 150 },
-  { id: 'nila', name: 'Kolam Nila', emoji: '🐠', product: 'ikan_nila', unlockLevel: 8, buildCost: 10000, capacity: 4000, fryPrice: 0.2, growDays: 16, harvestKg: 0.35, fcr: 1.3, waterDecay: 8, waterCost: 200 },
+  { id: 'nila', name: 'Kolam Nila', emoji: '🐟', product: 'ikan_nila', unlockLevel: 8, buildCost: 10000, capacity: 4000, fryPrice: 0.2, growDays: 16, harvestKg: 0.35, fcr: 1.3, waterDecay: 8, waterCost: 200 },
   { id: 'udang', name: 'Tambak Udang', emoji: '🦐', product: 'udang', unlockLevel: 12, climate: 'tropical', anyRegionLevel: 30, buildCost: 25000, capacity: 50000, fryPrice: 0.05, growDays: 14, harvestKg: 0.02, fcr: 1.4, waterDecay: 12, waterCost: 400 },
-  { id: 'mas', name: 'Kolam Ikan Mas', emoji: '🎏', product: 'ikan_mas', unlockLevel: 14, buildCost: 12000, capacity: 3000, fryPrice: 0.3, growDays: 18, harvestKg: 0.5, fcr: 1.5, waterDecay: 8, waterCost: 250 },
-  { id: 'salmon', name: 'Keramba Salmon', emoji: '🍣', product: 'salmon', unlockLevel: 22, climate: 'cold', anyRegionLevel: 40, buildCost: 75000, capacity: 2000, fryPrice: 2, growDays: 24, harvestKg: 2.5, fcr: 1.2, waterDecay: 6, waterCost: 600 },
+  { id: 'mas', name: 'Kolam Ikan Mas', emoji: '🐟', product: 'ikan_mas', unlockLevel: 14, buildCost: 12000, capacity: 3000, fryPrice: 0.3, growDays: 18, harvestKg: 0.5, fcr: 1.5, waterDecay: 8, waterCost: 250 },
+  { id: 'salmon', name: 'Keramba Salmon', emoji: '🐟', product: 'salmon', unlockLevel: 22, climate: 'cold', anyRegionLevel: 40, buildCost: 75000, capacity: 2000, fryPrice: 2, growDays: 24, harvestKg: 2.5, fcr: 1.2, waterDecay: 6, waterCost: 600 },
 ];
 // Kualitas air: growth ×1 at ≥ goodWater, falling to ×minGrowth at 0; below badWater fish die up to
 // badWaterMortality/day (+ hungerMortality × unfed share). Aerator (buildCost × aeratorRate) multiplies decay.
@@ -306,17 +306,17 @@ export const REGIONS = [
 // processed/animal goods top out at ×1.25 (only far cities), so trucks add margin without replacing factories.
 export const CITIES = [
   { id: 'bandung', name: 'Bandung', emoji: '🏙️', unlockLevel: 2, km: { jabar: 40 }, base: 1.03,
-    demand: { rice: 1.08, tomato: 1.1, strawberry: 1.12, tea: 1.08, eggs: 1.08, potato: 0.95 } },
+    demand: { rice: 1.08, tomato: 1.1, strawberry: 1.12, tea: 1.08, eggs: 1.08, ikan_mas: 1.08, ikan_nila: 1.08, potato: 0.95 } },
   { id: 'jakarta', name: 'Jakarta', emoji: '🌆', unlockLevel: 5, km: { jabar: 150 }, base: 1.05,
-    demand: { milk: 1.15, eggs: 1.12, bread: 1.15, cake: 1.18, sugar: 1.12, oil: 1.12, cooking_oil: 1.15, rice: 1.1, coffee: 1.12, cotton: 0.95 } },
+    demand: { milk: 1.15, eggs: 1.12, ikan_lele: 1.12, udang: 1.15, bread: 1.15, cake: 1.18, sugar: 1.12, oil: 1.12, cooking_oil: 1.15, rice: 1.1, coffee: 1.12, cotton: 0.95 } },
   { id: 'desmoines', name: 'Des Moines', emoji: '🏢', unlockLevel: 4, km: { iowa: 45 }, base: 1.02,
     demand: { corn: 1.06, soybean: 1.08, pork: 1.08, wheat: 0.95 } },
   { id: 'munchen', name: 'München', emoji: '🍺', unlockLevel: 4, km: { bavaria: 70 }, base: 1.03,
     demand: { barley: 1.1, malt: 1.15, butter: 1.1, cow_cheese: 1.08, honey: 1.1, wheat: 0.95 } },
   { id: 'sapporo', name: 'Sapporo', emoji: '❄️', unlockLevel: 5, km: { hokkaido: 120 }, base: 1.04,
-    demand: { milk: 1.15, butter: 1.15, cow_cheese: 1.15, potato: 1.12, rice: 1.1, wheat: 0.95 } },
+    demand: { milk: 1.15, butter: 1.15, cow_cheese: 1.15, salmon: 1.12, potato: 1.12, rice: 1.1, wheat: 0.95 } },
   { id: 'paris', name: 'Paris', emoji: '🗼', unlockLevel: 7, km: { normandia: 240, bavaria: 830 }, base: 1.06,
-    demand: { cow_cheese: 1.25, cheese: 1.25, butter: 1.2, bread: 1.2, cake: 1.25, flour: 1.15, grape: 1.15, lavender: 1.15 } },
+    demand: { cow_cheese: 1.25, cheese: 1.25, butter: 1.2, bread: 1.2, cake: 1.25, salmon: 1.2, flour: 1.15, grape: 1.15, lavender: 1.15 } },
   { id: 'chicago', name: 'Chicago', emoji: '🌃', unlockLevel: 8, km: { iowa: 560 }, base: 1.08,
     demand: { flour: 1.2, pork: 1.2, milk: 1.15, bread: 1.25, cake: 1.25, soybean: 1.15, corn: 1.15 } },
   { id: 'cuiaba', name: 'Cuiabá', emoji: '🌇', unlockLevel: 12, km: { matogrosso: 60 }, base: 1.03,
@@ -325,13 +325,13 @@ export const CITIES = [
     demand: { sugar: 1.15, cotton: 1.1, avocado: 1.12, mango: 1.1, milk: 1.12, wheat: 0.95 } },
   // Lv 10–45 expansion regions: a near city (small premium) and, for most, a far port/metropolis (big premium).
   { id: 'banjarmasin', name: 'Banjarmasin', emoji: '🛶', unlockLevel: 10, km: { kalimantan: 90 }, base: 1.03,
-    demand: { rice: 1.08, oilpalm: 1.1, cocoa: 1.08, pepper: 1.1, palm_cpo: 1.15, cooking_oil: 1.15, coconut: 1.1 } },
+    demand: { rice: 1.08, oilpalm: 1.1, cocoa: 1.08, pepper: 1.1, palm_cpo: 1.15, cooking_oil: 1.15, coconut: 1.1, ikan_nila: 1.1, udang: 1.1 } },
   { id: 'kyiv', name: 'Kyiv', emoji: '🏛️', unlockLevel: 22, km: { ukraina: 130 }, base: 1.03,
     demand: { bread: 1.15, butter: 1.12, pork: 1.12, potato: 1.1, sugar: 1.12, wheat: 0.95 } },
   { id: 'odesa', name: 'Odesa', emoji: '⚓', unlockLevel: 24, km: { ukraina: 450 }, base: 1.07,
     demand: { wheat: 1.12, sunflower: 1.15, barley: 1.1, corn: 1.1, oil: 1.22, flour: 1.2, malt: 1.18 } },
   { id: 'hcmc', name: 'TP Ho Chi Minh', emoji: '🛵', unlockLevel: 31, km: { mekong: 110 }, base: 1.04,
-    demand: { rice: 1.1, coffee: 1.12, pepper: 1.12, durian: 1.12, mango: 1.1, sugar: 1.15, cooking_oil: 1.18, duck_eggs: 1.15 } },
+    demand: { rice: 1.1, coffee: 1.12, pepper: 1.12, durian: 1.12, mango: 1.1, sugar: 1.15, cooking_oil: 1.18, duck_eggs: 1.15, udang: 1.12, ikan_nila: 1.1 } },
   { id: 'rosario', name: 'Rosario', emoji: '🌉', unlockLevel: 34, km: { pampas: 70 }, base: 1.03,
     demand: { soybean: 1.1, corn: 1.08, sunflower: 1.08, oil: 1.15, wheat: 1.05 } },
   { id: 'buenosaires', name: 'Buenos Aires', emoji: '💃', unlockLevel: 36, km: { pampas: 300 }, base: 1.06,
@@ -339,11 +339,11 @@ export const CITIES = [
   { id: 'nairobi', name: 'Nairobi', emoji: '🦒', unlockLevel: 38, km: { kenya: 140 }, base: 1.04,
     demand: { tea: 1.1, coffee: 1.1, rose: 1.12, avocado: 1.12, milk: 1.15, sugar: 1.12 } },
   { id: 'mombasa', name: 'Mombasa', emoji: '🚢', unlockLevel: 41, km: { kenya: 480 }, base: 1.07,
-    demand: { tea: 1.15, coffee: 1.15, rose: 1.15, cooking_oil: 1.2, sugar: 1.2, cocoa: 1.12, coconut: 1.12 } },
+    demand: { tea: 1.15, coffee: 1.15, rose: 1.15, cooking_oil: 1.2, sugar: 1.2, cocoa: 1.12, coconut: 1.12, udang: 1.18 } },
   { id: 'calgary', name: 'Calgary', emoji: '🤠', unlockLevel: 43, km: { alberta: 80 }, base: 1.03,
     demand: { canola: 1.1, barley: 1.08, malt: 1.15, wheat: 1.05, pork: 1.1, blueberry: 1.1 } },
   { id: 'vancouver', name: 'Vancouver', emoji: '🏔️', unlockLevel: 45, km: { alberta: 970 }, base: 1.08,
-    demand: { canola: 1.15, oil: 1.25, flour: 1.2, blueberry: 1.15, cherry: 1.15, apple: 1.12, honey: 1.2, cake: 1.25 } },
+    demand: { canola: 1.15, oil: 1.25, flour: 1.2, blueberry: 1.15, cherry: 1.15, apple: 1.12, honey: 1.2, cake: 1.25, salmon: 1.22 } },
 ];
 
 // Research tree (js/engine/research.js). Points: 1 per level-up (old saves: level − 1, derived from the level).

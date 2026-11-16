@@ -9,6 +9,7 @@ import { breedingPanel, breedingSig, starRating, fmtGene } from './breeding.js';
 import { fold, goTo, subTabBar, getSub } from './subtabs.js';
 import { stockByCategory, groupValue } from './stock.js';
 import { fishPane, fishSig, fishLiveSig, fishAlerts, patchFish } from './fish.js';
+import { iconOf } from './fishArt.js';
 
 const qty = new Map(); // animalId → typed count (survives re-render)
 const manageOpen = new Set(); // herds whose "Kelola kawanan" panel is open
@@ -140,7 +141,7 @@ function storageLink(game) {
   const items = stockByCategory(game).animal;
   const info = game.storageInfo('cold');
   const frac = info.capacity > 0 ? info.used / info.capacity : 1;
-  const text = items.length ? items.slice(0, 3).map((it) => `${it.emoji} ${fmtAmt(it.qty, it.unit)}`).join(' · ') + (items.length > 3 ? ' …' : '')
+  const text = items.length ? [items.slice(0, 3).map((it, i) => [i ? ' · ' : '', iconOf(it), ` ${fmtAmt(it.qty, it.unit)}`]), items.length > 3 ? ' …' : '']
     : 'Belum ada produk ternak.';
   return h('button.link-card', { type: 'button', onclick: () => goTo('silo', 'animal') },
     h('span.link-card-icon', '❄️'),

@@ -2,6 +2,7 @@
 import { h, fmtMoney, fmtNum } from './dom.js';
 import { app, act } from './app.js';
 import { fold } from './subtabs.js';
+import { iconOf } from './fishArt.js';
 
 /** Pelet stock, days left and 3/7-day buttons (replaced as a whole by the in-place patch). */
 export function pelletPanel(v) {
@@ -23,7 +24,7 @@ export function pelletPanel(v) {
 function buildRow(d) {
   const game = app.game, e = d.economics, poor = game.state.money < d.buildCost;
   return h('div.list-item.pond-start',
-    h('div.card-icon', d.emoji),
+    h('div.card-icon', iconOf(d)),
     h('div.card-main',
       h('div.card-title', d.name, d.owned ? h('span.badge.pond-owned', `punya ${d.owned}`) : null),
       h('div.pond-facts',
@@ -40,7 +41,7 @@ function buildRow(d) {
 function lockedRow(d) {
   const lvl = app.game.state.level >= d.unlockLevel;
   return h('div.list-item.locked.pond-locked',
-    h('div.card-icon', d.emoji),
+    h('div.card-icon', iconOf(d)),
     h('div.card-main', h('div.card-title', d.name),
       h('div.card-sub', `${fmtMoney(d.buildCost)} · ${fmtNum(d.capacity)} ekor · ${d.growDays} hari`),
       h('div.small.pond-lock-reason', `🔒 ${d.reason}`)),

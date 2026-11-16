@@ -4,6 +4,7 @@ import { h, fmtMoney, fmtPrice, fmtSignedPct } from './dom.js';
 import { confirmModal } from './modal.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
+import { iconOf } from './fishArt.js';
 
 export const CATEGORIES = [
   { id: 'crop', sub: 'crop', icon: '🌾', label: 'Pertanian', long: 'Hasil pertanian' },
@@ -71,7 +72,7 @@ export function trendChip(change) {
 export function stockRow(it, extra = null) {
   const sellable = sellableQty(it);
   return h('div.stock-row', { dataset: { productId: it.id } },
-    h('span.stock-emoji', it.emoji),
+    h('span.stock-emoji', iconOf(it)),
     h('div.stock-main',
       h('div.stock-name', it.name, it.isFeed ? h('span.stock-tag', 'pakan') : null),
       h('div.stock-meta',

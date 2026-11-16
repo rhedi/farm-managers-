@@ -445,13 +445,14 @@ Bagian baru di tab **Ternak**. Bangun kolam (data `PONDS` + `FISH_BALANCE` di `j
 | Kolam | Level | Syarat | Bangun | Kapasitas | Hari | Panen | Untung/hari* | Balik modal* |
 |---|---|---|---|---|---|---|---|---|
 | 🐟 Kolam Lele | 3 | — | $5.000 | 4.000 ekor | 12 | 800 kg | ≈ $156 | ±36 hari |
-| 🐠 Kolam Nila | 8 | — | $10.000 | 4.000 ekor | 16 | 1.400 kg | ≈ $322 | ±34 hari |
+| 🐟 Kolam Nila | 8 | — | $10.000 | 4.000 ekor | 16 | 1.400 kg | ≈ $322 | ±34 hari |
 | 🦐 Tambak Udang | 12 | ladang tropis (atau Lv 30) | $25.000 | 50.000 ekor | 14 | 1.000 kg | ≈ $778 | ±36 hari |
-| 🎏 Kolam Ikan Mas | 14 | — | $12.000 | 3.000 ekor | 18 | 1.500 kg | ≈ $368 | ±36 hari |
-| 🍣 Keramba Salmon | 22 | ladang dingin ≤12 °C (atau Lv 40) | $75.000 | 2.000 ekor | 24 | 5.000 kg | ≈ $1.974 | ±41 hari |
+| 🐟 Kolam Ikan Mas | 14 | — | $12.000 | 3.000 ekor | 18 | 1.500 kg | ≈ $368 | ±36 hari |
+| 🐟 Keramba Salmon | 22 | ladang dingin ≤12 °C (atau Lv 40) | $75.000 | 2.000 ekor | 24 | 5.000 kg | ≈ $1.974 | ±41 hari |
 
 \*Harga dasar, pelet dibeli ×1,2, ganti air otomatis; balik modal termasuk benih pertama.
 
 - **Pelet ikan** (`pelet_ikan`, silo): dibeli di Pasar / tombol "Pelet 3/7 hari", atau dibuat di **Pabrik Pakan Ikan** (Lv 11: 2 t kedelai + 3 t jagung → 5 t pelet). Tanpa pelet ikan tidak tumbuh dan mulai mati.
 - **Kualitas air** turun tiap hari (`waterDecay`). Di bawah 50% pertumbuhan melambat, di bawah 40% ikan mati (hingga 6%/hari). "Ganti air" mengembalikan ke 100%; **aerator** (40% biaya kolam) memperlambat penurunan 50%. Opsi *Ganti air otomatis* (<50%) dan *Tebar ulang setelah panen*.
 - Kolam siap panen yang dibiarkan 1 hari dipanen otomatis. XP dari nilai panen. Kolam muncul di modal naik level.
+- Gambar tiap spesies (lele, nila, ikan mas, udang, salmon) adalah SVG gambar tangan di `js/ui/fishArt.js`, dipakai di kartu kolam, ikan yang berenang, cipratan panen, daftar bangun/terkunci, Gudang, Pasar, Kirim, dan modal naik level. Teks biasa (toast, pilihan) memakai 🐟 / 🦐 dari `emoji` di `js/data.js`.

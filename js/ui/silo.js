@@ -6,6 +6,7 @@ import { app, act } from './app.js';
 import { factoriesSection, factoriesSig } from './factories.js';
 import { subTabBar, getSub, goTo } from './subtabs.js';
 import { CATEGORIES, stockByCategory, groupValue, sellGroup, stockRow } from './stock.js';
+import { iconOf } from './fishArt.js';
 
 const SUBS = CATEGORIES.map((c) => c.sub);
 let sig = '';
@@ -57,7 +58,7 @@ function storeLines(info, groups) {
   }
   const items = groups.animal.filter((it) => it.tons > 0);
   return [
-    items.length ? h('div.small.muted.cold-mix', items.map((it) => h('span', `${it.emoji} ${fmtNum(it.tons, it.tons < 10 ? 2 : 1)} t`))) : null,
+    items.length ? h('div.small.muted.cold-mix', items.map((it) => h('span', iconOf(it), ` ${fmtNum(it.tons, it.tons < 10 ? 2 : 1)} t`))) : null,
     h('div.small.muted', `Dihitung menurut berat: 1.000 L susu atau 1.000 kg = 1 t; 1.000 telur ≈ 0,06 t. Yang tidak muat dijual paksa ${pct}.`),
     warn];
 }

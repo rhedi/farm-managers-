@@ -2,6 +2,7 @@
 // Motion is CSS (css/fish.css); reduced-motion users get static ponds via the global rule in style.css.
 // Scenes are patched in place (updateScene) so the swim/wave animations never restart on a data change.
 import { h } from './dom.js';
+import { iconOf } from './fishArt.js';
 
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const WATER = ['pond-clear', 'pond-green', 'pond-murky'];
@@ -10,9 +11,9 @@ const MAX_FISH = 6;
 /** Water tint from kualitas air: clear blue → green → murky brown. */
 const waterClass = (w) => (w < 40 ? 'pond-murky' : w < 60 ? 'pond-green' : 'pond-clear');
 
-function fishSprite(i, emoji) {
+function fishSprite(i, def) {
   return h('span.pond-fish', { style: { top: `${14 + ((i * 37) % 62)}%`, animationDelay: `${-i * 1.7}s` } },
-    h('span.pond-fish-in', emoji));
+    h('span.pond-fish-in', iconOf(def)));
 }
 
 /**
@@ -27,9 +28,9 @@ export function updateScene(el, p) {
   el.classList.toggle('pond-empty', !p.count);
   const want = p.count > 0 ? Math.max(1, Math.round((p.count / p.def.capacity) * MAX_FISH)) : 0;
   const fish = [...el.querySelectorAll(':scope > .pond-fish')];
-  for (let i = fish.length; i < want; i++) el.appendChild(fishSprite(i, p.def.emoji));
+  for (let i = fish.length; i < want; i++) el.appendChild(fishSprite(i, p.def));
   for (let i = want; i < fish.length; i++) fish[i].remove();
-  const size = `${(1.05 * (0.55 + 0.45 * (p.growth ?? 0))).toFixed(2)}rem`;
+  const size = `${(1.2 * (0.55 + 0.45 * (p.growth ?? 0))).toFixed(2)}rem`;
   const slow = p.water < 40 ? 2.2 : p.water < 60 ? 1.4 : 1;
   el.querySelectorAll(':scope > .pond-fish').forEach((f, i) => {
     if (f.style.fontSize !== size) f.style.fontSize = size;
@@ -53,8 +54,8 @@ export function pondScene(p) {
   return updateScene(el, p);
 }
 
-/** Splash of droplets + a jumping fish over `el` (viewport-fixed, outside the view). */
-export function harvestSplash(el, emoji = '🐟') {
+/** Splash of droplets + the pond's fish (species art) jumping over `el` (viewport-fixed, outside the view). */
+export function harvestSplash(el, def) {
   const r = el?.getBoundingClientRect?.();
   if (!r || !r.width || reduced()) return;
   const drops = Array.from({ length: 10 }, (_, i) => {
@@ -64,7 +65,7 @@ export function harvestSplash(el, emoji = '🐟') {
     return d;
   });
   const box = h('div.fish-splash', { style: { left: `${r.left + r.width / 2}px`, top: `${r.top + r.height / 2}px` } },
-    h('span.fish-ring'), h('span.fish-jump', emoji), drops);
+    h('span.fish-ring'), h('span.fish-jump', def ? iconOf(def) : '🐟'), drops);
   document.body.appendChild(box);
   setTimeout(() => box.remove(), 1300);
 }

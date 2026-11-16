@@ -216,3 +216,36 @@ test('level-up unlocks list ponds; net worth counts ponds', async () => {
   g.buildPond('lele');
   near(netWorth(g), before - pond('lele').buildCost * 0.4, 0.01);
 });
+
+test('fish sell like milk: market sale, contracts for owned ponds, city demand on trucks', async () => {
+  const { stepContractsDay, acceptContract, deliverContract } = await import('../js/engine/contracts.js');
+  const { cityMult } = await import('../js/engine/logistics.js');
+  const { g } = pondGame('lele', { level: 5, stock: false });
+  const L = () => g.state.ledger.total;
+  // Pasar › Jual
+  g.state.silo.ikan_lele = 500;
+  const t0 = L().penjualan_ternak_produk || 0;
+  const r = g.sellProduct('ikan_lele', 100);
+  assert.equal(r.ok, true, r.reason);
+  near((L().penjualan_ternak_produk || 0) - t0, 100 * g.state.market.ikan_lele, 0.01);
+  // Kontrak: a built pond makes its species a contract candidate (was herds/crops only)
+  let c;
+  for (let i = 0; i < 200 && !c; i++) {
+    g.state.contracts = [];
+    stepContractsDay(g);
+    c = g.state.contracts.find((x) => x.productId === 'ikan_lele');
+  }
+  assert.ok(c, 'a lele contract is offered');
+  assert.equal(acceptContract(g, c.id).ok, true);
+  g.state.silo.ikan_lele = c.qty;
+  const k0 = L().kontrak || 0;
+  const d = deliverContract(g, c.id);
+  assert.equal(d.done, true, d.reason);
+  near((L().kontrak || 0) - k0, c.value, 0.01);
+  // Kirim: cities pay a premium for fish like for milk
+  for (const id of ['ikan_lele', 'ikan_nila', 'ikan_mas', 'udang', 'salmon']) {
+    assert.ok(DATA.CITIES.some((city) => cityMult(g, city, id) > (city.base ?? 1)), `${id} has city demand`);
+  }
+  const jakarta = DATA.CITIES.find((x) => x.id === 'jakarta');
+  assert.ok(cityMult(g, jakarta, 'ikan_lele') > jakarta.base);
+});

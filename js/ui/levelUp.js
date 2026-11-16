@@ -4,6 +4,7 @@ import { openModal, isModalOpen } from './modal.js';
 import { sfx } from './sfx.js';
 import { confetti, vibrate } from './fx.js';
 import { openResearchModal } from './research.js';
+import { iconOf } from './fishArt.js';
 
 const pending = []; // level_up events waiting for a free modal slot
 
@@ -14,7 +15,7 @@ function unlocksOf(game, ev) {
   const u = ev.unlocks ?? { crops: byLevel(d.CROPS), machines: byLevel(d.MACHINES), animals: byLevel(d.ANIMALS),
     factories: byLevel(d.FACTORIES), regions: byLevel(d.REGIONS), fields: byLevel(d.FIELDS), ponds: byLevel(d.PONDS) };
   const names = (arr, ids, label = (x) => x.name) => (ids || []).map((id) => (arr || []).find((x) => x.id === id))
-    .filter(Boolean).map((x) => `${x.emoji ? x.emoji + ' ' : ''}${label(x)}`);
+    .filter(Boolean).map((x) => { const ic = iconOf(x); return ic ? [ic, ' ', label(x)] : label(x); });
   const regionName = (id) => (d.REGIONS || []).find((r) => r.id === id)?.name ?? id;
   return [
     ['🌱 Tanaman', names(d.CROPS, u.crops)],

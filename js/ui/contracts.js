@@ -3,6 +3,7 @@ import { h, fmtMoney, fmtPrice, fmtNum, progressBar } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { fold } from './subtabs.js';
+import { iconOf } from './fishArt.js';
 
 const MAX_ACTIVE = () => app.game.data.BALANCE?.contracts?.maxActive ?? 3;
 
@@ -20,7 +21,7 @@ function terms(c) {
 
 function head(c, badge) {
   return h('div.card-head',
-    h('div.card-icon', c.emoji),
+    h('div.card-icon', iconOf({ id: c.productId, name: c.name, emoji: c.emoji })),
     h('div', { style: { flex: '1', minWidth: '0' } },
       h('div.card-title', `${fmtAmt(c.qty, c.unit)} ${c.name}`),
       h('div.card-sub', terms(c))),

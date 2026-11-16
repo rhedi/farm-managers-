@@ -6,6 +6,7 @@ import { app, act } from './app.js';
 import { floatText, vibrate } from './fx.js';
 import { sfx } from './sfx.js';
 import { pondScene, updateScene, harvestSplash, waterWash, sceneOf } from './fishFx.js';
+import { iconOf } from './fishArt.js';
 import { pelletPanel, buildFolds } from './fishShop.js';
 
 const meter = (label, v, cls) => h('div.herd-meter', h('div.small', h('span.muted', label), ' ', h('b', fmtPct(v))), progressBar(v, `thin.${cls}`));
@@ -14,7 +15,7 @@ function harvest(p, btn) {
   const scene = sceneOf(p.uid);
   const r = act(app.game.harvestPond(p.uid), (x) => `${p.def.emoji} Panen ${fmtNum(x.kg)} kg ${p.product?.name ?? ''}${x.overflow > 0 ? ` · ${fmtNum(x.overflow)} kg dijual paksa (gudang penuh)` : ''}.`);
   if (!r?.ok) return;
-  harvestSplash(sceneOf(p.uid) ?? scene ?? btn, p.def.emoji);
+  harvestSplash(sceneOf(p.uid) ?? scene ?? btn, p.def);
   floatText(sceneOf(p.uid) ?? btn, `+${fmtNum(r.kg)} kg`, 'harvest');
   sfx('harvest');
   vibrate([15, 30, 15]);
@@ -43,7 +44,7 @@ function pondCard(p) {
   const fryCost = d.capacity * d.fryPrice;
   return h(`div.card.pond-card${p.waterBad ? '.pond-alert' : ''}`, { dataset: { pond: p.uid } },
     h('div.card-head',
-      h('div.card-icon', d.emoji),
+      h('div.card-icon', iconOf(d)),
       h('div.card-main', h('div.card-title', d.name, p.aerator ? h('span.pond-aer', ' 🫧') : null), h('div.card-sub.pond-sub', subText(p))),
       status(p)),
     pondScene(p), meters(p), info(p),
