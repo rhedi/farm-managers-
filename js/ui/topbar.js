@@ -8,6 +8,22 @@ import { openResearchModal } from './research.js';
 let els = null;
 let curGame = null; // listeners are bound once; a new game replaces this
 const last = {};
+let xpObserver = null;
+
+/** XP text: "98/115jt" (shared unit once) when it fits, else only "85%"; "MAX" at max level. Width is measured only
+ *  when the full text changes or the level stat resizes (ResizeObserver: money growth, fonts, rotation); not cached
+ *  before layout. */
+function updateXpText(el, li) {
+  const a = fmtCompact(li.xp).replace(/ /g, ''), b = fmtCompact(li.next).replace(/ /g, '');
+  const unit = /[a-z]+$/.exec(b)?.[0];
+  const full = li.maxed ? 'MAX' : `${unit && a.endsWith(unit) ? a.slice(0, -unit.length) : a}/${b}`;
+  if (last.xpFull !== full) {
+    el.textContent = full; last.xpText = full;
+    last.xpFits = el.scrollWidth <= el.clientWidth;
+    if (el.clientWidth > 0) last.xpFull = full;
+  }
+  setText(el, 'xpText', last.xpFits ? full : `${Math.floor(li.progress * 100)}%`);
+}
 
 function setText(el, key, text) {
   if (last[key] !== text) { last[key] = text; el.textContent = text; }
@@ -56,6 +72,17 @@ export function initTopbar(game, onSpeed) {
     levelStat.addEventListener('click', () => openResearchModal());
     levelStat.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openResearchModal(); } });
   }
+  // Level stat width changes with money digits, fonts and rotation: re-measure the XP text then.
+  if (levelStat && !xpObserver && typeof ResizeObserver === 'function') {
+    let lastW = 0;
+    xpObserver = new ResizeObserver(([e]) => {
+      const w = Math.round(e.contentRect.width);
+      if (w === lastW) return;
+      lastW = w; delete last.xpFull;
+      if (curGame) updateTopbar(curGame);
+    });
+    xpObserver.observe(levelStat);
+  }
   for (const k of Object.keys(last)) delete last[k];
   updateTopbar(game);
 }
@@ -74,7 +101,7 @@ export function updateTopbar(game) {
   const pts = game.researchPoints?.().available ?? 0;
   const lvlTitle = `${xpTitle}\n${pts > 0 ? `🔬 ${pts} poin riset tersedia — ` : ''}Ketuk untuk riset.`;
   if (last.xpTitle !== lvlTitle) { last.xpTitle = lvlTitle; els.level.closest('.stat-level').title = lvlTitle; }
-  if (els.xptext) setText(els.xptext, 'xpText', li.maxed ? 'XP MAKS' : `${fmtCompact(li.xp)}/${fmtCompact(li.next)}`.replace(/ /g, ''));
+  if (els.xptext) updateXpText(els.xptext, li);
   const c = game.clock();
   setText(els.clock, 'clock', fmtClock(c.day, c.hour));
   if (last.speed !== c.speed) {

@@ -41,7 +41,9 @@ export function effectiveStats(game, m) {
 }
 
 export const upgradeCost = (game, d, level) => round2(d.price * (cfg(game).costs[level - 1] ?? Infinity));
-export const upgradeReqLevel = (game, d, level) => d.unlockLevel + cfg(game).levelGap * (level - 1);
+/** Player level for upgrade `level`: unlock + levelGap per tier, capped at the max level so Lv 47–50 machines can max out. */
+export const upgradeReqLevel = (game, d, level) =>
+  Math.min(game.data.LEVELS.length, d.unlockLevel + cfg(game).levelGap * (level - 1));
 
 /** $ spent on this instance's upgrades (derived from levels). */
 export function upgradeSpent(game, m) {

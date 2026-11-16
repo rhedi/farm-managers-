@@ -87,6 +87,10 @@
   --map-label: rgba(45, 60, 25, .55);
   --map-label-glow: rgba(235, 245, 215, .9);
   --winter-tint: rgba(255, 255, 255, .8);
+  --land-lush: rgba(70, 150, 60, .55); /* map ground per region climate (mapFx.js groundOf) */
+  --land-temperate: rgba(140, 180, 95, .55);
+  --land-dry: rgba(205, 165, 95, .55);
+  --land-cool: rgba(175, 200, 160, .6);
   --tex-filter: brightness(1); /* field plot textures */
   --radius: 14px;
   --radius-s: 9px;
@@ -182,6 +186,10 @@
   --map-label: rgba(240, 244, 226, .92);
   --map-label-glow: rgba(12, 18, 10, .85);
   --winter-tint: rgba(225, 235, 245, .42);
+  --land-lush: rgba(60, 120, 50, .4);
+  --land-temperate: rgba(105, 135, 70, .38);
+  --land-dry: rgba(150, 120, 70, .38);
+  --land-cool: rgba(120, 140, 115, .38);
   --tex-filter: brightness(.82) saturate(.92);
   --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 4px 14px rgba(0, 0, 0, .25);
   --shadow-l: 0 10px 40px rgba(0, 0, 0, .6);

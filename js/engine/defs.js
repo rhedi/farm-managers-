@@ -8,6 +8,7 @@ export function indexData(data) {
     products: byId(data.PRODUCTS),
     machines: byId(data.MACHINES),
     animals: byId(data.ANIMALS),
+    ponds: byId(data.PONDS), // fish ponds (fish.js)
     regions: byId(data.REGIONS),
     fields: byId(data.FIELDS),
     achievements: byId(data.ACHIEVEMENTS),

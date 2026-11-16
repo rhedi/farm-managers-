@@ -25,6 +25,7 @@ export function feedbackEvent(ev) {
     case 'crop_ready': sfx('pop'); break;
     case 'sale': case 'contract_done': sfx('coin'); break;
     case 'auto_dispatch': sfx('honk'); truckDepart(app.game?.idx.cities.get(ev.city)?.emoji ?? '🏙️'); break;
+    case 'factory_manager_run': sfx('pop'); break;
     case 'achievement': sfx('achievement'); confetti(window.innerWidth / 2, 90, 32); break;
     default:
       if (WARN.has(ev.type)) sfx('warning');

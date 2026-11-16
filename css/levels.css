@@ -1,16 +1,16 @@
-/* Stream A (Lv 11–30): taller map with two late regions along the bottom, locked pins, level-up reward. */
+/* Lv 11–50: one continent per map (chips above it), region ground blobs from mapFx.js, locked pins, level-up reward. */
 .map {
   aspect-ratio: 5 / 6;
-  background:
-    radial-gradient(ellipse 30% 16% at 16% 15%, rgba(170, 200, 110, .55), transparent 70%),
-    radial-gradient(ellipse 26% 14% at 49% 13%, rgba(140, 180, 95, .55), transparent 70%),
-    radial-gradient(ellipse 20% 16% at 83% 31%, rgba(130, 175, 120, .55), transparent 70%),
-    radial-gradient(ellipse 24% 15% at 18% 46%, rgba(95, 160, 70, .55), transparent 70%),
-    radial-gradient(ellipse 22% 14% at 51% 46%, rgba(165, 190, 105, .5), transparent 70%),
-    radial-gradient(ellipse 26% 14% at 20% 81%, rgba(120, 165, 60, .55), transparent 70%),
-    radial-gradient(ellipse 26% 14% at 79% 81%, rgba(205, 165, 95, .5), transparent 70%),
-    linear-gradient(160deg, #cfe0a8 0%, #b9d08a 45%, #a9c47d 100%);
+  background: linear-gradient(160deg, #cfe0a8 0%, #b9d08a 45%, #a9c47d 100%);
 }
+.map-land {
+  position: absolute; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(closest-side, var(--land, transparent) 55%, transparent);
+}
+.map-land[data-ground="lush"] { --land: var(--land-lush); }
+.map-land[data-ground="temperate"] { --land: var(--land-temperate); }
+.map-land[data-ground="dry"] { --land: var(--land-dry); }
+.map-land[data-ground="cool"] { --land: var(--land-cool); }
 @media (min-width: 640px) {
   .map { aspect-ratio: 4 / 3; }
 }
@@ -53,3 +53,19 @@
 @media (min-width: 640px) { .section, .section-title, .card, .modal-section { scroll-margin-top: 96px; } }
 /* Region labels stay readable above rain clouds of a neighbouring cluster. */
 .map-region-label { z-index: 1; text-shadow: 0 0 3px var(--map-label-glow); }
+/* Research tier-5 nodes: "Lv N" tag next to the name (js/ui/research.js). */
+.rs-lv {
+  display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 999px;
+  font-size: .68rem; font-weight: 800; vertical-align: 1px;
+  background: var(--locked-bg); color: var(--locked-ink);
+}
+/* Topbar XP (js/ui/topbar.js): compact "98/115jt" or "85%"/"MAX" fallback, never an ellipsis; at phone widths
+   the "Lv" word goes so 9–10 digit money and the XP text both fit. */
+.xp-text { text-overflow: clip; }
+@media (max-width: 420px) {
+  .lv-word { display: none; }
+  .lv-row { gap: 4px; }
+}
+@media (max-width: 380px) {
+  #topbar .topbar-row:first-child { gap: 8px; }
+}

@@ -18,13 +18,13 @@ function setup(seed = 3, silo = { rice: 10, wheat: 10, milk: 3000 }) {
   return { g, uid };
 }
 
-test('data: 5 truck tiers, 8 cities, crop multipliers stay below the buy markup', () => {
+test('data: 6 truck tiers, 19 cities, crop multipliers stay below the buy markup', () => {
   const trucks = DATA.MACHINES.filter((m) => m.type === 'truck');
-  assert.ok(trucks.length >= 3 && trucks.length <= 5);
+  assert.ok(trucks.length >= 3 && trucks.length <= 6);
   for (const t of trucks) for (const k of ['capacity', 'speedKmh', 'fuelPerKm', 'price', 'unlockLevel']) assert.ok(t[k] > 0, `${t.id}.${k}`);
-  assert.ok(DATA.CITIES.length >= 6 && DATA.CITIES.length <= 8);
+  assert.ok(DATA.CITIES.length >= 8 && DATA.CITIES.length <= 24);
   const g = newGame();
-  g.state.level = 30;
+  g.state.level = DATA.LEVELS.length;
   for (const c of DATA.CITIES) for (const p of DATA.PRODUCTS) {
     const r = g.cityPrices(p.id).find((x) => x.cityId === c.id);
     if (g.idx.crops.has(p.id)) assert.ok(r.mult < 1.2, `${c.id}/${p.id} ${r.mult}`);

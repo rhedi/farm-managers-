@@ -13,7 +13,7 @@ const buyPriceOf = (game, productId) => (game.state.market[productId] ?? 0) * BU
 export function buyProduct(game, productId, qty, category = 'pembelian_produk') {
   const p = game.idx.products.get(productId);
   if (!p) return fail('Produk tidak ditemukan.');
-  if (!game.idx.crops.has(productId)) return fail(`${p.name} tidak bisa dibeli.`);
+  if (!game.idx.crops.has(productId) && !p.buyable) return fail(`${p.name} tidak bisa dibeli.`);
   qty = round2(Number(qty));
   if (!(qty > 0)) return fail('Jumlah tidak valid.');
   const full = roomFor(game, { [productId]: qty });

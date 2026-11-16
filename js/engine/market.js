@@ -69,7 +69,7 @@ export function marketView(game) {
       category: p.category,
       price,
       buyPrice: round2(price * BUY_MARKUP),
-      buyable: game.idx.crops.has(p.id),
+      buyable: game.idx.crops.has(p.id) || !!p.buyable, // crops + feed goods like pelet ikan
       basePrice: p.basePrice,
       ratio: round2(price / p.basePrice),
       change: prev ? round2((price - prev) / prev * 100) : 0,

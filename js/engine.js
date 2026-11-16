@@ -30,7 +30,10 @@ import * as greenhouse from './engine/greenhouse.js';
 import * as logistics from './engine/logistics.js';
 import * as logView from './engine/logisticsView.js';
 import * as dispatcher from './engine/dispatcher.js';
+import * as factoryManager from './engine/factoryManager.js';
 import * as research from './engine/research.js';
+import * as fish from './engine/fish.js';
+import * as fishView from './engine/fishView.js';
 import { SAVE_VERSION, MAX_CATCHUP_HOURS, HISTORY_SIZE, newStats, normalizeState, serializeState, parseSave,
   writeStorage, readStorage } from './engine/persist.js';
 
@@ -129,6 +132,7 @@ export class Game {
         stepFieldsHour(this);
         factories.stepFactoriesHour(this);
         if (nextHour % 24 === 0) this.#dailyRollover();
+        factoryManager.runFactoryManager(this); // every tier.intervalHours; before the dispatcher (it holds the inputs)
         runPlans(this);
         dispatcher.runDispatcher(this); // after plans: field work gets the free workers first
       } else if (finished) { runPlans(this); dispatcher.runDispatcher(this); }
@@ -142,10 +146,12 @@ export class Game {
     seasons.stepSeasonsDay(this, day);
     stepMarket(this, day);
     animals.stepAnimalsDay(this);
+    fish.stepFishDay(this); // kolam ikan: pelet, kualitas air, panen otomatis
     eco.chargeInterest(this);
     greenhouse.stepGreenhouseDay(this); // rumah kaca upkeep (listrik_rumah_kaca)
     workers.stepWorkersDay(this);
     dispatcher.stepDispatcherDay(this); // Manajer Logistik wage ('gaji')
+    factoryManager.stepFactoryManagerDay(this); // Manajer Pabrik wage ('gaji')
     contracts.stepContractsDay(this);
     const h = this.state.history;
     h.push({ day: day - 1, money: this.state.money, netWorth: eco.netWorth(this) });
@@ -212,6 +218,19 @@ export class Game {
   /** Next stud tier (indukan unggul) → {ok, tier, cost, target}; herd genetics climb toward the target daily. */
   buyBreedingStock(id) { return breeding.buyBreedingStock(this, animals.herdOf, id); }
 
+  // ---- peternakan ikan (js/engine/fish.js, fishView.js) ----
+  fishView() { return fishView.fishView(this); }
+  buildPond(pondId) { return fish.buildPond(this, pondId); }
+  /** Tebar benih into an empty pond; `n` defaults to full capacity. */
+  stockPond(uid, n) { return fish.stockPond(this, uid, n); }
+  changeWater(uid) { return fish.changeWater(this, uid); }
+  buyAerator(uid) { return fish.buyAerator(this, uid); }
+  /** `{water?, restock?}`: ganti air otomatis / tebar ulang setelah panen. */
+  setPondAuto(uid, opts) { return fish.setPondAuto(this, uid, opts); }
+  harvestPond(uid) { return fish.harvestPond(this, uid); }
+  pelletQuote(days) { return fishView.pelletQuote(this, days); }
+  buyPellet(days) { return fishView.buyPellet(this, days); }
+
   // ---- contracts (js/engine/contracts.js) ----
   contractsView() { return contracts.contractsView(this); }
   acceptContract(id) { return contracts.acceptContract(this, id); }
@@ -275,6 +294,18 @@ export class Game {
   setDispatcherSettings(patch) { return dispatcher.setDispatcherSettings(this, patch); }
   /** One planning pass now (also runs every game hour) → trips sent. */
   runDispatcher() { return dispatcher.runDispatcher(this); }
+  // ---- Manajer Pabrik: automatic factory runs (js/engine/factoryManager.js + factoryPlanner.js) ----
+  factoryManagerView() { return factoryManager.factoryManagerView(this); }
+  /** Hire a tier from BALANCE.factoryManager.tiers → {ok, cost}; hire cost and the daily wage book to 'gaji'. */
+  hireFactoryManager(tierId) { return factoryManager.hireFactoryManager(this, tierId); }
+  /** Switch tier → {ok, cost, credit, from, to}; cost = max(0, hireCost − tradeIn × current hireCost). */
+  replaceFactoryManager(tierId) { return factoryManager.replaceFactoryManager(this, tierId); }
+  fireFactoryManager() { return factoryManager.fireFactoryManager(this); }
+  setFactoryManagerOn(on) { return factoryManager.setFactoryManagerOn(this, on); }
+  /** Partial settings patch (factories, reservePct, minMargin, buyInputs, headroom, contracts). */
+  setFactoryManagerSettings(patch) { return factoryManager.setFactoryManagerSettings(this, patch); }
+  /** One planning pass now (also runs every tier.intervalHours) → runs queued. */
+  runFactoryManager() { return factoryManager.runFactoryManager(this, { force: true }); }
   // ---- research tree (js/engine/research.js) ----
   researchView() { return research.researchView(this); }
   /** {earned, spent, available}: cheap points summary (topbar/badges). */
@@ -297,7 +328,7 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
     stats: { ...newStats(), level: 1 },
     achievements: [], log: [], history: [], contracts: [], feedReserve: {}, forecast: {}, events: [], nextEventId: 1,
     storageUpgrades: { silo: 0, cold: 0 }, workers: [], autoRepair: false, factories: {}, ledger: ledger.newLedger(1),
-    shipments: [], nextTripId: 1, research: { unlocked: [], respecs: 0 },
+    shipments: [], nextTripId: 1, research: { unlocked: [], respecs: 0 }, ponds: [], nextPondUid: 1,
   };
   const game = new Game(state, data);
   for (const id of S.fieldIds) state.fields[id] = newFieldState(game.idx.fields.get(id));
@@ -306,6 +337,7 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
   initMarket(game);
   workers.ensureWorkers(game);
   dispatcher.ensureDispatcher(game);
+  factoryManager.ensureFactoryManager(game);
   eco.syncCounts(game);
   missions.ensureMissions(game);
   rivals.ensureRivals(game);
@@ -320,6 +352,7 @@ export function loadGame(json, { data = DEFAULT_DATA } = {}) {
   workers.ensureWorkers(game);
   logistics.ensureLogistics(game); // after ensureWorkers: re-marks trucks/drivers on the road
   dispatcher.ensureDispatcher(game); // old saves: no manager hired
+  factoryManager.ensureFactoryManager(game); // old saves: no factory manager hired
   research.ensureResearch(game);
   missions.ensureMissions(game); // pre-missions saves: today's missions + rival ranks
   rivals.ensureRivals(game);

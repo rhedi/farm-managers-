@@ -35,11 +35,13 @@ function regionOf(game, regionOrId) {
   return typeof regionOrId === 'string' ? game.idx.regions.get(regionOrId) : regionOrId;
 }
 
+/** Temperate phase of a region: `climate.southern` runs half a year shifted (its spring = northern autumn). */
+const temperatePhase = (game, region, day) => (yearPhase(game, day) + (region?.climate?.southern ? 0.5 : 0)) % 1;
+
 export function seasonIdAt(game, regionOrId, day) {
   const region = regionOf(game, regionOrId);
-  const ph = yearPhase(game, day);
-  if (isTropical(region)) return ph >= 0.25 && ph < 0.75 ? 'dry' : 'wet';
-  return TEMPERATE[Math.min(3, Math.floor(ph * 4))];
+  if (isTropical(region)) { const ph = yearPhase(game, day); return ph >= 0.25 && ph < 0.75 ? 'dry' : 'wet'; }
+  return TEMPERATE[Math.min(3, Math.floor(temperatePhase(game, region, day) * 4))];
 }
 
 /** Public season object for a region on a day (defaults to today). */
@@ -51,9 +53,8 @@ export function seasonOf(game, regionOrId, day = game.day) {
 export function climateTemp(game, regionOrId, day) {
   const region = regionOf(game, regionOrId);
   const c = region.climate;
-  const ph = yearPhase(game, day);
-  if (isTropical(region)) return c.baseTemp + 0.3 * c.tempSwing * Math.sin(2 * Math.PI * (ph - 0.25));
-  return c.baseTemp + c.tempSwing * Math.sin(2 * Math.PI * (ph - 0.125));
+  if (isTropical(region)) return c.baseTemp + 0.3 * c.tempSwing * Math.sin(2 * Math.PI * (yearPhase(game, day) - 0.25));
+  return c.baseTemp + c.tempSwing * Math.sin(2 * Math.PI * (temperatePhase(game, region, day) - 0.125));
 }
 
 /** Rain chance for a day: tropical wet season +0.2, dry season −0.2. */

@@ -28,6 +28,9 @@ const TOAST_EVENTS = {
   herd_full: { kind: 'warn', merged: (n) => `🏠 ${n} kandang penuh — kelahiran berhenti.` },
   delivery_done: { kind: 'success', merged: (n) => `🚚 ${n} muatan terjual di kota.` },
   auto_dispatch: { kind: 'success', merged: (n) => `🧑‍💼 Manajer logistik mengirim ${n} truk.` },
+  factory_manager_run: { kind: 'success', merged: (n) => `🏭 Manajer pabrik menjalankan ${n} resep.` },
+  fish_ready: { kind: 'success', merged: (n) => `🐟 ${n} kolam siap panen.` },
+  pond_alert: { kind: 'warn', merged: (n) => `⚠️ ${n} peringatan kolam ikan.` },
 };
 
 /** Season changes only matter for regions where the player owns a field. */
@@ -56,6 +59,7 @@ export function notifyEvent(ev) {
   }
   if (ev.type === 'animals_born') bornToast(ev);
   onboardingEvent(ev);
+  if (ev.type === 'fish_harvest' && ev.auto) toast(ev.msg, 'success', { key: 'fish_harvest', merged: (n) => `🎣 ${n} kolam dipanen otomatis.` });
   if (ev.type === 'level_up') queueLevelUp(ev);
   return ev.type === 'level_up' || ev.type === 'achievement';
 }

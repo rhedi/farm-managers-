@@ -13,9 +13,9 @@ function at(level, nodes = [], seed = 4) {
   return g;
 }
 
-test('data: 4 branches, ~5 nodes each, prerequisites exist, some cost > 1', () => {
+test('data: 4 branches, 7 nodes each (tier 5 = 2 per branch), prerequisites exist, some cost > 1', () => {
   assert.deepEqual(DATA.RESEARCH_BRANCHES.map((b) => b.id), ['tani', 'ternak', 'bisnis', 'mesin']);
-  for (const b of DATA.RESEARCH_BRANCHES) assert.equal(DATA.RESEARCH.filter((n) => n.branch === b.id).length, 5);
+  for (const b of DATA.RESEARCH_BRANCHES) assert.equal(DATA.RESEARCH.filter((n) => n.branch === b.id).length, 7);
   const ids = new Set(DATA.RESEARCH.map((n) => n.id));
   for (const n of DATA.RESEARCH) for (const r of n.requires) assert.ok(ids.has(r), `${n.id} → ${r}`);
   assert.ok(DATA.RESEARCH.some((n) => n.cost > 1));
@@ -93,7 +93,9 @@ test('perks: wages, loan interest, contract price, silo + cold storage capacity,
   near(g1.storageInfo('cold').capacity, g0.storageInfo('cold').capacity * 1.1, 0.01);
   const c0 = g0.state.contracts.filter((c) => c.status === 'offer'), c1 = g1.state.contracts.filter((c) => c.status === 'offer');
   assert.ok(c0.length && c1.length);
-  for (const c of c1) assert.ok(c.price < g1.state.market[c.productId] * 1.2);
+  // Offers price off max(market, 0.9·base) (crash floor); the perk never lifts them to 1.2× that.
+  const ref = (c) => Math.max(g1.state.market[c.productId], DATA.PRODUCTS.find((p) => p.id === c.productId).basePrice * 0.9);
+  for (const c of c1) assert.ok(c.price < ref(c) * 1.2);
   const ratio = (cs, g) => cs.reduce((s, c) => s + c.price / Math.max(g.state.market[c.productId], DATA.PRODUCTS.find((p) => p.id === c.productId).basePrice * 0.9), 0) / cs.length;
   assert.ok(ratio(c1, g1) > ratio(c0, g0), 'contract offers pay more');
   for (const g of [g0, g1]) g.startTask(startField(), 'plow');

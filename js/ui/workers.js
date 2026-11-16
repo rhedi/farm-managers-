@@ -3,6 +3,7 @@ import { h, fmtMoney, fmtPct, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
 import { app, act } from './app.js';
 import { managerItem, dispatcherSig } from './dispatcher.js';
+import { factoryManagerItem, factoryManagerSig } from './factoryManager.js';
 
 const stars = (skill) => { const n = Math.max(1, Math.round(skill * 5)); return '★'.repeat(n) + '☆'.repeat(5 - n); };
 const fieldName = (id) => app.game.data.FIELDS.find((f) => f.id === id)?.name ?? id;
@@ -11,7 +12,7 @@ const fieldName = (id) => app.game.data.FIELDS.find((f) => f.id === id)?.name ??
 export function workersSig(game) {
   if (!game.workersView) return '';
   return `|W${game.workersView().map((w) => `${w.id}:${w.busy}:${w.skill}`).join(',')}`
-    + `|C${game.workerCandidates().map((c) => c.id).join(',')}|${dispatcherSig(game)}`;
+    + `|C${game.workerCandidates().map((c) => c.id).join(',')}|${dispatcherSig(game)}|${factoryManagerSig(game)}`;
 }
 
 async function fireFlow(w) {
@@ -53,8 +54,8 @@ export function workersSection(game) {
   if (!game.workersView) return null;
   const ws = game.workersView();
   const cs = game.workerCandidates();
-  const mgr = game.dispatcherView?.().hired;
-  const wages = ws.reduce((s, w) => s + w.wage, 0) + (mgr?.wage ?? 0);
+  const mgr = game.dispatcherView?.().hired, fm = game.factoryManagerView?.().hired;
+  const wages = ws.reduce((s, w) => s + w.wage, 0) + (mgr?.wage ?? 0) + (fm?.wage ?? 0);
   const free = ws.filter((w) => !w.busy).length;
   return h('section.section',
     h('div.section-title', '👷 Pekerja', h('span.spacer'),
@@ -63,6 +64,8 @@ export function workersSection(game) {
     h('div.list', ws.map((w) => workerItem(w, ws.length <= 1))),
     h('div.section-title.ops-sub', '🧑‍💼 Manajer Logistik'),
     h('div.list', managerItem(game)),
+    h('div.section-title.ops-sub', '🏭 Manajer Pabrik'),
+    h('div.list', factoryManagerItem(game)),
     h('div.section-title.ops-sub', '📋 Calon pekerja'),
     h('div.small.muted.ops-hint', 'Calon berganti tiap minggu. Merekrut gratis.'),
     cs.length ? h('div.list', cs.map(candidateItem)) : h('div.empty', 'Tidak ada calon minggu ini.'));

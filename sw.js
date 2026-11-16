@@ -2,7 +2,7 @@
 // cached index.html as offline fallback. A new version waits until the page asks it to take over
 // (toast "Versi baru tersedia" in js/ui/pwa.js). After changing any file, regenerate VERSION and
 // PRECACHE with the command in README → "Pasang di HP (PWA)".
-const VERSION = "c7dc69a287";
+const VERSION = "527b623fe3";
 const PREFIX = 'farm-manager-';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = [
@@ -14,6 +14,7 @@ const PRECACHE = [
   "./css/factories.css",
   "./css/fields.css",
   "./css/finance.css",
+  "./css/fish.css",
   "./css/juice.css",
   "./css/layout.css",
   "./css/levels.css",
@@ -38,8 +39,12 @@ const PRECACHE = [
   "./js/engine/economy.js",
   "./js/engine/events.js",
   "./js/engine/factories.js",
+  "./js/engine/factoryManager.js",
+  "./js/engine/factoryPlanner.js",
   "./js/engine/factoryView.js",
   "./js/engine/fields.js",
+  "./js/engine/fish.js",
+  "./js/engine/fishView.js",
   "./js/engine/greenhouse.js",
   "./js/engine/ledger.js",
   "./js/engine/logistics.js",
@@ -55,6 +60,7 @@ const PRECACHE = [
   "./js/engine/rng.js",
   "./js/engine/seasons.js",
   "./js/engine/soil.js",
+  "./js/engine/staff.js",
   "./js/engine/storage.js",
   "./js/engine/taskrun.js",
   "./js/engine/tasks.js",
@@ -78,12 +84,17 @@ const PRECACHE = [
   "./js/ui/ecoFmt.js",
   "./js/ui/eventsBanner.js",
   "./js/ui/factories.js",
+  "./js/ui/factoryManager.js",
+  "./js/ui/factoryManagerParts.js",
   "./js/ui/farm.js",
   "./js/ui/feedback.js",
   "./js/ui/fieldModal.js",
   "./js/ui/fieldStatus.js",
   "./js/ui/finance.js",
   "./js/ui/financeChart.js",
+  "./js/ui/fish.js",
+  "./js/ui/fishFx.js",
+  "./js/ui/fishShop.js",
   "./js/ui/forecast.js",
   "./js/ui/fx.js",
   "./js/ui/garage.js",

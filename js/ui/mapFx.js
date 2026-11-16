@@ -19,8 +19,22 @@ function seasonOf(game, regionId) {
   try { return typeof game.seasonOf === 'function' ? game.seasonOf(regionId) : null; } catch { return null; }
 }
 
-/** Background layer (season tints) and foreground layer (rain + clouds), plus region labels. */
+/** Ground colour of a region from its climate: wet tropics lush, cold pale, dry tan, else temperate green. */
+function groundOf(game, regionId) {
+  const c = (game.data.REGIONS || []).find((r) => r.id === regionId)?.climate;
+  if (!c) return 'temperate';
+  if (c.tropical && c.rainChance >= 0.4) return 'lush';
+  if (c.baseTemp <= 10) return 'cool';
+  if (c.rainChance < 0.3) return 'dry';
+  return 'temperate';
+}
+
+/** Ground layer (climate-coloured land per region), season tints, rain + clouds, plus region labels. */
 export function mapFxLayers(game, regions) {
+  const lands = regions.map((r) => h('div.map-land', {
+    dataset: { ground: groundOf(game, r.id) },
+    style: { left: `${r.x0 - 13}%`, top: `${r.y0 - 13}%`, width: `${r.x1 - r.x0 + 26}%`, height: `${r.y1 - r.y0 + 30}%` },
+  }));
   const tints = regions.map((r) => h('div.map-tint', {
     dataset: { region: r.id },
     style: { left: `${r.x0 - 10}%`, top: `${r.y0 - 12}%`, width: `${r.x1 - r.x0 + 20}%`, height: `${r.y1 - r.y0 + 26}%` },
@@ -33,7 +47,7 @@ export function mapFxLayers(game, regions) {
     dataset: { region: r.id }, style: { left: `${r.x}%`, top: `${r.labelY}%` },
   }, r.name));
   const clouds = h('div.map-clouds', h('span.c1'), h('span.c2'), h('span.c3'));
-  return { tints, rain, labels, clouds };
+  return { lands, tints, rain, labels, clouds };
 }
 
 /** Toggle rain/snow and season tint classes; refresh label emoji. */

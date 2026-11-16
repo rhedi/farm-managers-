@@ -4,13 +4,14 @@ import { confirmModal } from './modal.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { fold } from './subtabs.js';
+import { factoryManagerCard, factoryManagerSig } from './factoryManager.js';
 
-/** Re-render key: ownership, level, recipe, progress, blocked state and input availability. */
+/** Re-render key: ownership, level, recipe, progress, blocked state, input availability and the Manajer Pabrik. */
 export function factoriesSig(game) {
   if (!game.factoriesView) return '';
   return game.factoriesView().map((f) => [f.id, f.unlocked ? 1 : 0, f.level, f.recipeId, f.running ? 1 : 0, f.queued,
-    f.auto ? 1 : 0, f.progress, f.blocked ?? '', f.recipe?.canStart ? 1 : 0, f.price <= game.state.money ? 1 : 0,
-    (f.upgradeCost ?? 0) <= game.state.money ? 1 : 0].join(':')).join('|');
+    f.auto ? 1 : 0, f.managed ? 1 : 0, f.progress, f.blocked ?? '', f.recipe?.canStart ? 1 : 0, f.price <= game.state.money ? 1 : 0,
+    (f.upgradeCost ?? 0) <= game.state.money ? 1 : 0].join(':')).join('|') + factoryManagerSig(game);
 }
 
 async function buyFlow(f) {
@@ -33,7 +34,7 @@ const pct = (v) => `${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`;
 function recipePicker(f) {
   if (f.recipes.length < 2) return null;
   return h('div.fac-recipes', f.recipes.map((r) => h(`button.fac-recipe${r.id === f.recipeId ? '.active' : ''}`, {
-    type: 'button', disabled: f.running && r.id !== f.recipeId, title: f.running ? 'Pabrik sedang memproses' : null,
+    type: 'button', disabled: f.managed || (f.running && r.id !== f.recipeId), title: f.managed ? 'Dikelola Manajer Pabrik' : f.running ? 'Pabrik sedang memproses' : null,
     onclick: () => r.id !== f.recipeId && act(app.game.setRecipe(f.id, r.id)),
   }, `${r.emoji} ${r.name}`)));
 }
@@ -56,26 +57,28 @@ function statusLine(f) {
       f.blocked ? h('div.small.ops-bad', `⛔ ${f.blocked}`) : null);
   }
   if (f.blocked) return h('div.small.ops-bad', `⛔ ${f.blocked}`);
+  if (f.managed) return h('div.small.muted', '🏭 Dikelola Manajer Pabrik · menunggu rencana berikutnya.');
   return h('div.small.muted', f.auto ? '🔁 Menunggu bahan…' : 'Menganggur.');
 }
 
 function ownedCard(f, money) {
   const r = f.recipe;
   const canRun = r && (f.running || r.canStart);
-  return h('div.card.fac-card',
+  return h(`div.card.fac-card${f.managed ? '.managed' : ''}`,
     h('div.card-head', h('span.card-icon', f.emoji), h('div', h('div.card-title', f.name),
       h('div.card-sub', `Level ${f.level}/${f.maxLevel}${f.level > 1 ? ` · ⚡×${f.speed.toLocaleString('id-ID')}` : ''}`)),
     f.running ? h('span.badge.badge-green', '⚙️ Jalan') : f.blocked ? h('span.badge.badge-red', 'Terhenti') : null),
+    f.managed ? h('div.fac-managed', '🔒 Dikelola Manajer Pabrik — resep & batch diatur otomatis') : null,
     recipePicker(f),
     r ? recipeDetail(r) : null,
     statusLine(f),
     h('div.card-actions',
-      h('label.fac-auto', h('input', { type: 'checkbox', checked: f.auto,
+      f.managed ? h('span.fac-auto.fac-lock', '🔒 Dikelola') : h('label.fac-auto', h('input', { type: 'checkbox', checked: f.auto,
         onchange: (e) => act(app.game.setFactoryAuto(f.id, e.target.checked), e.target.checked ? '🔁 Produksi otomatis aktif.' : 'Produksi otomatis mati.') }),
       ' 🔁 Otomatis'),
       h('div.fac-btns', f.upgradeCost != null ? h('button.btn.btn-small.btn-secondary', { disabled: f.upgradeCost > money,
         title: f.upgradeCost > money ? 'Uang tidak cukup' : null, onclick: () => upgradeFlow(f) }, `⬆ ${fmtMoney(f.upgradeCost)}`) : h('span.badge', 'Maks'),
-      h('button.btn.btn-small.btn-primary', { disabled: !canRun, title: canRun ? null : 'Bahan kurang',
+      f.managed ? null : h('button.btn.btn-small.btn-primary', { disabled: !canRun, title: canRun ? null : 'Bahan kurang',
         onclick: () => act(app.game.startBatch(f.id, 1), f.running ? 'Ditambahkan ke antrean.' : `▶ ${r.name} diproses.`) },
       f.running ? '+1 antre' : '▶ Proses'))));
 }
@@ -104,6 +107,7 @@ export function factoriesSection(game) {
   const locked = list.filter((f) => !f.unlocked);
   return h('section.section.fac-section',
     h('div.section-title', '🏭 Pabrik', h('span.small.muted', `${owned.length}/${list.length} dimiliki`)),
+    factoryManagerCard(game),
     owned.length ? h('div.cards', owned.map((f) => factoryCard(f, money)))
       : h('p.hint', 'Pabrik mengolah hasil panen dan ternak menjadi produk bernilai 30–55% lebih tinggi.'),
     buyable.length ? h('div.cards', buyable.map((f) => factoryCard(f, money))) : null,

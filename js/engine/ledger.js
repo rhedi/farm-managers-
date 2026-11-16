@@ -30,12 +30,15 @@ export const CATEGORIES = [
   { id: 'sewa_pemetik', name: 'Sewa pemetik buah', emoji: '🧺', group: 'opex' },
   { id: 'perawatan_kebun', name: 'Pangkas & tebang kebun', emoji: '✂️', group: 'opex' },
   { id: 'listrik_rumah_kaca', name: 'Listrik rumah kaca', emoji: '💡', group: 'opex' },
+  { id: 'benih_ikan', name: 'Benih ikan', emoji: '🐟', group: 'opex' },
+  { id: 'air_kolam', name: 'Ganti air kolam', emoji: '💧', group: 'opex' },
   { id: 'lainnya', name: 'Lain-lain', emoji: '📦', group: 'opex' },
   { id: 'beli_ladang', name: 'Beli ladang', emoji: '🗺️', group: 'capex' },
   { id: 'beli_mesin', name: 'Beli mesin', emoji: '🚜', group: 'capex' },
   { id: 'upgrade_mesin', name: 'Upgrade mesin', emoji: '⚙️', group: 'capex' },
   { id: 'kandang', name: 'Kandang', emoji: '🏠', group: 'capex' },
   { id: 'beli_ternak', name: 'Beli ternak', emoji: '🐑', group: 'capex' },
+  { id: 'kolam', name: 'Kolam & aerator', emoji: '🌊', group: 'capex' },
   { id: 'indukan', name: 'Indukan unggul', emoji: '🧬', group: 'capex' },
   { id: 'gudang', name: 'Gudang (silo & dingin)', emoji: '🏚️', group: 'capex' },
   { id: 'pabrik', name: 'Pabrik', emoji: '🏭', group: 'capex' },
@@ -80,10 +83,11 @@ export function closeDay(state, nextDay) {
   L.cur = { day: nextDay, cats: {} };
 }
 
-/** Category for selling a product: crop / animal product / factory good. */
+/** Category for selling a product: crop / animal product (herds and fish ponds) / factory good. */
 export function saleCategory(game, productId) {
   if (game.idx.crops.has(productId)) return 'penjualan_panen';
-  if ((game.data.ANIMALS || []).some((a) => a.product === productId)) return 'penjualan_ternak_produk';
+  const { ANIMALS = [], PONDS = [] } = game.data;
+  if ([...ANIMALS, ...PONDS].some((a) => a.product === productId)) return 'penjualan_ternak_produk';
   return 'penjualan_olahan';
 }
 

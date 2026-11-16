@@ -42,7 +42,7 @@ export function factoriesView(game) {
       recipeId: f?.recipeId ?? null, recipe, recipes,
       running: !!f?.running, queued: f?.queued ?? 0, auto: !!f?.auto,
       progress: need > 0 ? round2(done / need) : 0, hoursLeft: f?.running ? need - done : 0,
-      blocked: f?.blocked ?? null,
+      blocked: f?.blocked ?? null, managed: !!f?.managed,
     };
   });
 }

@@ -31,3 +31,32 @@
 /* Upgrade + run buttons stay together; on a narrow card they take their own full-width row. */
 .fac-btns { flex: 1 1 auto; display: flex; gap: 8px; justify-content: flex-end; }
 @media (max-width: 480px) { .fac-btns .btn { flex: 1 1 0; } }
+/* 🏭 Manajer Pabrik card (js/ui/factoryManager.js): reuses the Manajer Logistik disp-* look (css/logistics.css). */
+.fm-card { margin-bottom: 12px; }
+.fm-pass { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.fm-pass-cell { display: grid; gap: 2px; padding: 8px 10px; border-radius: var(--radius-s); background: var(--surface-2); min-width: 0; }
+.fm-pass-cell b { font-size: .92rem; overflow-wrap: anywhere; line-height: 1.25; }
+.fm-card.working .fm-pass-cell:last-child b { color: var(--green-d); }
+.fm-facs { display: grid; }
+.fm-fac { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); }
+.fm-fac:first-child { border-top: 0; }
+.fm-fac-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.fm-fac-name { font-weight: 700; font-size: .92rem; overflow-wrap: anywhere; }
+.fm-fac .disp-chip { flex: none; min-height: 44px; min-width: 6.4em; }
+.fm-state { font-size: .82rem; color: var(--ink-mute); overflow-wrap: anywhere; }
+.fm-state.run { color: var(--green-d); font-weight: 600; }
+.fm-state.wait { color: var(--ink-soft); }
+.fm-state.cap { color: var(--warn-ink); }
+.fm-fac.managed .fm-fac-name::after { content: " 🔒"; font-size: .8em; }
+.fm-fac.managed .fm-state.run::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--green); animation: fm-pulse 1.4s ease-in-out infinite; vertical-align: middle; }
+@keyframes fm-pulse { 0%, 100% { transform: scale(.7); opacity: .6; } 50% { transform: scale(1.15); opacity: 1; } }
+.fm-recent-gear { flex: none; display: inline-block; }
+.disp-recent-row.fresh .fm-recent-gear { animation: fm-spin .9s cubic-bezier(.3, 1.3, .6, 1); }
+@keyframes fm-spin { from { transform: rotate(-200deg) scale(.4); opacity: 0; } }
+.fm-card.working .disp-avatar { animation: fm-work 2.6s ease-in-out infinite; }
+.fm-card.working.swapped .disp-avatar { animation: disp-swap .7s cubic-bezier(.3, 1.4, .6, 1), fm-work 2.6s ease-in-out .7s infinite; }
+@keyframes fm-work { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-2px) rotate(5deg); } 60% { transform: translateY(0) rotate(-3deg); } }
+/* Factory card while the manager runs it: player controls give way to a lock note. */
+.fac-card.managed { border-color: var(--green); }
+.fac-managed { margin: 0 0 8px; padding: 6px 10px; border-radius: var(--radius-s); background: var(--green-l); color: var(--green-d); font-size: .84rem; font-weight: 600; }
+.fac-lock { color: var(--green-d); font-weight: 700; cursor: default; }

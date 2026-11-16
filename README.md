@@ -1,6 +1,6 @@
 # Farm Manager
 
-Farm Manager adalah game simulasi bisnis pertanian untuk satu pemain yang berjalan di browser. Game ini terinspirasi dari Farm Manager karya Trophy Games. Kamu memulai dengan satu ladang kecil di Jawa Barat, sebuah traktor, dan beberapa alat. Dari situ kamu membajak, memupuk, menanam, memanen, lalu menjual hasilnya di pasar. Keuntungannya bisa dipakai untuk membeli ladang baru di tujuh wilayah (Jawa Barat, Bavaria, Iowa, Normandia, Hokkaido, lalu Mato Grosso di level 12 dan Queensland di level 19), membeli mesin yang lebih besar, dan beternak.
+Farm Manager adalah game simulasi bisnis pertanian untuk satu pemain yang berjalan di browser. Game ini terinspirasi dari Farm Manager karya Trophy Games. Kamu memulai dengan satu ladang kecil di Jawa Barat, sebuah traktor, dan beberapa alat. Dari situ kamu membajak, memupuk, menanam, memanen, lalu menjual hasilnya di pasar. Keuntungannya bisa dipakai untuk membeli ladang baru di 13 wilayah di tiga benua (Jawa Barat, Bavaria, Iowa, Normandia, Hokkaido, lalu Kalimantan, Mato Grosso, Queensland, Ukraina, Delta Mekong, Pampas, Kenya, dan Alberta dari level 10 sampai 43; lihat [Wilayah](#wilayah)), membeli mesin yang lebih besar, dan beternak sampai level 50.
 
 Proyek ini memakai HTML, CSS, dan JavaScript murni (ES modules). Tidak ada dependensi, tidak ada langkah build, dan tampilannya dirancang untuk ponsel lebih dulu.
 
@@ -187,6 +187,34 @@ Gudang dingin menghitung berat: 1.000 L susu atau 1.000 kg wol/daging/madu/keju 
 
 Mulai level 11, pabrik bisa dibeli di **Gudang › 🏭 Olahan** (bagian 🏭 Pabrik; pabrik yang belum terbuka dilipat di "🔒 Pabrik terkunci"): Penggilingan (Lv 11: gandum → tepung, barley → malt), Pabrik Susu (Lv 13: susu → mentega/keju sapi), Pabrik Gula (Lv 15: tebu → gula), Pabrik Minyak (Lv 18: kanola/bunga matahari → minyak), Pabrik Kelapa Sawit (Lv 19: TBS kelapa sawit → CPO + inti sawit, inti sawit → minyak inti sawit/PKO, CPO → minyak goreng), Toko Roti (Lv 21: tepung + telur + gula (+ mentega) → roti/kue), dan Pabrik Tekstil (Lv 24: kapas → kain, wol → benang). Pilih resep, tekan ▶ Proses atau nyalakan 🔁 Otomatis. Bahan diambil dari gudang saat batch dimulai (cadangan pakan tidak dipakai) dan produk olahan bernilai sekitar 30–55% lebih tinggi. Produk berat (t) butuh ruang silo; jika silo penuh, pabrik menunggu. Peningkatan level membuat proses 25% lebih cepat per level.
 
+### Manajer Pabrik
+
+Kartu **🏭 Manajer Pabrik** ada paling atas di bagian 🏭 Pabrik (**Gudang › 🏭 Olahan**), dan ringkasannya juga muncul di **Garasi › 👷 Pekerja**. Manajer menjalankan pabrikmu sendiri: ia memakai bahan baku di gudang untuk memproduksi barang jadi dengan resep yang paling untung. Hanya ada satu Manajer Pabrik, dan rekrut, ganti/promosikan, serta berhentikan bekerja persis seperti di Manajer Logistik.
+
+| Calon | Lv | Biaya rekrut | Gaji/hari | Pabrik dikelola | Rencana tiap | Bonus |
+|---|---|---|---|---|---|---|
+| Mbak Sari, Supervisor ★ | 11 | $4.000 | $100 | ≤ 2 | 6 jam | — |
+| Pak Joko, Kepala Produksi ★★ | 15 | $14.000 | $480 | ≤ 5 | 2 jam | bahan −5% |
+| Bu Lestari, Direktur Pabrik ★★★ | 25 | $32.000 | $950 | semua | 1 jam | bahan −5%, hasil +6%, boleh membeli bahan yang kurang |
+
+Supervisor terbuka di level 11, saat pabrik sudah bisa dibeli (Pabrik Pakan Ikan Lv 10, Penggilingan Lv 11), jadi manajer tidak pernah bisa direkrut tanpa pabrik yang bisa dikelola. Biaya rekrut dan gaji masuk laporan sebagai **Gaji pekerja**. Gaji yang tak terbayar ditambahkan ke pinjaman. **🔄 Ganti / promosikan**: harga = biaya rekrut tingkat baru − 50% biaya rekrut manajer sekarang (Supervisor → Kepala $12.000, Kepala → Direktur $25.000, Supervisor → Direktur $30.000), dan turun tingkat gratis. Pengaturan, statistik, batch terakhir, dan sakelar Aktif/Jeda tetap tersimpan setelah ganti.
+
+**Keseimbangan.** Simulasi 30 hari (3 seed pasar, pabrik level 1, silo/gudang dingin Lv 3, stok bahan baku masuk tiap hari, produk dijual tiap hari). Angkanya tambahan bersih per hari setelah gaji dan biaya rekrut dibagi 30 hari:
+
+| Tingkat | Lv | Pabrik | Bahan masuk/hari | vs jual mentah | vs 🔁 Otomatis sendiri |
+|---|---|---|---|---|---|
+| Supervisor | 11 | Penggilingan | 30 t gandum, 8 t barley | +$9.350 … +$13.550 | −$1.690 … +$570 (rata-rata ≈ −$230) |
+| Kepala Produksi | 15 | + Pabrik Susu, Pabrik Gula | + 2.000 L susu, 60 t tebu | +$13.400 … +$15.600 | +$1.640 … +$2.680 |
+| Direktur Pabrik | 25 | + Pabrik Minyak, Kelapa Sawit, Toko Roti | + 10 t kanola, 20 t TBS, 3.000 telur | +$18.600 … +$29.000 | +$3.980 … +$9.090 |
+
+Semua tingkat jauh lebih untung daripada menjual bahan mentah. Dibanding menyalakan 🔁 Otomatis sendiri, produksi Supervisor kira-kira sama, jadi selisihnya hanya gaji $100/hari plus biaya rekrut ($4.000, ≈ $133/hari dalam 30 hari pertama): nilainya ada di pemilihan resep, aturan tahan bahan, dan tidak perlu diurus. Kepala Produksi dan Direktur membayar dirinya berkat bahan −5%, hasil +6%, dan rencana yang lebih sering.
+
+**Cara kerja.** Setiap *rencana tiap* jam game, manajer menilai semua resep di pabrik yang ia kelola menurut untung per jam: hasil × harga pasar − bahan × harga pasar − bagian gaji. Resep untuk kontrak aktif yang stoknya belum cukup didahulukan. Ia hanya memakai stok yang bisa dijual: cadangan pakan, sisa kontrak aktif, bahan yang disisakan Manajer Logistik, dan "Sisakan %" per bahan tidak disentuh. Antrean diisi sebanyak yang selesai sebelum rencana berikutnya. Manajer juga tidak memproduksi ke gudang yang sudah melewati batas **Isi gudang maks.**, tetapi batch yang justru mengecilkan isi gudang (10 t gandum → 7,5 t tepung) tetap jalan. Direktur dengan **🛒 Beli bahan kurang** menyala membeli tanaman bahan yang kurang di pasar (harga beli = harga jual +20%), asalkan batch itu masih di atas margin minimum dan uangnya cukup.
+
+Pabrik yang dikelola memperlihatkan **🔒 Dikelola Manajer Pabrik**: pilihan resep, 🔁 Otomatis, dan ▶ Proses dikunci, sedangkan upgrade pabrik tetap bisa. Pabrik di luar batas tingkat manajer (urutan data: Penggilingan, Pabrik Susu, …) atau yang kamu lepas dengan tombol **✓ Kelola** kembali kamu atur sendiri. **Bahan yang direncanakan manajer pabrik**, yaitu bahan untuk batch yang masih antre ditambah rencana berikutnya, **tidak dimuat truk Manajer Logistik**.
+
+Kartu menampilkan sakelar **Aktif/Jeda**, batch hari ini dan total, perkiraan untung, **Terakhir** (mis. "2× Tepung, 1× Gula") dan **Rencana berikutnya** (hitung mundur), daftar pabrik beserta keadaannya (⚙️ resep yang sedang jalan, 💤 alasan menunggu: "bahan kurang", "gudang hampir penuh", "margin terlalu kecil"), empat batch terakhir, dan **⚙️ Pengaturan manajer**: margin minimum (bawaan 5%), isi gudang maks. (bawaan 90%), sisakan stok kontrak, beli bahan (khusus Direktur), dan "Sisakan %" per bahan baku. Saat game ditinggal, manajer mengejar paling lama 48 jam (Direktur: paling banyak 48 rencana).
+
 ### Ternak
 
 Ternak dikelola di tab **Ternak**. Kartu **❄️ Gudang dingin** di atas menampilkan level, isi/kapasitas dengan bilah, dan produk ternak di gudang, lalu membuka Gudang › 🐄 Peternakan (tempat memperbesarnya). Setiap kawanan menampilkan produksi per hari, stok pakan dengan tombol beli pakan, kualitas, dan kebahagiaan; jual-beli ternak, kandang, dan pembiakan ada di bagian **⚙️ Kelola kawanan** dan **🧬 Pembiakan** yang bisa dibuka. Ada empat jenis: sapi (susu), ayam (telur), domba (wol), dan babi (daging). Sebelum membeli hewan, kamu harus membangun kandang. Setiap kandang menambah kapasitas.
@@ -201,7 +229,7 @@ Setiap hari hewan makan tanaman pakan dari gudang. Misalnya sapi memakan gandum,
 
 ### Pengiriman ke kota (truk)
 
-Beli truk di **Garasi** (5 tingkat, mulai level 2: Isuzi Elf 4 t sampai Volvu 60 t). **Pasar › 🚚 Kirim**: pilih truk, kota tujuan, dan muatan dari gudang (cadangan pakan tidak ikut). Ada 8 kota (Bandung, Jakarta, Des Moines, München, Sapporo, Paris, Chicago, Cuiabá); kota hanya bisa dituju dari wilayah tempat kamu punya ladang dan terbuka di level tertentu. Tiap kota membayar harga pasar × pengali permintaan (badge kuning), tanaman maksimal +15%. BBM dibayar saat berangkat; truk dan satu pekerja bebas sibuk selama perjalanan pulang-pergi (`2 × km ÷ kecepatan`); muatan terjual saat tiba di kota. Kapasitas hanya dihitung dari produk bersatuan ton; susu, telur, dan barang kg ikut tanpa memakan kapasitas. Perkiraan menampilkan hasil di kota vs jual lokal, BBM, gaji sopir + aus truk, dan untung bersih. Upgrade mesin berlaku: Mesin = muatan, Transmisi = kecepatan, Efisiensi = BBM.
+Beli truk di **Garasi** (6 tingkat, mulai level 2: Isuzi Elf 4 t sampai Scanya road train 90 t di level 35). **Pasar › 🚚 Kirim**: pilih truk, kota tujuan, dan muatan dari gudang (cadangan pakan tidak ikut). Ada 19 kota (Bandung, Jakarta, Des Moines, München, Sapporo, Paris, Chicago, Cuiabá, Brisbane, dan kota wilayah baru, lihat [Wilayah](#wilayah)); kota hanya bisa dituju dari wilayah tempat kamu punya ladang dan terbuka di level tertentu. Tiap kota membayar harga pasar × pengali permintaan (badge kuning), tanaman maksimal +15%. BBM dibayar saat berangkat; truk dan satu pekerja bebas sibuk selama perjalanan pulang-pergi (`2 × km ÷ kecepatan`); muatan terjual saat tiba di kota. Kapasitas hanya dihitung dari produk bersatuan ton; susu, telur, dan barang kg ikut tanpa memakan kapasitas. Perkiraan menampilkan hasil di kota vs jual lokal, BBM, gaji sopir + aus truk, dan untung bersih. Upgrade mesin berlaku: Mesin = muatan, Transmisi = kecepatan, Efisiensi = BBM.
 
 ### Manajer Logistik
 
@@ -255,7 +283,7 @@ Manajer membayar dirinya sekitar 1,5–3× bila truknya cukup besar (keuntungan 
 
 ### Riset
 
-Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya). Buka **Prestasi › 🔬 Riset** (angkanya menunjukkan poin yang tersedia) atau ketuk level di bar atas. Cabang yang masih punya riset siap diteliti terbuka otomatis. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 5 riset dengan prasyarat; beberapa butuh 2–3 poin. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo, gudang dingin, dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
+Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya; 49 poin di level 50). Buka **Prestasi › 🔬 Riset** (angkanya menunjukkan poin yang tersedia) atau ketuk level di bar atas. Cabang yang masih punya riset siap diteliti terbuka otomatis. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 7 riset dengan prasyarat; beberapa butuh 2–3 poin. Tingkat 5 (2 riset per cabang, label "Lv N") terbuka di level 32–47: Pertanian Presisi (Lv 32), Genetika Unggul (33), Jalur Ekspor (35), Autopilot GPS (37), Benih Unggul IV (40), Peternakan Pintar (42), Korporasi Agribisnis (45), Armada Modern (47). Seluruh pohon butuh 52 poin, jadi satu riset tetap harus dipilih. Tiap efek dibatasi maksimal 50%. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo, gudang dingin, dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
 
 ### Pinjaman
 
@@ -269,7 +297,7 @@ Ketuk angka uang di bar atas (atau kartu **📊 Laporan keuangan** di **Prestasi
 
 XP didapat dari setiap tugas yang selesai, dari nilai hasil panen, dan dari produksi ternak. Jumlah XP saat ini dan target level berikutnya tampil di bar atas (misalnya "XP 514/1.500"). Saat naik level kamu mendapat hadiah uang sebesar `1.000 × level` (`BALANCE.levelReward`), dan sebuah jendela menampilkan hadiah itu beserta tanaman, mesin, hewan, pabrik, wilayah, dan ladang yang baru terbuka. Tab **Prestasi** berisi misi harian dan papan peringkat (🎯 Misi), pohon riset (🔬 Riset), daftar target dengan hadiah uangnya, mulai dari yang paling dekat tercapai, beserta statistik dan catatan kejadian (🏆 Prestasi), serta laporan keuangan, pinjaman, dan grafik kekayaan bersih (uang + nilai ladang, mesin, isi gudang, ternak, dan pabrik, dikurangi pinjaman) (💰 Keuangan).
 
-**Level 11–30.** Level maksimal adalah 30 dan setiap level membuka sesuatu:
+**Level 11–50.** Level maksimal adalah 50 dan setiap level membuka sesuatu:
 
 | Lv | Terbuka | Lv | Terbuka |
 |---|---|---|---|
@@ -284,7 +312,40 @@ XP didapat dari setiap tugas yang selesai, dari nilai hasil panen, dan dari prod
 | 19 | 🌍 Queensland (2 ladang) | 29 | ladang Fazenda Sorriso (300 ha) |
 | 20 | 🍇 Anggur, 🐃 Kerbau | 30 | ladang Longreach Station (400 ha), penabur 36m |
 
-Ladang di wilayah baru terkunci sampai levelnya tercapai (pin 🔒 Lv N di peta); level buka sebuah ladang adalah yang lebih tinggi antara `unlockLevel` ladang dan wilayahnya. Ke-20 ladang lama tetap bisa dibeli sejak level 1. Kurva XP diuji dengan bot rakus (rencana ladang, beli ladang/mesin, misi harian): level 20 sekitar hari ke-430 dan level 30 sekitar hari ke-830–920 (±21–23 tahun game, ±14–15 jam pada kecepatan 1×); tanpa misi sekitar hari ke-1.260.
+**Level 31–50:**
+
+| Lv | Terbuka | Lv | Terbuka |
+|---|---|---|---|
+| 31 | 🌍 Delta Mekong, penyemprot 24000L | 41 | ladang Lan Kharkiv, kota Mombasa |
+| 32 | 🌶️ Lada | 42 | traktor 9RX 1050, ladang An Giang |
+| 33 | traktor Xerion 12.650, ladang Berau, Long An | 43 | 🌍 Alberta, ladang Naivasha, kota Calgary |
+| 34 | 🌍 Pampas, irigasi pivot ganda | 44 | pemanen CR12, ladang Lethbridge, Tandil |
+| 35 | pemanen Lexion Terra, truk Scanya 90t | 45 | 🫐 Bluberi, ladang Kiambu, kota Vancouver |
+| 36 | penebar kapur 24t, ladang Cherkasy | 46 | penyemprot drone, ladang Đồng Tháp Mười, Peace River |
+| 37 | ladang Bến Tre | 47 | ladang Camrose, Pehuajó |
+| 38 | 🌍 Kenya, bajak 24-mata | 48 | bajak 32-mata, ladang Nakuru, Vulcan Plains |
+| 39 | 🌹 Mawar, pemetik buah robotik | 49 | penabur 60m |
+| 40 | penabur 48m, ladang Nyeri | 50 | pemanen Trion X Otonom |
+
+Ladang di wilayah baru terkunci sampai levelnya tercapai (pin 🔒 Lv N di peta); level buka sebuah ladang adalah yang lebih tinggi antara `unlockLevel` ladang dan wilayahnya. Ke-20 ladang lama tetap bisa dibeli sejak level 1. Kurva XP diuji dengan bot rakus (rencana ladang, beli ladang/mesin, misi harian, 2 seed): level 20 sekitar hari ke-425–435, level 30 sekitar hari ke-800–820, level 40 sekitar hari ke-1.325–1.350, dan level 50 sekitar hari ke-1.985–2.000 (Lv 30→50 ±1.180 hari, ±20 jam pada kecepatan 1×). Simpanan lama di level 30 melanjutkan: XP yang tertabung dipotong ke ambang level 31 sehingga XP berikutnya menaikkan tepat satu level.
+
+### Wilayah
+
+Peta di **Ladang › Peta** menampilkan satu benua sekaligus (chip 🌏 Asia & Oseania, 🌍 Eropa & Afrika, 🌎 Amerika; angka = ladang milikmu, 🌾 = ada yang siap panen). Harga ladang baru diatur agar balik modal mirip ladang lama di level yang sama (±15–26 hari game dengan tanaman terbaik).
+
+| Wilayah | Benua | Lv | Iklim | Ladang (ha) | Kota |
+|---|---|---|---|---|---|
+| Jawa Barat, Bavaria, Iowa, Normandia, Hokkaido | – | 1 | campuran | 6–60 | Bandung, Jakarta, München, Des Moines, Chicago, Paris, Sapporo |
+| Mato Grosso | Amerika | 12 | tropis | 80–300 | Cuiabá |
+| Kalimantan | Asia | 10 | tropis basah, gambut asam | 40–350 (Lv 10–33) | Banjarmasin |
+| Queensland | Asia | 19 | kering | 120–400 | Brisbane |
+| Ukraina | Eropa | 22 | kontinental, chernozem | 160–600 (Lv 22–41) | Kyiv, Odesa |
+| Delta Mekong | Asia | 31 | tropis delta | 250–700 (Lv 31–46) | TP Ho Chi Minh |
+| Pampas | Amerika | 34 | sedang, belahan selatan (musim bergeser ½ tahun) | 400–1.000 (Lv 34–47) | Rosario, Buenos Aires |
+| Kenya | Eropa & Afrika | 38 | dataran tinggi tropis | 300–800 (Lv 38–48) | Nairobi, Mombasa |
+| Alberta | Amerika | 43 | prairi dingin | 600–1.600 (Lv 43–48) | Calgary, Vancouver |
+
+Penanda iklim di `REGIONS[].climate`: `tropical` (musim basah/kering) dan `southern` (musim sedang bergeser setengah tahun).
 
 ### Misi harian dan papan peringkat
 
@@ -318,7 +379,7 @@ css/style.css       Gaya dasar, kerangka aplikasi, dan variabel warna tema teran
 css/fields.css      Gaya tampilan ladang dan tugas
 css/economy.css     Gaya tampilan pasar, garasi, ternak, dan gudang
 css/ops.css         Gaya silo & gudang dingin, pekerja, dan kondisi mesin
-css/factories.css   Gaya bagian Pabrik (Gudang › Olahan)
+css/factories.css   Gaya bagian Pabrik dan kartu Manajer Pabrik (Gudang › Olahan)
 css/missions.css    Gaya misi harian dan papan peringkat (Prestasi › Misi)
 css/breeding.css    Gaya panel pembiakan ternak dan dialog upgrade mesin
 css/finance.css     Gaya laporan keuangan
@@ -331,7 +392,8 @@ js/engine/*         Modul engine: rng, defs, weather, market, fields, tasks, tas
                     animals, economy, purchase, contracts, plans, views, persist,
                     storage, workers, wear, seasons, events, soil, factories, factoryView,
                     missions, rivals, breeding, upgrades, ledger, orchard, greenhouse,
-                    logistics, logisticsView, dispatcher, research
+                    logistics, logisticsView, dispatcher, research, staff,
+                    factoryManager, factoryPlanner
 js/ui/*             Komponen antarmuka per tab
 js/main.js          Titik masuk: memuat/membuat game, game loop, autosave, navigasi tab
 tests/              Tes engine (node:test)
@@ -368,7 +430,26 @@ Semua angka keseimbangan ada di `js/data.js`. Objek `BALANCE` mengatur:
 | `xpPerTask`, `xpPerHarvestValue` | XP per tugas, dan XP per $ nilai hasil panen dan produksi ternak (dihitung dengan harga dasar) |
 | `loanDailyRate` | Bunga pinjaman per hari |
 | `logistics`, `dispatcher` | Truk (aus, batas harga tanaman di kota) dan tingkat Manajer Logistik (`tiers`: level buka, biaya rekrut, gaji, jumlah truk, radius, negosiasi) |
+| `factoryManager` | Tingkat Manajer Pabrik (`tiers`: level buka, biaya rekrut, gaji, `factories` = jumlah pabrik dikelola (`null` = semua), `intervalHours`, `inputMult`, `outputMult`, `buyInputs`) dan `tradeIn` (potongan ganti 50%) |
 
 Harga ladang, mesin, benih, harga dasar produk, volatilitas pasar, dan level buka bisa diubah langsung di array masing-masing (`FIELDS`, `MACHINES`, `CROPS`, `PRODUCTS`, `ANIMALS`). Modal awal dan biaya sewa mesin panen ada di `STARTING`.
 
 Setelah mengubah angka, jalankan `npm test` untuk memastikan engine masih berjalan dengan benar. Simpanan lama tetap bisa dimuat. Jika ingin mulai dari awal, hapus kunci `farm-manager-save` dari `localStorage`.
+
+## 🐟 Peternakan Ikan
+
+Bagian baru di tab **Ternak**. Bangun kolam (data `PONDS` + `FISH_BALANCE` di `js/data.js`, engine `js/engine/fish.js` + `fishView.js`), tebar benih, beri pelet ikan, jaga kualitas air, lalu panen. Hasil panen (kg) masuk **Gudang dingin**; kalau penuh, sisanya dijual paksa 70% seperti produk ternak lain. Ikan dijual di Pasar dan tercatat sebagai pendapatan *Produk ternak*.
+
+| Kolam | Level | Syarat | Bangun | Kapasitas | Hari | Panen | Untung/hari* | Balik modal* |
+|---|---|---|---|---|---|---|---|---|
+| 🐟 Kolam Lele | 3 | — | $5.000 | 4.000 ekor | 12 | 800 kg | ≈ $156 | ±36 hari |
+| 🐠 Kolam Nila | 8 | — | $10.000 | 4.000 ekor | 16 | 1.400 kg | ≈ $322 | ±34 hari |
+| 🦐 Tambak Udang | 12 | ladang tropis (atau Lv 30) | $25.000 | 50.000 ekor | 14 | 1.000 kg | ≈ $778 | ±36 hari |
+| 🎏 Kolam Ikan Mas | 14 | — | $12.000 | 3.000 ekor | 18 | 1.500 kg | ≈ $368 | ±36 hari |
+| 🍣 Keramba Salmon | 22 | ladang dingin ≤12 °C (atau Lv 40) | $75.000 | 2.000 ekor | 24 | 5.000 kg | ≈ $1.974 | ±41 hari |
+
+\*Harga dasar, pelet dibeli ×1,2, ganti air otomatis; balik modal termasuk benih pertama.
+
+- **Pelet ikan** (`pelet_ikan`, silo): dibeli di Pasar / tombol "Pelet 3/7 hari", atau dibuat di **Pabrik Pakan Ikan** (Lv 11: 2 t kedelai + 3 t jagung → 5 t pelet). Tanpa pelet ikan tidak tumbuh dan mulai mati.
+- **Kualitas air** turun tiap hari (`waterDecay`). Di bawah 50% pertumbuhan melambat, di bawah 40% ikan mati (hingga 6%/hari). "Ganti air" mengembalikan ke 100%; **aerator** (40% biaya kolam) memperlambat penurunan 50%. Opsi *Ganti air otomatis* (<50%) dan *Tebar ulang setelah panen*.
+- Kolam siap panen yang dibiarkan 1 hari dipanen otomatis. XP dari nilai panen. Kolam muncul di modal naik level.

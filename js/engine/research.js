@@ -58,8 +58,14 @@ export function perk(game, key) {
   if (!list?.length) return 0;
   let sum = 0;
   for (const id of list) sum += nodeOf(game, id)?.effects?.[key] ?? 0;
-  return sum;
+  return Math.min(PERK_MAX, sum);
 }
+
+/** No perk key sums above this (the tree tops out at 0.4 per key; the cap guards future nodes). */
+export const PERK_MAX = 0.5;
+
+/** Player level a node needs (`minLevel`, tier 5), 1 when none. */
+export const nodeMinLevel = (n) => n?.minLevel ?? 1;
 
 /** Load migration: old saves get an empty tree (their points come from the current level); unknown nodes drop. */
 export function ensureResearch(game) {
@@ -79,6 +85,7 @@ export const respecCost = (game) => round2(cfg(game).respecPerLevel * game.state
 
 function blockReason(game, n, points) {
   if (rs(game).unlocked.includes(n.id)) return 'Sudah diteliti.';
+  if (game.state.level < nodeMinLevel(n)) return `Butuh level ${nodeMinLevel(n)}.`;
   const missing = (n.requires || []).filter((id) => !rs(game).unlocked.includes(id));
   if (missing.length) return `Butuh ${missing.map((id) => nodeOf(game, id)?.name ?? id).join(' & ')}.`;
   if (points.available < n.cost) return `Butuh ${n.cost} poin riset.`;
@@ -108,18 +115,19 @@ export function respecResearch(game) {
   return ok({ cost, refunded });
 }
 
-/** Tree for the UI. Node status: 'unlocked' | 'ready' (can unlock now) | 'open' (needs points) | 'locked' (prerequisites). */
+/** Tree for the UI. Node status: 'unlocked' | 'ready' (can unlock now) | 'open' (needs points) | 'locked' (prerequisites or level). */
 export function researchView(game) {
   const points = researchPoints(game);
   const unlocked = new Set(rs(game).unlocked);
   const nodes = game.data.RESEARCH ?? [];
   const nodeView = (n) => {
     const reason = blockReason(game, n, points);
-    const prereqOk = (n.requires || []).every((id) => unlocked.has(id));
+    const minLevel = nodeMinLevel(n), levelOk = game.state.level >= minLevel;
+    const prereqOk = levelOk && (n.requires || []).every((id) => unlocked.has(id));
     const status = unlocked.has(n.id) ? 'unlocked' : !reason ? 'ready' : prereqOk ? 'open' : 'locked';
     return { id: n.id, name: n.name, emoji: n.emoji, cost: n.cost, effects: { ...n.effects }, desc: effectText(n.effects),
       requires: (n.requires || []).map((id) => ({ id, name: nodeOf(game, id)?.name ?? id, unlocked: unlocked.has(id) })),
-      unlocked: unlocked.has(n.id), status, reason: status === 'unlocked' ? null : reason };
+      minLevel, levelOk, unlocked: unlocked.has(n.id), status, reason: status === 'unlocked' ? null : reason };
   };
   const branches = (game.data.RESEARCH_BRANCHES ?? []).map((b) => {
     const list = nodes.filter((n) => n.branch === b.id).map(nodeView);

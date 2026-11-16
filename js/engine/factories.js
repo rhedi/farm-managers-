@@ -1,7 +1,9 @@
 // Factories (stream B): processing chains on state.factories. Deterministic (no RNG).
-// state.factories[id] = { level, recipeId, queued, progress, running, auto, blocked }
+// state.factories[id] = { level, recipeId, queued, progress, running, auto, blocked, managed?, inMult?, outMult?, batchOut? }
 //   queued: batches still to run (manual mode), running: inputs of the current batch are consumed,
 //   progress: work hours done on it, blocked: Indonesian reason or null.
+//   managed: run by the Manajer Pabrik (factoryManager.js), which sets inMult/outMult (its tier's −input / +output);
+//   batchOut: output multiplier fixed when the running batch started.
 import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { roomFor } from './storage.js';
@@ -30,9 +32,17 @@ export function stateOf(game, id) {
   return Object.assign(f, { level: 1, recipeId: null, queued: 0, progress: 0, running: false, auto: false, blocked: null, ...f });
 }
 
+/** Recipe as this factory runs it: inputs × f.inMult, outputs × outMult (default f.outMult; Manajer Pabrik tiers). */
+export function scaledRecipe(recipe, f, outMult = f?.outMult ?? 1) {
+  const inMult = f?.inMult ?? 1;
+  if (inMult === 1 && outMult === 1) return recipe;
+  const scale = (map, m) => Object.fromEntries(Object.entries(map).map(([id, q]) => [id, round2(q * m)]));
+  return { ...recipe, inputs: scale(recipe.inputs, inMult), outputs: scale(recipe.outputs, outMult) };
+}
+
 /** First input that is short (feed reserve kept), as an Indonesian reason; '' when all inputs are there. */
-export function missingInput(game, recipe) {
-  for (const [id, q] of Object.entries(recipe.inputs)) {
+export function missingInput(game, recipe, f = null) {
+  for (const [id, q] of Object.entries(scaledRecipe(recipe, f).inputs)) {
     const have = sellableStock(game, id);
     if (have + 1e-9 < q) return `Bahan kurang: ${pname(game, id)} ${fmtNum(have)}/${fmtNum(q)} ${unit(game, id)}.`;
   }
@@ -55,20 +65,22 @@ function tryStart(game, id, f) {
     if (!f.running) setBlocked(game, id, f, null);
     return false;
   }
-  const miss = missingInput(game, recipe);
+  const miss = missingInput(game, recipe, f);
   if (miss) { setBlocked(game, id, f, miss); return false; }
   const silo = game.state.silo;
-  for (const [pid, q] of Object.entries(recipe.inputs)) {
+  for (const [pid, q] of Object.entries(scaledRecipe(recipe, f).inputs)) {
     silo[pid] = round2(silo[pid] - q);
     if (silo[pid] <= 0) delete silo[pid];
   }
   f.running = true;
   f.progress = 0;
+  if ((f.outMult ?? 1) !== 1) f.batchOut = f.outMult; else delete f.batchOut;
   setBlocked(game, id, f, null);
   return true;
 }
 
-function finish(game, id, f, recipe) {
+function finish(game, id, f, base) {
+  const recipe = scaledRecipe(base, null, f.batchOut ?? 1);
   const full = noRoom(game, recipe);
   if (full) { setBlocked(game, id, f, full); return; }
   const silo = game.state.silo, def = defOf(game, id);
@@ -79,6 +91,7 @@ function finish(game, id, f, recipe) {
   }
   f.running = false;
   f.progress = 0;
+  delete f.batchOut;
   if (f.queued > 0) f.queued -= 1;
   setBlocked(game, id, f, null);
   game.addXp(round2(valueOf(game, recipe.outputs) * (game.data.BALANCE.xpPerHarvestValue ?? 0.01)));
@@ -124,9 +137,13 @@ export function upgradeFactory(game, id) {
   return ok({ level: f.level, cost });
 }
 
-export function setRecipe(game, id, recipeId) {
+/** Player calls on a factory run by the Manajer Pabrik fail; the manager passes `{ byManager: true }`. */
+const MANAGED = '🤖 Dikelola Manajer Pabrik. Lepas pabrik ini di pengaturan manajer untuk mengatur sendiri.';
+
+export function setRecipe(game, id, recipeId, opts = {}) {
   const def = defOf(game, id), f = stateOf(game, id);
   if (!def || !f) return fail('Pabrik belum dimiliki.');
+  if (f.managed && !opts.byManager) return fail(MANAGED);
   if (!recipeOf(def, recipeId)) return fail('Resep tidak ditemukan.');
   if (f.running) return fail('Pabrik sedang memproses.');
   f.recipeId = recipeId;
@@ -136,15 +153,16 @@ export function setRecipe(game, id, recipeId) {
 }
 
 /** Queue `count` batches; fails when idle and the first batch can't start. */
-export function startBatch(game, id, count = 1) {
+export function startBatch(game, id, count = 1, opts = {}) {
   const f = stateOf(game, id);
   if (!f) return fail('Pabrik belum dimiliki.');
+  if (f.managed && !opts.byManager) return fail(MANAGED);
   const recipe = recipeOf(defOf(game, id), f.recipeId);
   if (!recipe) return fail('Pilih resep dulu.');
   count = Math.floor(Number(count));
   if (!(count > 0)) return fail('Jumlah tidak valid.');
   if (!f.running) {
-    const miss = missingInput(game, recipe);
+    const miss = missingInput(game, recipe, f);
     if (miss) return fail(miss);
   }
   f.queued += count;
@@ -155,6 +173,7 @@ export function startBatch(game, id, count = 1) {
 export function setFactoryAuto(game, id, on) {
   const f = stateOf(game, id);
   if (!f) return fail('Pabrik belum dimiliki.');
+  if (f.managed) return fail(MANAGED);
   f.auto = !!on;
   tryStart(game, id, f);
   return ok({ auto: f.auto });

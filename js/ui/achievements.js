@@ -20,6 +20,7 @@ const LOG_ICON = {
   mission_done: '🎯', missions_new: '🎯', mission_streak: '🔥', rank_up: '🏅',
   delivery_start: '🚚', delivery_done: '🚚', truck_returned: '🚚', research_unlocked: '🔬', research_reset: '🔬',
   auto_dispatch: '🧑‍💼', dispatcher_hired: '🧑‍💼', dispatcher_replaced: '🧑‍💼', dispatcher_fired: '🧑‍💼',
+  factory_manager_run: '🏭', factory_manager_hired: '🏭', factory_manager_replaced: '🏭', factory_manager_fired: '🏭',
 };
 let sig = '';
 

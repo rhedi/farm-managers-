@@ -37,6 +37,10 @@ export function parseSave(json) {
  */
 export function normalizeState(s, data, idx) {
   s.speed ??= 1; s.xp ??= 0; s.level ??= 1; s.loan ??= 0;
+  // Raised level cap (30 → 50): a save that kept earning XP at the old max would skip several levels at once.
+  // Banked XP is cut to the next level's threshold, so the next XP gain levels up exactly once (with its modal).
+  const L = data.LEVELS || [];
+  if (s.level < L.length && s.xp >= (L[s.level + 1] ?? Infinity)) s.xp = L[s.level];
   s.weather ||= {}; s.priceHistory ||= {}; s.animals ||= {};
   s.achievements ||= []; s.log ||= []; s.history ||= [];
   s.contracts ||= []; s.feedReserve ||= {}; s.autoRepair ??= false;
@@ -74,6 +78,12 @@ export function normalizeState(s, data, idx) {
     if (!idx.animals.has(id)) { delete s.animals[id]; continue; }
     s.animals[id] = { count: 0, barns: 0, quality: 1, happiness: 1, fed: 1, ...HERD_DEFAULTS, ...s.animals[id] };
   }
+  // Kolam ikan (fish.js): old saves have none; drop ponds whose definition is gone, fill missing keys.
+  s.ponds = (Array.isArray(s.ponds) ? s.ponds : []).filter((p) => idx.ponds?.has(p?.pondId))
+    .map((p) => ({ count: 0, stocked: 0, growth: 0, water: 100, fed: 1, aerator: false, autoWater: false,
+      autoRestock: false, readyDays: 0, dead: 0, alert: 'ok', ...p }));
+  const maxPond = s.ponds.reduce((mx, p) => Math.max(mx, Number(String(p.uid).slice(1)) || 0), 0);
+  s.nextPondUid = Math.max(s.nextPondUid || 1, maxPond + 1);
   if (s.history.length > HISTORY_SIZE) s.history.splice(0, s.history.length - HISTORY_SIZE);
   return s;
 }

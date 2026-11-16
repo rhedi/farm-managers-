@@ -6,6 +6,7 @@ import { conditionOf } from './wear.js';
 import { upgradeSpent, emptyUpgrades, cfg as upgradeCfg } from './upgrades.js';
 import { saleCategory } from './ledger.js';
 import { perk } from './research.js';
+import { pondsValue } from './fishView.js';
 
 export const FIELD_REFUND = 0.7;
 export const MACHINE_REFUND = 0.6;
@@ -190,6 +191,7 @@ export function netWorth(game) {
     const lvl = f?.level || 0;
     if (def && lvl > 0) v += 0.6 * ((def.price || 0) + (def.upgradeCost || 0) * (lvl * (lvl - 1)) / 2);
   }
+  v += pondsValue(game); // kolam ikan + aerator (fishView.js)
   return round2(v);
 }
 
@@ -205,7 +207,7 @@ export function unlocksBetween(data, from, to) {
   const pick = (arr) => (arr || []).filter((x) => inRange(x.unlockLevel)).map((x) => x.id);
   return { crops: [...pick(data.CROPS), ...pick(data.TREES)], machines: pick(data.MACHINES), animals: pick(data.ANIMALS),
     fields: (data.FIELDS || []).filter((f) => inRange(fieldUnlockLevel(data, f))).map((f) => f.id),
-    regions: pick(data.REGIONS), factories: pick(data.FACTORIES ?? []) };
+    regions: pick(data.REGIONS), factories: pick(data.FACTORIES ?? []), ponds: pick(data.PONDS) };
 }
 
 /** Money paid for reaching `level`: `BALANCE.levelReward` × level. */

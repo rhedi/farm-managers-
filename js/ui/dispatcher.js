@@ -8,7 +8,7 @@ import { app, act } from './app.js';
 import { fold, goTo } from './subtabs.js';
 import { CATEGORIES } from './stock.js';
 
-const stars = (n) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
+export const stars = (n) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
 const pct = (v) => `${fmtNum(v * 100)}%`;
 let lastRecent = null; // newest dispatch already shown (the newest row slides in once)
 let lastTier; // hired tier last rendered (a new one pops in once after Ganti / promosikan)
@@ -96,8 +96,8 @@ function swapFold(v) {
 
 const set = (patch) => act(app.game.setDispatcherSettings(patch), null, { rerenderModal: false });
 
-/** − value + stepper with 44px buttons; `values` = allowed steps (ascending). */
-function stepper(label, value, values, fmt, onChange, hint) {
+/** − value + stepper with 44px buttons; `values` = allowed steps (ascending). Shared with the Manajer Pabrik card. */
+export function stepper(label, value, values, fmt, onChange, hint) {
   const lower = [...values].reverse().find((x) => x < value) ?? values[0];
   const higher = values.find((x) => x > value) ?? values[values.length - 1];
   return h('div.disp-step',
@@ -108,7 +108,7 @@ function stepper(label, value, values, fmt, onChange, hint) {
       h('button.btn.stepper-btn', { type: 'button', 'aria-label': `Tambah ${label}`, disabled: value >= values[values.length - 1], onclick: () => onChange(higher) }, '+')));
 }
 
-function chip(label, on, onclick, extra = {}) {
+export function chip(label, on, onclick, extra = {}) {
   return h(`button.chip.disp-chip${on ? '.active' : ''}`, { type: 'button', 'aria-pressed': on ? 'true' : 'false', onclick, ...extra }, label);
 }
 

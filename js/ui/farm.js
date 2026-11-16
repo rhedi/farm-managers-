@@ -9,7 +9,7 @@ import { batchBar } from './batchBar.js';
 import { plotEl, updatePlot } from './plot.js';
 import { regionBoxes, mapFxLayers, updateMapFx } from './mapFx.js';
 import { eventsBanner, updateEventsBanner } from './eventsBanner.js';
-import { subTabBar, getSub, fold, setSub } from './subtabs.js';
+import { subTabBar, getSub, fold, setSub, chipBar } from './subtabs.js';
 
 const SUBS = ['fields', 'map'];
 const FOR_SALE_SHOWN = 3;
@@ -34,11 +34,16 @@ function pinLabel(f) {
   return STATE_EMOJI[f.state] ?? '•';
 }
 
-function renderMap(fields) {
+/** Continent ids from data (empty for data without CONTINENTS: one map with every region). */
+const continentIds = () => (app.game.data.CONTINENTS || []).map((c) => c.id);
+const continentOfRegion = () => new Map((app.game.data.REGIONS || []).map((r) => [r.id, r.continent]));
+const activeContinent = () => { const ids = continentIds(); return ids.length ? getSub('farm-map', ids) : null; };
+
+function renderMap(fields, continent) {
   const regions = regionBoxes(fields);
   const fx = mapFxLayers(app.game, regions);
-  const el = h('div.map', { role: 'img', 'aria-label': 'Peta ladang' },
-    fx.tints, fx.labels, fx.rain,
+  const el = h('div.map', { role: 'img', 'aria-label': 'Peta ladang', dataset: { continent: continent ?? '' } },
+    fx.lands, fx.tints, fx.labels, fx.rain,
     fields.map((f) => h(`button.map-pin.${f.owned ? 'owned' : f.locked ? 'locked' : 'forsale'}.st-${f.state}${f.pest ? '.pest' : ''}`, {
       dataset: { fieldId: f.id },
       style: { left: `${f.x}%`, top: `${f.y}%` },
@@ -106,14 +111,23 @@ function fieldsPane(fields) {
     forSaleFold(fields));
 }
 
+/** One continent at a time (chips); pins of other continents aren't rendered. */
 function mapPane(fields) {
   const owned = fields.filter((f) => f.owned).length;
   const locked = fields.filter((f) => f.locked).length;
   const forSale = fields.length - owned - locked;
+  const conts = app.game.data.CONTINENTS || [];
+  const cur = activeContinent();
+  const contOf = continentOfRegion();
+  const shown = cur ? fields.filter((f) => contOf.get(f.regionId) === cur) : fields;
+  const ready = (c) => fields.filter((f) => f.owned && f.state === 'ready' && contOf.get(f.regionId) === c.id).length;
   return h('div.pane.pane-map',
     h('section.section',
       h('div.section-title', '🗺️ Peta', h('span.small.muted', `${owned} dimiliki · ${forSale} dijual${locked ? ` · 🔒 ${locked}` : ''}`)),
-      renderMap(fields),
+      conts.length ? chipBar('farm-map', conts.map((c) => ({ id: c.id,
+        label: `${c.emoji} ${c.short ?? c.name}${ready(c) ? ' 🌾' : ''}`,
+        count: fields.filter((f) => f.owned && contOf.get(f.regionId) === c.id).length || null })), cur) : null,
+      renderMap(shown, cur),
       h('div.map-legend',
         h('span', h('i.lg.lg-owned'), 'Milikmu'),
         h('span', h('i.lg.lg-sale'), 'Dijual'),
@@ -122,7 +136,7 @@ function mapPane(fields) {
 }
 
 function computeSig(fields) {
-  return `${getSub('farm', SUBS)}|${fields.map((f) => fieldSignature(f) + (f.locked ? ':L' : '') + (f.pest ? ':P' : '')).join('|')}`;
+  return `${getSub('farm', SUBS)}|${activeContinent()}|${fields.map((f) => fieldSignature(f) + (f.locked ? ':L' : '') + (f.pest ? ':P' : '')).join('|')}`;
 }
 
 export function renderFarm(root) {
