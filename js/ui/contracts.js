@@ -83,7 +83,7 @@ export function contractsPanel() {
     tenderLive ? tender : null,
     h('section.section',
       h('div.section-title', '📋 Kontrak berjalan', h('span.small.muted', `${active.length}/${MAX_ACTIVE()}`)),
-      active.length ? h('div.cards', active.map(activeCard)) : h('div.empty.compact', 'Belum ada kontrak. Terima tawaran di bawah.')),
+      h('div.cards', active.length ? active.map(activeCard) : h('div.empty.compact', 'Belum ada kontrak. Terima tawaran di bawah.'))),
     h('section.section',
       h('div.section-title', '📨 Tawaran', h('span.small.muted', String(offers.length))),
       h('p.hint', 'Harga di atas pasar, dibayar saat pengiriman lengkap. Terlambat = denda.'),

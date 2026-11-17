@@ -113,20 +113,34 @@ export function patch(el, ...children) {
 function patchChildren(parent, next) {
   const pool = new Map();
   for (const o of parent.childNodes) {
+    if (isSpacer(o)) continue;
     const k = keyOf(o);
     if (pool.has(k)) pool.get(k).push(o); else pool.set(k, [o]);
   }
   const kept = next.map((n) => pool.get(keyOf(n))?.shift() ?? null);
-  // Drop leftovers first, so kept nodes never have to be moved past them (a move restarts their animations).
-  for (const list of pool.values()) for (const o of list) o.remove();
+  // Drop leftovers first, so kept nodes never have to be moved past them (a move restarts their animations). A held
+  // element (holdHeights) leaves a blank spacer of its height until the next releaseHeights, so nothing below moves.
+  for (const list of pool.values()) for (const o of list) dropNode(o);
   let at = parent.firstChild;
   next.forEach((n, i) => {
+    while (isSpacer(at)) at = at.nextSibling;
     const o = kept[i];
     if (o) syncNode(o, n);
     const node = o ?? n;
     if (node === at) at = at.nextSibling;
     else parent.insertBefore(node, at);
   });
+}
+
+const isSpacer = (n) => !!n?.classList?.contains('hold-spacer');
+function dropNode(o) {
+  const hgt = held.get(o);
+  if (!hgt) { o.remove(); return; }
+  const sp = document.createElement('div');
+  sp.className = 'hold-spacer';
+  sp.setAttribute('aria-hidden', 'true');
+  sp.style.minHeight = `${hgt}px`;
+  o.replaceWith(sp);
 }
 
 function syncNode(o, n) {
@@ -173,6 +187,7 @@ export function releaseHeights(root) {
     if (!held.delete(el)) continue;
     el.style.minHeight = '';
   }
+  for (const sp of root.querySelectorAll('.hold-spacer')) sp.remove();
 }
 
 // ---------- formatting (id-ID) ----------
