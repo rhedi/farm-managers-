@@ -106,28 +106,23 @@ function forSaleFold(fields) {
 }
 
 // At 2×/5× a field hopped between "⚡ Perlu tindakan" and "⏳ Sedang berjalan" many times a minute (a plan waiting an
-// hour for a free harvester, …) and cards changed shape with every step, jumping every card below. There sections are
-// re-sorted, and the grow-only card heights (main.js holdView) released, at most once per game day and on a fresh
-// render (tab / sub-tab switch); at 1× both follow the fields at once.
-let placed = null; // { day, todo: Map<fieldId, boolean> }
+// hour for a free harvester, …) and cards changed shape with every step, jumping every card below. There a card keeps
+// its section (the tab badge and the card itself still show what it needs) until the player taps in the view or
+// switches tab / sub-tab; then sections are re-sorted and the grow-only heights (main.js holdView) released. At 1× both
+// follow the fields at once.
+let placed = null; // Map<fieldId, boolean>: in "⚡ Perlu tindakan"
+document.getElementById('view')?.addEventListener('click', () => { placed = null; });
 
 function fieldsPane(fields) {
   const owned = fields.filter((f) => f.owned);
-  const game = app.game;
   const fresh = !document.querySelector('#view .pane-fields');
-  const want = () => new Map(owned.map((f) => [f.id, needsAction(f)]));
-  if (fresh || game.state.speed < 2) {
-    placed = { day: game.day, todo: want() };
+  if (fresh || !placed || app.game.state.speed < 2) {
+    placed = new Map(owned.map((f) => [f.id, needsAction(f)]));
     if (!fresh) releaseHeights(document.getElementById('view'));
-  } else if (placed?.day !== game.day) { // new game day: re-sort (and let cards shrink) only if a field changes section
-    const next = want();
-    const moved = !placed || [...next].some(([id, t]) => placed.todo.get(id) !== t);
-    placed = { day: game.day, todo: moved ? next : placed.todo };
-    if (moved) releaseHeights(document.getElementById('view'));
   }
-  for (const f of owned) if (!placed.todo.has(f.id)) placed.todo.set(f.id, needsAction(f));
-  const todo = owned.filter((f) => placed.todo.get(f.id));
-  const running = owned.filter((f) => !placed.todo.get(f.id));
+  for (const f of owned) if (!placed.has(f.id)) placed.set(f.id, needsAction(f));
+  const todo = owned.filter((f) => placed.get(f.id));
+  const running = owned.filter((f) => !placed.get(f.id));
   banner = eventsBanner(app.game);
   return h('div.pane.pane-fields',
     banner,

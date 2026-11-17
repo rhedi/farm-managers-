@@ -68,6 +68,10 @@
 .disp-wait { background: var(--surface-2); color: var(--ink-soft); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .disp-warn { background: var(--orange-l); color: var(--warn-ink); }
 .disp-moving { padding: 8px 10px; border-radius: var(--radius-s); font-size: .875rem; font-weight: 600; background: var(--green-l); color: var(--green-d); }
+/* Fixed parts of the card (dispatcher.js): the status line always takes two lines, recent rows one line each and
+   blank slots keep their place, so the card's height never changes at 5×. */
+.disp-status { font-size: .875rem; min-height: calc(2.8em + 16px); }
+.disp-recent-row.blank { visibility: hidden; }
 .disp-settings > summary .fold-title { display: grid; gap: 2px; }
 .disp-fold-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .disp-fold-sum { font-size: .82rem; font-weight: 600; color: var(--ink-mute); }
@@ -77,7 +81,7 @@
 .disp-recent-row:first-of-type { border-top: 0; }
 .disp-recent-main { flex: 1; min-width: 0; }
 .disp-recent-row > .num { flex: none; font-weight: 700; font-size: .9rem; }
-.disp-recent-title { font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
+.disp-recent-title { font-weight: 700; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .disp-recent-main .small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .disp-recent-truck { flex: none; display: inline-block; transform: scaleX(-1); }
 .disp-recent-row.fresh { animation: disp-in .5s ease-out; }

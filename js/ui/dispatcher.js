@@ -155,11 +155,17 @@ function recentRow(r, fresh) {
     h(`span.num.${r.estProfit >= 0 ? 'pos' : 'neg'}`, `≈ +${fmtMoney(r.estProfit)}`));
 }
 
-/** Moving trucks first (positive state); the waiting reason only when nothing is on the road. */
+/** Moving trucks first (positive state); the waiting reason only when nothing is on the road. Always one element with a
+ *  reserved height (css .disp-status), so the card never grows or shrinks when the state flips at 5×. */
 function statusLine(v) {
-  if (v.onRoad) return h('div.disp-moving', `🚚 ${v.onRoad} truk di jalan · berikutnya diperiksa tiap jam`);
-  return v.note ? h('div.disp-wait', `💤 ${v.note}`) : null;
+  if (v.onRoad) return h('div.disp-status.disp-moving', `🚚 ${v.onRoad} truk di jalan · berikutnya diperiksa tiap jam`);
+  return v.note ? h('div.disp-status.disp-wait', `💤 ${v.note}`) : h('div.disp-status');
 }
+
+/** The 4 recent-dispatch rows as fixed slots (blank until filled), so a new dispatch never grows the card. */
+const RECENT_SLOTS = 4;
+const blankRecent = () => h('div.disp-recent-row.blank', { 'aria-hidden': 'true' },
+  h('span.disp-recent-truck', '🚚'), h('div.disp-recent-main', h('div.disp-recent-title', '·'), h('div.small', '·')));
 
 function hiredBody(v) {
   const hd = v.hired;
@@ -180,7 +186,8 @@ function hiredBody(v) {
     v.on ? statusLine(v) : null,
     swapFold(v),
     v.sellPlans ? h('div.disp-warn', `⚠️ ${v.sellPlans} rencana ladang menjual otomatis saat panen, jadi hasilnya tidak sempat dikirim. Matikan 💰 Jual otomatis di rencana ladang.`) : null,
-    v.recent.length ? h('div.disp-recent', h('div.disp-set-title', 'Kiriman terakhir'), v.recent.slice(0, 4).map((r, i) => recentRow(r, fresh && i === 0)))
+    v.recent.length ? h('div.disp-recent', h('div.disp-set-title', 'Kiriman terakhir'), v.recent.slice(0, RECENT_SLOTS).map((r, i) => recentRow(r, fresh && i === 0)),
+      Array.from({ length: Math.max(0, RECENT_SLOTS - v.recent.length) }, blankRecent))
       : h('p.small.muted', 'Belum ada kiriman otomatis. Untung = harga kota − jual lokal − BBM − sopir − aus truk.'),
     settingsFold(v),
     h('div.card-actions', h('span.small.muted', `Sejak hari ${hd.hiredDay}`), h('span.spacer'),

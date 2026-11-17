@@ -119,8 +119,11 @@ function patchChildren(parent, next) {
   }
   const kept = next.map((n) => pool.get(keyOf(n))?.shift() ?? null);
   // Drop leftovers first, so kept nodes never have to be moved past them (a move restarts their animations). A held
-  // element (holdHeights) leaves a blank spacer of its height until the next releaseHeights, so nothing below moves.
-  for (const list of pool.values()) for (const o of list) dropNode(o);
+  // element (holdHeights) that just disappears leaves a blank spacer of its height until the next releaseHeights, so
+  // nothing below moves; when new nodes come in at the same level they take that room instead (no spacers there).
+  const incoming = kept.includes(null);
+  if (incoming) for (const o of [...parent.childNodes]) if (isSpacer(o)) o.remove();
+  for (const list of pool.values()) for (const o of list) if (incoming) o.remove(); else dropNode(o);
   let at = parent.firstChild;
   next.forEach((n, i) => {
     while (isSpacer(at)) at = at.nextSibling;
