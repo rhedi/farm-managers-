@@ -9,6 +9,8 @@ import { effectiveStats, upgradesOf } from './upgrades.js';
 import { orchardAllows, orchardTaskSpec } from './orchard.js';
 import { perk } from './research.js';
 import { boostMult } from './calendar.js';
+import { projectPerk } from './projects.js';
+import { mandorSpeed } from './mandor.js';
 
 export const RENT_HA_PER_HOUR = 1.0;
 // Orchard tasks (orchard.js): prune on growing trees, clear (tebang) on any orchard; orchardAllows refines them.
@@ -142,9 +144,10 @@ export function planTask(game, fieldId, task, opts = {}) {
     const crop = idx.crops.get(cropId);
     if (!crop) return fail('Pilih tanaman yang akan ditanam.');
     if (crop.unlockLevel > state.level) return fail(`${crop.name} terbuka di level ${crop.unlockLevel}.`);
-    materialCost = orch ? orch.materialCost : def.sizeHa * crop.seedCostPerHa * (1 - perk(game, 'seedCost')) * boostMult(game, 'seedCost'); // research perks + 🌱 booster
+    materialCost = orch ? orch.materialCost : def.sizeHa * crop.seedCostPerHa * (1 - perk(game, 'seedCost')) * boostMult(game, 'seedCost') // research perks + 🌱 booster
+      * (1 - projectPerk(game, 'koperasi', def.regionId)); // 🤝 Koperasi Petani (Proyek Warisan)
   } else if (orch) materialCost = orch.materialCost;
-  else if (task === 'fertilize') materialCost = def.sizeHa * B.fertilizerCostPerHa * (1 - perk(game, 'fertCost'));
+  else if (task === 'fertilize') materialCost = def.sizeHa * B.fertilizerCostPerHa * (1 - perk(game, 'fertCost')) * (1 - projectPerk(game, 'koperasi', def.regionId));
   else if (task === 'irrigate') materialCost = def.sizeHa * B.irrigateCostPerHa;
   else if (task === 'lime') materialCost = def.sizeHa * (B.limeCostPerHa ?? 90);
   const rig = orch?.rig ?? (task === 'harvest' ? pickHarvester(game, opts) : pickRig(game, task, opts));
@@ -152,7 +155,8 @@ export function planTask(game, fieldId, task, opts = {}) {
   // Rented harvesters come with their own driver and don't wear our machines.
   const worker = rig.rented ? null : freeWorker(game);
   // Research perks: 'taskSpeed' shortens own-rig tasks, 'fuel' lowers the fuel bill; ⚡ Kerja Kilat booster (calendar.js).
-  const factor = rig.rented ? 1 : skillFactor(worker) * wearFactor(game, rig.uids) / (1 + perk(game, 'taskSpeed')) / boostMult(game, 'taskSpeed');
+  const factor = rig.rented ? 1 : skillFactor(worker) * wearFactor(game, rig.uids) / (1 + perk(game, 'taskSpeed')) / boostMult(game, 'taskSpeed')
+    / (1 + mandorSpeed(game, fieldId)); // 👷 Kepala Mandor: planned fields +5%
   const hours = round2((def.sizeHa / rig.rate) * factor);
   const fuelCost = round2(hours * rig.fuelPerHour * B.fuelPrice * (1 - perk(game, 'fuel')));
   const rentCost = rig.rented ? def.sizeHa * (rig.rentPerHa ?? data.STARTING.harvesterRentPerHa) : 0;

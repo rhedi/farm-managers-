@@ -1,0 +1,40 @@
+/* 👷 Mandor Ladang (js/ui/mandor.js): Garasi › Pekerja card, Ladang summary strip, paused-plan box. Colours = theme vars. */
+.mandor-card { margin-bottom: 12px; }
+.mandor-card.working .disp-avatar { animation: mandor-nod 2.8s ease-in-out infinite; }
+.mandor-card.working.swapped .disp-avatar { animation: disp-swap .7s cubic-bezier(.3, 1.4, .6, 1), mandor-nod 2.8s ease-in-out .7s infinite; }
+@keyframes mandor-nod { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-2px) rotate(5deg); } 60% { transform: translateY(0) rotate(-3deg); } }
+
+.mandor-fields { display: grid; gap: 6px; }
+.mandor-field { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--radius-s); background: var(--surface-2); min-height: 44px; }
+.mandor-field.paused { background: var(--gold-soft); box-shadow: inset 3px 0 0 var(--gold-line); }
+.mandor-field-main { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.mandor-field .disp-chip { flex: none; min-height: 44px; }
+
+/* Ladang › Ladangku: one line about plan coverage. */
+.mandor-sum { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 8px 12px; border-radius: var(--radius-s);
+  background: var(--surface-2); border: 1px solid var(--line); animation: mandor-in .35s ease-out; }
+.mandor-sum.paused { background: var(--gold-soft); border-color: var(--gold-line); color: var(--gold-d); }
+.mandor-sum-text { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: .875rem; }
+.mandor-sum .btn { flex: none; min-height: 44px; }
+@keyframes mandor-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* Paused plan (beyond the free / Mandor cap): label + one-tap Rekrut Mandor. */
+.mandor-paused { display: grid; gap: 6px; margin: 6px 0; padding: 8px 10px; border-radius: var(--radius-s);
+  background: var(--gold-soft); border: 1px dashed var(--gold-line); color: var(--gold-d); }
+.mandor-paused.compact { margin: 0; flex: 1 1 100%; }
+.mandor-paused-label { font-weight: 700; font-size: .875rem; overflow-wrap: anywhere; }
+.mandor-paused-label::first-letter { display: inline-block; }
+.mandor-paused-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.mandor-paused-actions .btn { min-height: 44px; }
+.plan-chip-row:has(.mandor-paused) .plan-chip { animation: mandor-wait 2.4s ease-in-out infinite; }
+@keyframes mandor-wait { 0%, 100% { opacity: 1; } 50% { opacity: .65; } }
+@media (prefers-reduced-motion: reduce) {
+  .mandor-card.working .disp-avatar, .plan-chip-row:has(.mandor-paused) .plan-chip { animation-duration: 6s; }
+}
+
+/* v17 Diversifikasi: ⭐ premium non-crop contract chip (Pasar › Kontrak). */
+.special-chip { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: .75rem; font-weight: 700;
+  background: var(--gold-l); color: var(--gold-d); vertical-align: middle; animation: special-shine 3s ease-in-out infinite; }
+@keyframes special-shine { 0%, 100% { box-shadow: 0 0 0 0 var(--gold-line); } 50% { box-shadow: 0 0 0 3px var(--gold-soft); } }
+.mandor-card .fold-head .fold-title { display: grid; gap: 2px; min-width: 0; }
+.mandor-field-main .small.muted { white-space: nowrap; }

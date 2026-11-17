@@ -9,6 +9,7 @@ import { missionsCard, leaderboardCard, missionsSig, updateMissionsCountdown, ch
 import { researchSection, researchSig } from './research.js';
 import { subTabBar, getSub, fold, goTo } from './subtabs.js';
 import { calendarCard, calendarSig } from './calendar.js';
+import { kabarHistory, kabarHistorySig } from './kabar.js';
 
 const SUBS = ['missions', 'research', 'trophies', 'finance'];
 const NEXT_SHOWN = 5; // closest achievements shown; the rest are folded
@@ -22,6 +23,8 @@ const LOG_ICON = {
   delivery_start: '🚚', delivery_done: '🚚', truck_returned: '🚚', research_unlocked: '🔬', research_reset: '🔬',
   auto_dispatch: '🧑‍💼', dispatcher_hired: '🧑‍💼', dispatcher_replaced: '🧑‍💼', dispatcher_fired: '🧑‍💼',
   factory_manager_run: '🏭', factory_manager_hired: '🏭', factory_manager_replaced: '🏭', factory_manager_fired: '🏭',
+  dilemma_new: '📰', dilemma_resolved: '📰', disaster_forecast: '⚠️', disaster_prepared: '🛡️', disaster_start: '⚠️', disaster_end: '🏁',
+  contract_bonus: '🤝', project_started: '🏗️', project_done: '🏛️',
 };
 let sig = '';
 
@@ -83,6 +86,7 @@ function trophiesPane(game) {
     todo.length > NEXT_SHOWN ? fold('trophies-more', '🎖️ Target lainnya', { meta: String(todo.length - NEXT_SHOWN) },
       h('div.cards', todo.slice(NEXT_SHOWN).map(achievementCard))) : null,
     done.length ? fold('trophies-done', '🏆 Sudah tercapai', { meta: String(done.length) }, h('div.cards', done.map(achievementCard))) : null,
+    fold('trophies-kabar', '📰 Kabar Desa · 10 keputusan terakhir', { open: true, meta: String(game.kabarView?.().history.length ?? 0) }, kabarHistory(game)),
     fold('trophies-stats', '📊 Statistik', { open: false }, statsCard(game)),
     fold('trophies-log', '📜 Catatan kejadian', { meta: String(game.state.log.length) }, logList(game.state.log)),
   ];
@@ -99,7 +103,7 @@ function financePane(game) {
 function computeSig(game) {
   const log = game.state.log;
   return `${getSub('achievements', SUBS)}|${game.state.achievements.length}|${log.length}|${log[log.length - 1]?.msg ?? ''}|${game.day}|`
-    + `${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}|${loansSig(game)}|${calendarSig(game)}`;
+    + `${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}|${loansSig(game)}|${calendarSig(game)}|${kabarHistorySig(game)}`;
 }
 
 export function renderAchievements(root) {

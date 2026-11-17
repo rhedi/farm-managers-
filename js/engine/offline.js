@@ -14,6 +14,7 @@ import { expectedYield } from './fields.js';
 import { isTree, ageDays, orchardOutlook } from './orchard.js';
 import { xpForValue } from './taskrun.js';
 import { perk } from './research.js';
+import { projectPerk } from './projects.js';
 import { keptStock, storeHarvest, holdHours } from './stockKeep.js';
 import { factoryHold } from './factoryManager.js';
 import { stateOf, recipeOf, scaledRecipe, batchHours } from './factories.js';
@@ -23,6 +24,7 @@ import { sellableStock } from './economy.js';
 import { effectiveStats } from './upgrades.js';
 import { RENT_HA_PER_HOUR } from './tasks.js';
 import { yearDays, seasonIdAt, cropSeasonFit, climateTemp, SEASONS, OFF_SEASON_GROWTH } from './seasons.js';
+import { coveredFields } from './mandor.js';
 
 export const OFFLINE_DEFAULTS = { exactHours: 48, maxRealHours: 8, efficiency: 0.5, fuelLitersPerHa: 6 };
 export const offlineCfg = (game) => ({ ...OFFLINE_DEFAULTS, ...(game.data.BALANCE.offline || {}) });
@@ -61,10 +63,10 @@ function rigsOf(game) {
 export function fieldRates(game) {
   const s = game.state, B = game.data.BALANCE, C = offlineCfg(game), out = [], Y = yearDays(game);
   const { rig, tractors, workers } = rigsOf(game), demand = {};
-  const annual = [];
+  const annual = [], covered = coveredFields(game); // 👷 plans past the Mandor cap stay paused offline too
   for (const [fieldId, f] of Object.entries(s.fields)) {
     const plan = f.plan, def = game.idx.fields.get(fieldId), crop = plan && game.idx.crops.get(plan.cropId);
-    if (!crop || !def) continue;
+    if (!crop || !def || !covered.has(fieldId)) continue;
     const ha = def.sizeHa, base = game.idx.products.get(crop.id)?.basePrice ?? 0;
     if (isTree(crop)) {
       if (f.cropId !== crop.id || !f.orchard || ageDays(game, f) < crop.maturityDays) continue; // young trees: no fruit yet
@@ -87,8 +89,9 @@ export function fieldRates(game) {
     const rent = ownHarvest ? 0 : ha * game.data.STARTING.harvesterRentPerHa;
     const ops = Object.keys(hours).length;
     const cost = {
-      benih: ha * crop.seedCostPerHa * (1 - perk(game, 'seedCost')),
-      pupuk_kapur_irigasi: ha * ((fert ? B.fertilizerCostPerHa * (1 - perk(game, 'fertCost')) : 0) + (irr ? B.irrigateCostPerHa : 0)),
+      benih: ha * crop.seedCostPerHa * (1 - perk(game, 'seedCost')) * (1 - projectPerk(game, 'koperasi', def.regionId)),
+      pupuk_kapur_irigasi: ha * ((fert ? B.fertilizerCostPerHa * (1 - perk(game, 'fertCost')) * (1 - projectPerk(game, 'koperasi', def.regionId)) : 0)
+        + (irr ? B.irrigateCostPerHa : 0)),
       sewa_pemanen: rent,
       bbm: ha * ops * C.fuelLitersPerHa * B.fuelPrice * (1 - perk(game, 'fuel')),
     };

@@ -98,11 +98,17 @@ export const PRODUCTS = [
   { id: 'duck_eggs', name: 'Telur Bebek', emoji: '🪺', basePrice: 1.6, unit: 'pcs', kgPerUnit: 0.07, category: 'animal', volatility: 0.03 },
   { id: 'buffalo_milk', name: 'Susu Kerbau', emoji: '🍼', basePrice: 4.5, unit: 'L', category: 'animal', volatility: 0.04 },
   { id: 'alpaca_wool', name: 'Wol Alpaka', emoji: '🧶', basePrice: 75, unit: 'kg', category: 'animal', volatility: 0.06 },
+  // v17 Diversifikasi: premium late-game animal goods (Rumah Walet Lv 36, Sapi Wagyu Lv 42)
+  { id: 'sarang_walet', name: 'Sarang Walet', emoji: '🪹', basePrice: 1200, unit: 'kg', category: 'animal', volatility: 0.07 },
+  { id: 'wagyu_beef', name: 'Daging Wagyu', emoji: '🥩', basePrice: 120, unit: 'kg', category: 'animal', volatility: 0.05 },
   // Palm oil chain (Pabrik Kelapa Sawit, Lv 19)
   { id: 'palm_cpo', name: 'Minyak Sawit Mentah (CPO)', emoji: '🛢️', basePrice: 2350, unit: 't', category: 'processed', volatility: 0.07 },
   { id: 'palm_kernel', name: 'Inti Sawit', emoji: '🥥', basePrice: 1400, unit: 't', category: 'processed', volatility: 0.06 },
   { id: 'palm_kernel_oil', name: 'Minyak Inti Sawit (PKO)', emoji: '🫙', basePrice: 4350, unit: 't', category: 'processed', volatility: 0.07 },
   { id: 'cooking_oil', name: 'Minyak Goreng', emoji: '🍳', basePrice: 3950, unit: 't', category: 'processed', volatility: 0.04 },
+  // v17 Diversifikasi: Pabrik Kopi (Lv 30) and Pabrik Cokelat (Lv 48)
+  { id: 'kopi_bubuk', name: 'Kopi Bubuk', emoji: '🥫', basePrice: 4000, unit: 't', category: 'processed', volatility: 0.05 },
+  { id: 'chocolate', name: 'Cokelat Batangan', emoji: '🟫', basePrice: 5900, unit: 't', category: 'processed', volatility: 0.05 },
   // Kebun buah (TREES)
   { id: 'orange', name: 'Jeruk', emoji: '🍊', basePrice: 520, unit: 't', category: 'crop', volatility: 0.07 },
   { id: 'apple', name: 'Apel', emoji: '🍎', basePrice: 640, unit: 't', category: 'crop', volatility: 0.06 },
@@ -201,16 +207,22 @@ export const MACHINES = [
 ];
 
 export const ANIMALS = [
-  // Payback incl. barn share ≈ 30–40 days at base prices (land ≈ 8–35). `livestock` marks large animals (achievement).
-  { id: 'chickens', name: 'Ayam', emoji: '🐔', price: 15, product: 'eggs', productPerDay: 1, feedPerDay: 0.00012, feedCrops: ['wheat', 'corn', 'barley', 'soybean'], barnCost: 2000, barnCapacity: 200, sellPrice: 8, unlockLevel: 1 },
-  { id: 'cows', name: 'Sapi Perah', emoji: '🐄', price: 1400, product: 'milk', productPerDay: 28, feedPerDay: 0.025, feedCrops: ['wheat', 'corn', 'barley', 'soybean'], barnCost: 12000, barnCapacity: 20, sellPrice: 850, unlockLevel: 2, livestock: true },
-  { id: 'sheep', name: 'Domba', emoji: '🐑', price: 300, product: 'wool', productPerDay: 0.45, feedPerDay: 0.003, feedCrops: ['wheat', 'barley', 'corn'], barnCost: 6000, barnCapacity: 40, sellPrice: 180, unlockLevel: 3, livestock: true },
-  { id: 'pigs', name: 'Babi', emoji: '🐖', price: 250, product: 'pork', productPerDay: 1.4, feedPerDay: 0.004, feedCrops: ['corn', 'barley', 'soybean', 'potato'], barnCost: 10000, barnCapacity: 50, sellPrice: 160, unlockLevel: 4, livestock: true },
-  { id: 'goats', name: 'Kambing', emoji: '🐐', price: 600, product: 'cheese', productPerDay: 0.5, feedPerDay: 0.004, feedCrops: ['wheat', 'barley', 'corn', 'soybean'], barnCost: 10000, barnCapacity: 40, sellPrice: 380, unlockLevel: 7, livestock: true },
-  { id: 'bees', name: 'Lebah', emoji: '🐝', price: 200, product: 'honey', productPerDay: 0.8, feedPerDay: 0.0005, feedCrops: ['sugarcane'], barnCost: 15000, barnCapacity: 30, sellPrice: 120, unlockLevel: 9 },
-  { id: 'ducks', name: 'Bebek', emoji: '🦆', price: 25, product: 'duck_eggs', productPerDay: 0.9, feedPerDay: 0.00015, feedCrops: ['rice', 'corn', 'barley'], barnCost: 4000, barnCapacity: 150, sellPrice: 14, unlockLevel: 15 },
-  { id: 'buffalo', name: 'Kerbau', emoji: '🐃', price: 1500, product: 'buffalo_milk', productPerDay: 14, feedPerDay: 0.03, feedCrops: ['rice', 'sugarcane', 'corn'], barnCost: 16000, barnCapacity: 20, sellPrice: 900, unlockLevel: 20, livestock: true },
-  { id: 'alpaca', name: 'Alpaka', emoji: '🦙', price: 1200, product: 'alpaca_wool', productPerDay: 0.6, feedPerDay: 0.004, feedCrops: ['barley', 'wheat', 'lavender'], barnCost: 12000, barnCapacity: 30, sellPrice: 700, unlockLevel: 25, livestock: true },
+  // Payback incl. barn share ≈ 33–43 days at base prices (land ≈ 8–35); feed ≈ 15% of the product value (v17 balance).
+  // Barns get dearer per barn owned (BALANCE.expansion) and big sales dip the price (BALANCE.market.saturation), so a
+  // growing herd pays back ≈ 45–70 days. `livestock` marks large animals (achievement).
+  { id: 'chickens', name: 'Ayam', emoji: '🐔', price: 15, product: 'eggs', productPerDay: 1, feedPerDay: 0.00069, feedCrops: ['wheat', 'corn', 'barley', 'soybean'], barnCost: 2000, barnCapacity: 200, sellPrice: 8, unlockLevel: 1 },
+  { id: 'cows', name: 'Sapi Perah', emoji: '🐄', price: 1400, product: 'milk', productPerDay: 28, feedPerDay: 0.047, feedCrops: ['wheat', 'corn', 'barley', 'soybean'], barnCost: 12000, barnCapacity: 20, sellPrice: 850, unlockLevel: 2, livestock: true },
+  { id: 'sheep', name: 'Domba', emoji: '🐑', price: 300, product: 'wool', productPerDay: 0.45, feedPerDay: 0.011, feedCrops: ['wheat', 'barley', 'corn'], barnCost: 6000, barnCapacity: 40, sellPrice: 180, unlockLevel: 3, livestock: true },
+  { id: 'pigs', name: 'Babi', emoji: '🐖', price: 250, product: 'pork', productPerDay: 1.4, feedPerDay: 0.028, feedCrops: ['corn', 'barley', 'soybean', 'potato'], barnCost: 10000, barnCapacity: 50, sellPrice: 160, unlockLevel: 4, livestock: true },
+  { id: 'goats', name: 'Kambing', emoji: '🐐', price: 600, product: 'cheese', productPerDay: 0.5, feedPerDay: 0.018, feedCrops: ['wheat', 'barley', 'corn', 'soybean'], barnCost: 10000, barnCapacity: 40, sellPrice: 380, unlockLevel: 7, livestock: true },
+  { id: 'bees', name: 'Lebah', emoji: '🐝', price: 200, product: 'honey', productPerDay: 0.8, feedPerDay: 0.06, feedCrops: ['sugarcane'], barnCost: 15000, barnCapacity: 30, sellPrice: 120, unlockLevel: 9 },
+  { id: 'ducks', name: 'Bebek', emoji: '🦆', price: 25, product: 'duck_eggs', productPerDay: 0.9, feedPerDay: 0.0011, feedCrops: ['rice', 'corn', 'barley'], barnCost: 4000, barnCapacity: 150, sellPrice: 14, unlockLevel: 15 },
+  { id: 'buffalo', name: 'Kerbau', emoji: '🐃', price: 1500, product: 'buffalo_milk', productPerDay: 14, feedPerDay: 0.16, feedCrops: ['rice', 'sugarcane', 'corn'], barnCost: 16000, barnCapacity: 20, sellPrice: 900, unlockLevel: 20, livestock: true },
+  { id: 'alpaca', name: 'Alpaka', emoji: '🦙', price: 1200, product: 'alpaca_wool', productPerDay: 0.6, feedPerDay: 0.034, feedCrops: ['barley', 'wheat', 'lavender'], barnCost: 12000, barnCapacity: 30, sellPrice: 700, unlockLevel: 25, livestock: true },
+  // v17 Diversifikasi. Rumah Walet: a big building (2.000 sarang slots) of near-feedless swiftlets (rice/corn for the
+  // insect bait), light but very valuable nests. Sapi Wagyu: premium beef cattle. Both pay back ≈ 41–43 days.
+  { id: 'walet', name: 'Burung Walet', emoji: '🐦', price: 60, product: 'sarang_walet', productPerDay: 0.005, feedPerDay: 0.0046, feedCrops: ['rice', 'corn'], barnCost: 300000, barnCapacity: 2000, sellPrice: 30, unlockLevel: 36 },
+  { id: 'wagyu', name: 'Sapi Wagyu', emoji: '🐂', price: 9000, product: 'wagyu_beef', productPerDay: 3, feedPerDay: 0.28, feedCrops: ['corn', 'barley', 'soybean'], barnCost: 80000, barnCapacity: 20, sellPrice: 6000, unlockLevel: 42, livestock: true },
 ];
 
 // Peternakan ikan (js/engine/fish.js). One pond = one batch: tebar benih (`fryPrice`/ekor, up to `capacity`), grow
@@ -267,6 +279,14 @@ export const FACTORIES = [
   { id: 'feed_mill', name: 'Pabrik Pakan Ikan', emoji: '🟤', unlockLevel: 11, price: 30000, upgradeCost: 9000, maxLevel: 5, recipes: [
     { id: 'pelet_ikan', name: 'Pelet ikan', inputs: { soybean: 2, corn: 3 }, outputs: { pelet_ikan: 5 }, hours: 6 }, // +35%
   ] },
+  // v17 Diversifikasi: big late-game batches so a maxed chain matters next to Lv 30+ fields (roasting loses ≈ 20%).
+  { id: 'coffee_roaster', name: 'Pabrik Kopi', emoji: '☕', unlockLevel: 30, price: 220000, upgradeCost: 60000, maxLevel: 5, recipes: [
+    { id: 'kopi_bubuk', name: 'Kopi bubuk', inputs: { coffee: 20 }, outputs: { kopi_bubuk: 16 }, hours: 8 }, // +45%
+  ] },
+  { id: 'chocolate_factory', name: 'Pabrik Cokelat', emoji: '🍫', unlockLevel: 48, price: 450000, upgradeCost: 120000, maxLevel: 5, recipes: [
+    { id: 'cokelat_susu', name: 'Cokelat susu', inputs: { cocoa: 2, milk: 1000, sugar: 1 }, outputs: { chocolate: 3.5 }, hours: 10 }, // +55%
+    { id: 'cokelat_hitam', name: 'Cokelat hitam', inputs: { cocoa: 3, sugar: 0.5 }, outputs: { chocolate: 3.4 }, hours: 10 }, // +26%
+  ] },
 ];
 
 // Peta (js/ui/farm.js) shows one continent at a time; FIELDS x/y are % positions on their continent's map.
@@ -308,7 +328,7 @@ export const CITIES = [
   { id: 'bandung', name: 'Bandung', emoji: '🏙️', unlockLevel: 2, km: { jabar: 40 }, base: 1.03,
     demand: { rice: 1.08, tomato: 1.1, strawberry: 1.12, tea: 1.08, eggs: 1.08, ikan_mas: 1.08, ikan_nila: 1.08, potato: 0.95 } },
   { id: 'jakarta', name: 'Jakarta', emoji: '🌆', unlockLevel: 5, km: { jabar: 150 }, base: 1.05,
-    demand: { milk: 1.15, eggs: 1.12, ikan_lele: 1.12, udang: 1.15, bread: 1.15, cake: 1.18, sugar: 1.12, oil: 1.12, cooking_oil: 1.15, rice: 1.1, coffee: 1.12, cotton: 0.95 } },
+    demand: { milk: 1.15, eggs: 1.12, ikan_lele: 1.12, udang: 1.15, bread: 1.15, cake: 1.18, sugar: 1.12, oil: 1.12, cooking_oil: 1.15, rice: 1.1, coffee: 1.12, cotton: 0.95, kopi_bubuk: 1.15, sarang_walet: 1.12 } },
   { id: 'desmoines', name: 'Des Moines', emoji: '🏢', unlockLevel: 4, km: { iowa: 45 }, base: 1.02,
     demand: { corn: 1.06, soybean: 1.08, pork: 1.08, wheat: 0.95 } },
   { id: 'munchen', name: 'München', emoji: '🍺', unlockLevel: 4, km: { bavaria: 70 }, base: 1.03,
@@ -316,7 +336,7 @@ export const CITIES = [
   { id: 'sapporo', name: 'Sapporo', emoji: '❄️', unlockLevel: 5, km: { hokkaido: 120 }, base: 1.04,
     demand: { milk: 1.15, butter: 1.15, cow_cheese: 1.15, salmon: 1.12, potato: 1.12, rice: 1.1, wheat: 0.95 } },
   { id: 'paris', name: 'Paris', emoji: '🗼', unlockLevel: 7, km: { normandia: 240, bavaria: 830 }, base: 1.06,
-    demand: { cow_cheese: 1.25, cheese: 1.25, butter: 1.2, bread: 1.2, cake: 1.25, salmon: 1.2, flour: 1.15, grape: 1.15, lavender: 1.15 } },
+    demand: { cow_cheese: 1.25, cheese: 1.25, butter: 1.2, bread: 1.2, cake: 1.25, salmon: 1.2, flour: 1.15, grape: 1.15, lavender: 1.15, chocolate: 1.25, wagyu_beef: 1.2 } },
   { id: 'chicago', name: 'Chicago', emoji: '🌃', unlockLevel: 8, km: { iowa: 560 }, base: 1.08,
     demand: { flour: 1.2, pork: 1.2, milk: 1.15, bread: 1.25, cake: 1.25, soybean: 1.15, corn: 1.15 } },
   { id: 'cuiaba', name: 'Cuiabá', emoji: '🌇', unlockLevel: 12, km: { matogrosso: 60 }, base: 1.03,
@@ -331,19 +351,19 @@ export const CITIES = [
   { id: 'odesa', name: 'Odesa', emoji: '⚓', unlockLevel: 24, km: { ukraina: 450 }, base: 1.07,
     demand: { wheat: 1.12, sunflower: 1.15, barley: 1.1, corn: 1.1, oil: 1.22, flour: 1.2, malt: 1.18 } },
   { id: 'hcmc', name: 'TP Ho Chi Minh', emoji: '🛵', unlockLevel: 31, km: { mekong: 110 }, base: 1.04,
-    demand: { rice: 1.1, coffee: 1.12, pepper: 1.12, durian: 1.12, mango: 1.1, sugar: 1.15, cooking_oil: 1.18, duck_eggs: 1.15, udang: 1.12, ikan_nila: 1.1 } },
+    demand: { rice: 1.1, coffee: 1.12, pepper: 1.12, durian: 1.12, mango: 1.1, sugar: 1.15, cooking_oil: 1.18, duck_eggs: 1.15, udang: 1.12, ikan_nila: 1.1, kopi_bubuk: 1.18, sarang_walet: 1.22 } },
   { id: 'rosario', name: 'Rosario', emoji: '🌉', unlockLevel: 34, km: { pampas: 70 }, base: 1.03,
     demand: { soybean: 1.1, corn: 1.08, sunflower: 1.08, oil: 1.15, wheat: 1.05 } },
   { id: 'buenosaires', name: 'Buenos Aires', emoji: '💃', unlockLevel: 36, km: { pampas: 300 }, base: 1.06,
-    demand: { milk: 1.15, cow_cheese: 1.22, butter: 1.18, bread: 1.2, cake: 1.25, grape: 1.15, flour: 1.18, pork: 1.15 } },
+    demand: { milk: 1.15, cow_cheese: 1.22, butter: 1.18, bread: 1.2, cake: 1.25, grape: 1.15, flour: 1.18, pork: 1.15, wagyu_beef: 1.22, chocolate: 1.2 } },
   { id: 'nairobi', name: 'Nairobi', emoji: '🦒', unlockLevel: 38, km: { kenya: 140 }, base: 1.04,
-    demand: { tea: 1.1, coffee: 1.1, rose: 1.12, avocado: 1.12, milk: 1.15, sugar: 1.12 } },
+    demand: { tea: 1.1, coffee: 1.1, rose: 1.12, avocado: 1.12, milk: 1.15, sugar: 1.12, kopi_bubuk: 1.12 } },
   { id: 'mombasa', name: 'Mombasa', emoji: '🚢', unlockLevel: 41, km: { kenya: 480 }, base: 1.07,
-    demand: { tea: 1.15, coffee: 1.15, rose: 1.15, cooking_oil: 1.2, sugar: 1.2, cocoa: 1.12, coconut: 1.12, udang: 1.18 } },
+    demand: { tea: 1.15, coffee: 1.15, rose: 1.15, cooking_oil: 1.2, sugar: 1.2, cocoa: 1.12, coconut: 1.12, udang: 1.18, kopi_bubuk: 1.22, chocolate: 1.2 } },
   { id: 'calgary', name: 'Calgary', emoji: '🤠', unlockLevel: 43, km: { alberta: 80 }, base: 1.03,
     demand: { canola: 1.1, barley: 1.08, malt: 1.15, wheat: 1.05, pork: 1.1, blueberry: 1.1 } },
   { id: 'vancouver', name: 'Vancouver', emoji: '🏔️', unlockLevel: 45, km: { alberta: 970 }, base: 1.08,
-    demand: { canola: 1.15, oil: 1.25, flour: 1.2, blueberry: 1.15, cherry: 1.15, apple: 1.12, honey: 1.2, cake: 1.25, salmon: 1.22 } },
+    demand: { canola: 1.15, oil: 1.25, flour: 1.2, blueberry: 1.15, cherry: 1.15, apple: 1.12, honey: 1.2, cake: 1.25, salmon: 1.22, wagyu_beef: 1.25, sarang_walet: 1.25, chocolate: 1.25 } },
 ];
 
 // Research tree (js/engine/research.js). Points: 1 per level-up (old saves: level − 1, derived from the level).
@@ -615,6 +635,84 @@ export const BALANCE = {
       { id: 'direktur', name: 'Bu Lestari', title: 'Direktur Pabrik', emoji: '👩‍🏭', skill: 3, unlockLevel: 25, hireCost: 32000, wage: 950, factories: null, intervalHours: 1, inputMult: 0.95, outputMult: 1.06, buyInputs: true },
     ],
   },
+  // 👷 Mandor Ladang (js/engine/mandor.js): 🔁 field plans run free on `freeFields` fields; more need a hired Mandor
+  // (staff role like the managers above: hire/replace/fire via staff.js, ledger 'gaji', tradeIn 0.5, downgrade free).
+  // fields = planned fields that run (null = all); speed = own-rig task speed bonus on planned fields. Wage ≈ 1–3% of
+  // the plan fields' daily income at the tier's level (plans bot, see README "Mandor Ladang"). Caps 12/30 keep a
+  // crop-only farm's Lv 20/40 day within ≈ 2% of v16 (crop bot: 6/20 slowed Lv 20 from day ≈ 330 to ≈ 540).
+  mandor: {
+    freeFields: 2,
+    tradeIn: 0.5,
+    tiers: [
+      { id: 'mandor', name: 'Pak Darto', title: 'Mandor', emoji: '👨‍🌾', skill: 1, unlockLevel: 4, hireCost: 2000, wage: 25, fields: 12, speed: 0 },
+      { id: 'senior', name: 'Bu Sumi', title: 'Mandor Senior', emoji: '👩‍🌾', skill: 2, unlockLevel: 12, hireCost: 25000, wage: 800, fields: 30, speed: 0 },
+      { id: 'kepala', name: 'Pak Gatot', title: 'Kepala Mandor', emoji: '👷‍♂️', skill: 3, unlockLevel: 20, hireCost: 120000, wage: 5000, fields: null, speed: 0.05 },
+    ],
+  },
+  // v17 Diversifikasi (js/engine/contracts.js, logistics.js): late-game value for non-crop goods.
+  // city: non-crop city price + perLevel × (level − fromLevel), ≤ max (crops keep the cropCap rule).
+  // special: one extra "⭐ Kontrak premium" offer for animal/fish/processed goods the farm makes (owned herds, ponds,
+  // factory outputs; never buyable goods), qty = qtyDays × daily output, price market × rate(1 + perLevel·(lvl − from)),
+  // with its own active slot. Non-crop goods can't be bought, so a rate above the ×1.2 buy markup is safe.
+  diversify: {
+    city: { fromLevel: 20, perLevel: 0.005, max: 0.15 },
+    special: { fromLevel: 15, offers: 1, priceMin: 1.22, priceMax: 1.35, perLevel: 0.006, maxRate: 1.6, qtyDaysMin: 2, qtyDaysMax: 4,
+      dueMin: 6, dueMax: 12, extraActive: 1 },
+  },
+  // v17 balance: herds and ponds are a strong pillar, not the whole farm. The n-th extra barn of an animal (pond of a
+  // type) costs base × (1 + rate × already owned), 3 significant digits (js/engine/animals.js expansionCost):
+  // the 50th barn costs ×1.35, the 150th ×2.05. Investor bot: next-barn payback ≈ 45 d (Lv 1–19) → 60 d (Lv 40+).
+  expansion: { barn: 0.007, pond: 0.007 },
+  // 📉 Pasar jenuh (js/engine/saturation.js): animal, fish and processed goods (never crops or buyable goods). Each sold
+  // unit adds to the product's pressure p; every rollover keeps `carry` of it (≈ 3–5 days to fade). The price dips by
+  // min(maxDip, p / D) with D = depth$ / basePrice units, depth$ log-interpolated over [level, $ at base price]:
+  // selling ≈ 10% of depth$ in a day dips ≈ 10%. The local market grows with the farm's level.
+  market: { saturation: { carry: 0.45, maxDip: 0.6,
+    depth: [[1, 10000], [10, 200000], [20, 5000000], [30, 15000000], [40, 30000000], [50, 60000000]] } },
   // Research (js/engine/research.js): respec (reset all nodes, points back) costs respecPerLevel × level.
   research: { respecPerLevel: 1500 },
 };
+
+// ===== v17 BEGIN (w2world) · 📰 Kabar Desa + 🏛️ Proyek Warisan — js/engine/kabar*.js, js/engine/projects.js =====
+// Kabar Desa: a choice event every gapDays (seeded per day), at most one open, decided before its deadline (whole game
+// days) or the cautious `default` option applies. Money in "days of income" S = max(scalePerLevel × level, recent
+// daily income); a money loss is capped at maxLossDays × S and maxLossCash × cash. XP rewards in days of recent XP.
+// Bencana Besar: 1–2 per game year (gapDays), forecast forecastDays ahead, animal/crop losses capped at lossCapDays × S.
+BALANCE.kabar = {
+  unlockLevel: 3, gapDays: [2, 4], deadlineDays: [1, 2], scalePerLevel: 400, maxLossDays: 1.5, maxLossCash: 0.2, history: 10,
+  disasters: { unlockLevel: 10, gapDays: [22, 36], forecastDays: 3, lossCapDays: 3,
+    elnino: { days: 10, tempAdd: 2 }, krisis: { days: 6, priceMult: 1.5, extraOffers: 3 }, wabah: { loss: 0.5 } },
+};
+// Proyek Warisan: per region the `types` minus `skip[region]`, 3 stages each (cost × regionScale, built in `days`
+// game days, stage k needs level ≥ max(stage.level, region unlock level) and ≥ 1 owned field in the region).
+// Effects stay modest and favour variety: rainFloor (rain chance floor in the region, softens El Niño/drought),
+// cityPrice (city prices of that continent, best Pelabuhan counts), rp (+1 research point per stage), koperasi
+// (seed + fertilizer in the region and the region's share of wages), contractBonus (contracts, all Pasar summed,
+// ≤ contractBonusMax). A Monumen per continent opens once every region there has a project at stage 3.
+// legacyValue: share of the spend counted in net worth (rival ranking).
+BALANCE.projects = {
+  unlockLevel: 15, maxBuilding: 3, legacyValue: 0.5, contractBonusMax: 0.12,
+  regionScale: { base: 0.6, perLevel: 0.02 },
+  stages: [{ cost: 1000000, days: 4, level: 15 }, { cost: 50000000, days: 10, level: 25 }, { cost: 1000000000, days: 25, level: 35 }],
+  types: [
+    { id: 'bendungan', name: 'Bendungan', emoji: '🏞️', effect: 'rainFloor', values: [0.3, 0.38, 0.45] },
+    { id: 'pelabuhan', name: 'Pelabuhan Ekspor', emoji: '⚓', effect: 'cityPrice', values: [0.03, 0.05, 0.08] },
+    { id: 'riset', name: 'Pusat Riset', emoji: '🔭', effect: 'rp', values: [1, 1, 1] },
+    { id: 'koperasi', name: 'Koperasi Petani', emoji: '🤝', effect: 'koperasi', values: [0.03, 0.05, 0.08] },
+    { id: 'pasar', name: 'Pasar Induk', emoji: '🏪', effect: 'contractBonus', values: [0.02, 0.03, 0.05] },
+  ],
+  skip: { jabar: 'bendungan', bavaria: 'pelabuhan', iowa: 'pelabuhan', normandia: 'bendungan', hokkaido: 'koperasi',
+    matogrosso: 'pelabuhan', queensland: 'pasar', kalimantan: 'bendungan', ukraina: 'riset', mekong: 'bendungan',
+    pampas: 'riset', kenya: 'pelabuhan', alberta: 'pelabuhan' },
+  monument: { cost: 2000000000, days: 30, level: 40, rp: 3,
+    names: { asia: ['Candi Agraria', '🛕'], eropa: ['Menara Gandum', '🗼'], amerika: ['Patung Petani', '🗽'] } },
+};
+ACHIEVEMENTS.push(
+  { id: 'proj_first', name: 'Peletak Batu Pertama', desc: 'Selesaikan tahap pertama sebuah Proyek Warisan.', reward: 50000, condition: { stat: 'projectStages', gte: 1 } },
+  { id: 'proj_stages_12', name: 'Arsitek Wilayah', desc: 'Selesaikan 12 tahap Proyek Warisan.', reward: 2000000, incomeDays: 1, rp: 1, condition: { stat: 'projectStages', gte: 12 } },
+  { id: 'proj_full_5', name: 'Warisan Abadi', desc: 'Selesaikan 5 Proyek Warisan sampai tahap 3.', reward: 5000000, incomeDays: 1, rp: 2, condition: { stat: 'projectsDone', gte: 5 } },
+  { id: 'monument_1', name: 'Pembangun Monumen', desc: 'Bangun Monumen pertama di sebuah benua.', reward: 10000000, incomeDays: 1, rp: 2, condition: { stat: 'monuments', gte: 1 } },
+  { id: 'monument_3', name: 'Keajaiban Tiga Benua', desc: 'Bangun Monumen di ketiga benua.', reward: 20000000, incomeDays: 1, rp: 3, condition: { stat: 'monuments', gte: 3 } },
+  { id: 'kabar_25', name: 'Kepala Desa Bijak', desc: 'Ambil 25 keputusan Kabar Desa sendiri.', reward: 20000, incomeDays: 0.5, condition: { stat: 'dilemmasDecided', gte: 25 } },
+);
+// ===== v17 END (w2world) =====

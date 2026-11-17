@@ -110,6 +110,22 @@ Biaya tugas (bahan bakar, benih atau pupuk) dibayar saat tugas dimulai. Panen ad
   - **🔄 Rotasi dengan**: tanaman kedua yang ditanam bergantian dengan tanaman utama setiap siklus, agar terhindar dari penalti tanam berulang (−10%).
   - Rencana menghindari mesin dengan kondisi di bawah 20% kalau ada mesin lain yang bebas. Di Garasi › 🚜 Mesin kamu bisa menyalakan **Perbaikan otomatis**: mesin yang selesai bekerja dengan kondisi di bawah 30% langsung diperbaiki kalau uangnya cukup.
 
+### 👷 Mandor Ladang
+
+🔁 Rencana jalan gratis di **2 ladang**. Untuk lebih banyak ladang kamu perlu satu **Mandor** (Garasi › 👷 Pekerja; ringkasannya juga ada di atas Ladang › Ladangku). Rekrut, 🔄 ganti/promosikan (harga = biaya rekrut baru − 50% biaya rekrut mandor sekarang, turun tingkat gratis), dan berhentikan bekerja seperti Manajer Logistik/Pabrik; biaya dan gaji masuk **Gaji pekerja**.
+
+| Calon | Lv | Biaya rekrut | Gaji/hari | Ladang berencana | Bonus |
+|---|---|---|---|---|---|
+| Pak Darto, Mandor ★ | 4 | $2.000 | $25 | ≤ 12 | — |
+| Bu Sumi, Mandor Senior ★★ | 12 | $25.000 | $800 | ≤ 30 | — |
+| Pak Gatot, Kepala Mandor ★★★ | 20 | $120.000 | $5.000 | semua | tugas ladang berencana +5% lebih cepat |
+
+**Keseimbangan.** Bot rencana (ladang + mesin, 2 seed): pendapatan panen rencana per hari di level buka tiap tingkat ≈ $600–2.500 (Lv 4), $53.000–83.000 (Lv 12) dan $230.000–580.000 (Lv 20), jadi gajinya ≈ 1–4%, 1–1,5%, dan 0,9–2,2% dari pendapatan ladang yang dijalankan.
+
+Rencana di luar batas tetap tersimpan tetapi dijeda dengan label **⏸ Butuh Mandor (2/2 ladang gratis)** dan tombol **👷 Rekrut Mandor**. Rencana yang sudah jalan tidak pernah dijeda oleh ladang baru atau ladang yang lebih luas: urutannya ladang yang kamu **📌 Utamakan / Jalankan di sini**, lalu rencana yang lebih dulu aktif, lalu ladang terluas; rencana baru di luar batas yang menunggu. "⚡ Kerjakan sekaligus" tetap bisa dipakai, dan mode hemat offline juga hanya menjalankan rencana yang tidak dijeda. **Simpanan lama** dengan lebih dari 2 ladang berencana langsung mendapat mandor gratis yang menutup semuanya (Kepala Mandor bila > 30 ladang atau Lv ≥ 20) dan satu notifikasi "👷 Mandor otomatis dipekerjakan untuk save lama"; tidak ada rencana lama yang dijeda.
+
+Batas 12 / 30 ladang dipilih dengan bot tanam saja (2 seed): dengan batas awal 6 / 20, Lv 20 baru tercapai sekitar hari 540 (v16: hari ≈ 330) karena ladang tertahan di 6 sampai Lv 12; dengan 12 / 30 Lv 20 dan Lv 40 kembali sekitar 2% dari v16.
+
 ### Ladang dan peta
 
 Tab **Ladang** punya dua sub-tab. **🌾 Ladangku** dibuka lebih dulu: ladang yang perlu langkah berikutnya (siap panen, kosong, dibajak tanpa rencana, terkena hama atau layu) tampil paling atas di "⚡ Perlu tindakan", ladang yang sedang dikerjakan atau tumbuh di "⏳ Sedang berjalan", lalu "🛒 Ladang dijual" berisi tiga ladang termurah yang sudah terbuka. Di setiap kartu, langkah berikutnya adalah satu-satunya tombol hijau. **🗺️ Peta** menampilkan peta semua wilayah; penanda ladang milikmu berbeda dengan ladang yang dijual. Ketuk sebuah ladang (di peta atau di daftar) untuk melihat luas, jenis tanah, pH, kontaminasi, dan harganya, lalu beli ladang tersebut. Di detail ladang, bagian sekunder (rencana, faktor hasil, rumah kaca, prakiraan, lahan) bisa dilipat. Ladang yang sedang kosong bisa dijual lagi dari detail ladang dengan nilai 70% dari harga beli. Ladang terakhir yang kamu miliki tidak bisa dijual. Angka pada ikon tab 🗺️ menunjukkan jumlah ladang yang perlu tindakan (merah jika ada hama atau tanaman layu).
@@ -121,6 +137,18 @@ Tab **Ladang** punya dua sub-tab. **🌾 Ladangku** dibuka lebih dulu: ladang ya
 - Harga tanaman sedikit lebih murah saat musimnya dan lebih mahal di luar musim.
 - Ketuk cuaca di bilah atas untuk melihat musim dan prakiraan 3 hari setiap wilayah. Prakiraan juga ada di detail ladang dan membantu memutuskan perlu mengairi atau tidak (prakiraan kadang meleset).
 - Kira-kira sekali tiap 4 hari terjadi kejadian acak: 🐛 hama (hasil −25% sampai disemprot, biaya $40/ha), ⛈️ badai (tanaman rusak 5–15%, tapi hujan gratis), 🔥 gelombang panas (beberapa hari kering), 📈 harga melonjak / 📉 harga anjlok untuk satu produk, 💰 subsidi pemerintah, dan 🌈 cuaca ideal (tanaman tumbuh lebih cepat).
+
+### 📰 Kabar Desa dan ⚠️ Bencana Besar (v17)
+
+- Mulai level 3, kira-kira sekali tiap 3 hari game muncul **Kabar Desa**: kartu koran di atas Ladang › Ladangku (tidak menghentikan permainan). Hanya satu kabar terbuka pada satu waktu, dan hanya kabar yang relevan dengan milikmu (flu burung bila punya unggas, ikan mati bila punya kolam, maling bila punya ternak, gaji bila pekerja ≥ 4, pesanan ekspor bila punya Pelabuhan, dll.; 14 jenis).
+- Ketuk kartunya untuk membaca detail: 2–3 pilihan dengan biaya dan peluang yang jelas, dan batas waktu 24–48 jam game. Bila tidak memilih, pilihan **⏱️ otomatis** (yang paling hati-hati) dijalankan saat batas waktu, juga saat offline. Pilihan otomatis tidak pernah mengorbankan ternak.
+- Biaya ikut besar penghasilanmu (dalam "hari pendapatan"), dan kerugian dibatasi (maks. 1,5 hari pendapatan dan 20% kas).
+- **⚠️ Bencana Besar** (mulai level 10, sekitar 1–2 kali setahun game): 🔥 El Niño (satu wilayah tanpa hujan 10 hari), 🌾 Krisis Pangan (harga tanaman ×1,5 dan banyak tawaran kontrak), 🦠 Wabah Ternak. Bencana diumumkan 3 hari sebelumnya; pilih persiapan sekali (dibayar saat itu). Tanpa pilihan, persiapan otomatis yang hati-hati dipakai.
+- 10 keputusan terakhir ada di Prestasi › 🏆 Prestasi › 📰 Kabar Desa.
+
+### 🏛️ Proyek Warisan (v17)
+
+Mulai level 15, sub-tab **Ladang › 🏛️ Proyek**. Tiap wilayah punya 4 dari 5 proyek: 🏞️ Bendungan (peluang hujan minimum, El Niño lebih ringan), ⚓ Pelabuhan Ekspor (harga kota di benua itu naik), 🔭 Pusat Riset (+1 poin riset per tahap), 🤝 Koperasi Petani (benih, pupuk, dan gaji lebih hemat) dan 🏪 Pasar Induk (bonus kontrak selesai). Tiap proyek punya 3 tahap: sekitar $1 jt (4 hari, Lv 15) → $50 jt (10 hari, Lv 25) → $1 M (25 hari, Lv 35); wilayah yang lebih jauh sedikit lebih mahal. Butuh minimal 1 ladang di wilayah itu, maksimal 3 proyek dibangun bersamaan. Bila setiap wilayah satu benua punya proyek tahap 3, **Monumen** benua itu bisa dibangun ($2 M, 30 hari, Lv 40, +3 poin riset). Proyek tampil di 🗺️ Peta dengan derek yang bergoyang selama dibangun dan kilau saat selesai.
 
 ### Tanah
 
@@ -221,7 +249,38 @@ Semua tingkat jauh lebih untung daripada menjual bahan mentah. Dibanding menyala
 
 Pabrik yang dikelola memperlihatkan **🔒 Dikelola Manajer Pabrik**: pilihan resep, 🔁 Otomatis, dan ▶ Proses dikunci, sedangkan upgrade pabrik tetap bisa. Pabrik di luar batas tingkat manajer (urutan data: Penggilingan, Pabrik Susu, …) atau yang kamu lepas dengan tombol **✓ Kelola** kembali kamu atur sendiri. **Bahan yang direncanakan manajer pabrik**, yaitu bahan untuk batch yang masih antre ditambah rencana berikutnya, **tidak dimuat truk Manajer Logistik**.
 
-Kartu menampilkan sakelar **Aktif/Jeda**, batch hari ini dan total, perkiraan untung, **Terakhir** (mis. "2× Tepung, 1× Gula") dan **Rencana berikutnya** (hitung mundur), daftar pabrik beserta keadaannya (⚙️ resep yang sedang jalan, 💤 alasan menunggu: "bahan kurang", "gudang hampir penuh", "margin terlalu kecil"), empat batch terakhir, dan **⚙️ Pengaturan manajer**: margin minimum (bawaan 5%), isi gudang maks. (bawaan 90%), sisakan stok kontrak, beli bahan (khusus Direktur), dan "Sisakan %" per bahan baku. Bila pabrik yang dikelola menganggur ≥ 1 hari game, kotak merah **⛔ … menganggur** menyebut alasannya dan satu tombol perbaikan: **Aktifkan beli bahan** (Direktur dengan beli bahan mati), **Perbesar silo**, **Turunkan margin min. ke 0%**, atau **Beli bahan di Pasar**. Beli bahan tetap mati secara bawaan: membeli dengan harga +20% bisa menghabiskan uang tanpa disadari, dan sekarang rencana ladang sudah menyisakan bahan untuk manajer. Saat game ditinggal, manajer mengejar 48 jam penuh, lalu bekerja 50% dalam mode hemat.
+Kartu menampilkan sakelar **Aktif/Jeda**, batch hari ini dan total, perkiraan untung, **Terakhir** (mis. "2× Tepung, 1× Gula") dan **Rencana berikutnya** (hitung mundur), daftar pabrik beserta keadaannya (⚙️ resep yang sedang jalan, 💤 alasan menunggu: "bahan kurang", "gudang hampir penuh", "margin terlalu kecil"), empat batch terakhir, dan **⚙️ Pengaturan manajer**: margin minimum (bawaan 5%), isi gudang maks. (bawaan 90%), sisakan stok kontrak, beli bahan (khusus Direktur), dan "Sisakan %" per bahan baku. Bila pabrik yang dikelola menganggur ≥ 1 hari game, kotak merah **⛔ … menganggur** menyebut alasannya dan satu tombol perbaikan: **Aktifkan beli bahan** (Direktur dengan beli bahan mati), **Perbesar silo**, **Turunkan margin min. ke 0%**, atau **Beli bahan di Pasar**. Beli bahan menyala sendiri saat Direktur baru direkrut atau dipromosikan (kecuali kamu pernah mengaturnya); manajer hanya membeli bila resepnya tetap untung di atas margin minimum dengan harga beli +20%. Saat game ditinggal, manajer mengejar 48 jam penuh, lalu bekerja 50% dalam mode hemat.
+
+### Diversifikasi (v17)
+
+Ternak, ikan, dan pabrik kini tetap berarti di akhir permainan:
+
+- **Konten baru**: 🏭 **Pabrik Kopi** (Lv 30, $220.000: 20 t kopi → 16 t ☕ kopi bubuk, +45%), 🐦 **Rumah Walet** (Lv 36, bangunan $300.000 untuk 2.000 walet; 🪹 sarang walet $1.200/kg, hampir tanpa pakan dan ringan untuk gudang dingin), 🐂 **Sapi Wagyu** (Lv 42, $9.000/ekor, 🥩 daging wagyu $120/kg) dan 🏭 **Pabrik Cokelat** (Lv 48: kakao + susu + gula → cokelat batangan, +55%; atau kakao + gula, +26%). Semuanya balik modal ±35–40 hari, dan tiap rentang 3 level dari Lv 25 sampai 50 kini membuka sesuatu yang berarti.
+- **Harga kota untuk barang non-tani naik dengan levelmu**: +0,5% per level di atas Lv 20 (maks. +15% di Lv 50), di atas pengali permintaan kota. Tanaman dan barang yang bisa dibeli (pelet) tidak ikut, jadi beli-lalu-kirim tetap tidak untung. Kota akhir juga meminta kopi bubuk, sarang walet, daging wagyu, dan cokelat.
+- **⭐ Kontrak premium** (mulai Lv 15): satu tawaran tambahan khusus produk ternak, ikan, atau olahan yang benar-benar kamu hasilkan, jumlahnya 2–4 hari produksi dengan harga 22–35% di atas pasar (+0,6% per level di atas 15, maks. ×1,6). Kontrak ini punya slot aktif sendiri di samping 3 kontrak biasa.
+- **Manajer Pabrik Direktur** yang baru direkrut atau dipromosikan langsung menyalakan **🛒 Beli bahan kurang**, kecuali kamu pernah mengatur sakelarnya sendiri. Manajer hanya membeli bila resepnya tetap di atas margin minimum dengan harga beli ×1,2, jadi tidak pernah membeli dengan rugi; pabrik tidak lagi menganggur karena "bahan kurang".
+
+### 📉 Pasar jenuh dan kandang yang makin mahal (v17)
+
+Ternak, ikan, dan pabrik kini jadi pilar yang kuat, tetapi tidak lagi menelan seluruh pertanian:
+
+- **📉 Pasar jenuh.** Menjual banyak produk ternak, ikan, atau olahan yang sama dalam waktu singkat menurunkan harganya di pasar lokal. Di Gudang dan Pasar baris produk itu menampilkan **📉 Harga turun 8% karena banyak dijual hari ini** (atau "beberapa hari terakhir"), dan tombol **Jual $…** sudah memakai harga yang turun. Tanaman, buah, dan barang yang bisa dibeli (pelet ikan) tidak pernah jenuh.
+  - Setiap pergantian hari 45% "tekanan" penjualan tersisa, jadi harga pulih dalam ±3–5 hari. Penurunan paling banyak 60%.
+  - Pasar tumbuh bersama levelmu. Kedalaman pasar per produk (nilai harga dasar per hari): ±$10.000 di Lv 1, $200.000 di Lv 10, $5 jt di Lv 20, $15 jt di Lv 30, $30 jt di Lv 40, dan $60 jt di Lv 50. Menjual 10% dari kedalaman itu dalam sehari membuat harga turun ±10% di akhir penjualan (rata-rata ±5%).
+  - Satu kali jual besar sama hasilnya dengan beberapa kali jual kecil di hari yang sama; menyebar penjualan ke beberapa hari lebih untung. Gudang dingin yang meluap (jual paksa 70%) dan muatan truk yang dijual di kota juga ikut menekan harga. **Kontrak** dibayar dengan harga kontrak dan tidak terpengaruh, jadi ⭐ kontrak premium adalah jalan keluar untuk produksi besar.
+- **🏗️ Kandang dan kolam makin mahal.** Kandang pertama setiap hewan tetap seharga dasarnya; setiap kandang hewan yang sama yang sudah kamu punya menambah 0,7% harga dasar (kandang ke-51 ×1,35, ke-151 ×2,05). Kolam ikan juga begitu, dihitung per jenis kolam. Kartu ternak dan daftar kolam selalu menampilkan harga kandang/kolam berikutnya, dan balik modal kolam memakai harga itu.
+- **Data ternak disetel ulang**: pakan sekitar 15% dari nilai produk, dan satu kandang penuh balik modal ±33–43 hari pada harga dasar (termasuk kandang). Dengan kandang yang makin mahal dan pasar jenuh, kawanan yang terus diperbesar balik modal ±45–70 hari.
+
+**Sebelum/sesudah** (bot tanpa layar, `createGame({seed})` + `advance`, seed 1–2, sampai Lv 50 atau 2.000 hari). *Investor* membeli ladang, kandang, kolam, dan pabrik bila balik modal ≤ 40 hari serta membangun proyek bila kas ≥ 2× biaya tahap; *tanam saja* hanya membeli ladang dan mesin. Angka = rata-rata dua seed, bagian pendapatan tanaman / ternak / ikan / pabrik / lain (kontrak, hadiah):
+
+| Bot | Lv 1–9 | Lv 10–19 | Lv 20–29 | Lv 30–39 | Lv 40–50 | Hari Lv 50 | Kas Lv 30 / 40 / 50 |
+|---|---|---|---|---|---|---|---|
+| Investor v16 | 12/76/0/0/13 | 32/43/19/0/7 | 48/22/24/0/7 | 35/23/37/0/6 | 31/27/35/0/7 | 1.431–1.535 | $0,26–0,29 M / $1,7–1,8 M / $6,6 M |
+| Investor v17 | 33/41/11/0/17 | 38/41/10/2/10 | 54/29/8/1/9 | 49/34/11/0/7 | 48/38/7/0/7 | 1.891–1.896 | $45–51 jt / $75–105 jt / $0,68–0,73 M |
+| Tanam saja v16 | 80/0/0/0/21 | 92/0/0/0/8 | 93/0/0/0/7 | 95/0/0/0/6 | 94/0/0/0/6 | 2.944 (seed 1, Lv 42 di hari 2.000) | $0,31–0,32 M / $1,5 M / — |
+| Tanam saja v17 | 78/0/0/0/23 | 92/0/0/0/9 | 93/0/0/0/7 | 95/0/0/0/6 | 94/0/0/0/6 | 2.956 (seed 1, Lv 42 di hari 2.000) | $0,29–0,34 M / $1,5–1,6 M / — |
+
+Investor v16 menumpuk 1,7 juta ayam dan 11.700 kolam; v17 berhenti di ±36.000 ayam dan ±790 kolam dengan pendapatan ternak 29–41% di setiap rentang level, sedangkan tanaman tetap ≥ 33%. Investor v17 mencapai Lv 50 ±20–30% lebih lambat, dan kasnya lebih kecil karena ia juga membangun ±108 tahap Proyek Warisan (v16 belum punya proyek). Bot tanam saja mencapai Lv 40 di hari ±1.710–1.740 (v16 ±1.665–1.700) dan Lv 50 di hari 2.956 (v16 2.944, seed 1 dijalankan sampai 3.500 hari).
 
 ### Ternak
 
@@ -318,20 +377,20 @@ XP didapat dari setiap tugas yang selesai, dari nilai hasil panen, dan dari prod
 | 17 | 🌴 Kelapa Sawit, pemanen Lexion TT | 27 | 🌺 Saffron, bajak 20-mata |
 | 18 | 🏭 Pabrik Minyak, penabur 24m | 28 | pemanen X9 1100 |
 | 19 | 🌍 Queensland (2 ladang) | 29 | ladang Fazenda Sorriso (300 ha) |
-| 20 | 🍇 Anggur, 🐃 Kerbau | 30 | ladang Longreach Station (400 ha), penabur 36m |
+| 20 | 🍇 Anggur, 🐃 Kerbau | 30 | 🏭 Pabrik Kopi, ladang Longreach Station (400 ha), penabur 36m |
 
 **Level 31–50:**
 
 | Lv | Terbuka | Lv | Terbuka |
 |---|---|---|---|
 | 31 | 🌍 Delta Mekong, penyemprot 24000L | 41 | ladang Lan Kharkiv, kota Mombasa |
-| 32 | 🌶️ Lada | 42 | traktor 9RX 1050, ladang An Giang |
+| 32 | 🌶️ Lada | 42 | 🐂 Sapi Wagyu, traktor 9RX 1050, ladang An Giang |
 | 33 | traktor Xerion 12.650, ladang Berau, Long An | 43 | 🌍 Alberta, ladang Naivasha, kota Calgary |
 | 34 | 🌍 Pampas, irigasi pivot ganda | 44 | pemanen CR12, ladang Lethbridge, Tandil |
 | 35 | pemanen Lexion Terra, truk Scanya 90t | 45 | 🫐 Bluberi, ladang Kiambu, kota Vancouver |
-| 36 | penebar kapur 24t, ladang Cherkasy | 46 | penyemprot drone, ladang Đồng Tháp Mười, Peace River |
+| 36 | 🐦 Rumah Walet, penebar kapur 24t, ladang Cherkasy | 46 | penyemprot drone, ladang Đồng Tháp Mười, Peace River |
 | 37 | ladang Bến Tre | 47 | ladang Camrose, Pehuajó |
-| 38 | 🌍 Kenya, bajak 24-mata | 48 | bajak 32-mata, ladang Nakuru, Vulcan Plains |
+| 38 | 🌍 Kenya, bajak 24-mata | 48 | 🏭 Pabrik Cokelat, bajak 32-mata, ladang Nakuru, Vulcan Plains |
 | 39 | 🌹 Mawar, pemetik buah robotik | 49 | penabur 60m |
 | 40 | penabur 48m, ladang Nyeri | 50 | pemanen Trion X Otonom |
 
@@ -409,7 +468,9 @@ js/engine/*         Modul engine: rng, defs, weather, market, fields, tasks, tas
                     logistics, logisticsView, dispatcher, research, staff,
                     factoryManager, factoryPlanner, rewards (Hadiah Berskala), chapters (Bab Petani),
                     stockKeep (stok disisakan), autoFeed, overflow (gudang penuh), offline (mode hemat),
-                    report (Laporan Pagi), calendar (Kalender Panen + booster)
+                    report (Laporan Pagi), calendar (Kalender Panen + booster),
+                    mandor (Mandor Ladang), saturation (pasar jenuh), kabar* (Kabar Desa + Bencana Besar),
+                    projects + projectsView (Proyek Warisan)
 js/ui/*             Komponen antarmuka per tab
 js/main.js          Titik masuk: memuat/membuat game, game loop, autosave, navigasi tab
 tests/              Tes engine (node:test)
@@ -447,6 +508,9 @@ Semua angka keseimbangan ada di `js/data.js`. Objek `BALANCE` mengatur:
 | `loanDailyRate` | Bunga pinjaman per hari |
 | `logistics`, `dispatcher` | Truk (aus, batas harga tanaman di kota) dan tingkat Manajer Logistik (`tiers`: level buka, biaya rekrut, gaji, jumlah truk, radius, negosiasi) |
 | `factoryManager` | Tingkat Manajer Pabrik (`tiers`: level buka, biaya rekrut, gaji, `factories` = jumlah pabrik dikelola (`null` = semua), `intervalHours`, `inputMult`, `outputMult`, `buyInputs`) dan `tradeIn` (potongan ganti 50%) |
+| `mandor` | Mandor Ladang: `freeFields` (ladang berencana gratis, 2) dan `tiers` (level buka, biaya rekrut, gaji, `fields` = ladang berencana yang jalan (`null` = semua), `speed`) |
+| `expansion` | Kenaikan harga kandang (`barn`) dan kolam (`pond`) per kandang/kolam sejenis yang sudah dimiliki (0,007 = +0,7% harga dasar) |
+| `market.saturation` | Pasar jenuh: `carry` (bagian tekanan yang tersisa tiap hari, 0,45), `maxDip` (penurunan maks., 0,6), `depth` (kedalaman pasar `[level, $ per hari]`, diinterpolasi log) |
 
 Harga ladang, mesin, benih, harga dasar produk, volatilitas pasar, dan level buka bisa diubah langsung di array masing-masing (`FIELDS`, `MACHINES`, `CROPS`, `PRODUCTS`, `ANIMALS`). Modal awal dan biaya sewa mesin panen ada di `STARTING`.
 

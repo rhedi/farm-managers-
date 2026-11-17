@@ -15,6 +15,7 @@ import { updateBadges } from './ui/badges.js';
 import { flushLevelUps } from './ui/levelUp.js';
 import { initOnboarding, updateOnboarding, resetOnboarding } from './ui/onboarding.js';
 import { notifyEvent, announceChapterNotice } from './ui/notify.js';
+import { announceMandorNotice } from './ui/mandor.js';
 import { backupSave, loadTab, saveTab, trackTopbarHeight } from './ui/shell.js';
 import { feedbackEvent, initClickSounds } from './ui/feedback.js';
 import { tickMoneyFx, resetMoneyFx } from './ui/fx.js';
@@ -23,6 +24,7 @@ import { initPwa } from './ui/pwa.js';
 import { initTheme } from './ui/theme.js';
 import { initSubtabSwipe } from './ui/subtabs.js';
 import { showMorningReport, MIN_AWAY_S } from './ui/morningReport.js';
+import { maybeShowDisaster } from './ui/kabar.js';
 
 const VIEWS = {
   farm: { render: renderFarm, update: updateFarm },
@@ -95,6 +97,8 @@ function start(game) {
   unsubscribe = game.on(onGameEvent);
   resetMoneyFx();
   announceChapterNotice(game); // old save: one summary toast for chapter steps it had already met
+  announceMandorNotice(game); // old save with > 2 planned fields: "👷 Mandor otomatis dipekerjakan untuk save lama"
+  setTimeout(() => maybeShowDisaster(game), 1200); // ⚠️ a Bencana Besar forecast (e.g. from offline catch-up) not seen yet
   updateTopbar(game);
   renderView();
 }

@@ -267,10 +267,10 @@ test('negotiation bonus is paid on arrival for manager trips; crops stay below t
   g.hireDispatcher('direktur');
   const trip = autoTrips(g)[0];
   const city = DATA.CITIES.find((c) => c.id === trip.cityId);
-  const price = g.state.market.milk;
+  const price = g.state.market.milk, mult = g.saleQuote('milk', 5000).mult; // 📉 one big sale dips the price a little
   g.advance(trip.hours / 2 + 0.01);
   assert.equal(sales.length, 1);
-  near(sales[0].value, 5000 * price * cityMult(g, city, 'milk', tier('direktur').bonus), 1);
+  near(sales[0].value, 5000 * price * mult * cityMult(g, city, 'milk', tier('direktur').bonus), 1);
   for (const c of DATA.CITIES) for (const p of DATA.CROPS) assert.ok(cityMult(g, c, p.id, 0.04) < 1.2, `${c.id}/${p.id}`);
 });
 

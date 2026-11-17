@@ -8,6 +8,8 @@ import { saleCategory } from './ledger.js';
 import { perk } from './research.js';
 import { pondsValue } from './fishView.js';
 import { achievementReward, grantResearchPoints } from './rewards.js';
+import { projectsValue, projectStat } from './projects.js';
+import { takeSale } from './saturation.js';
 
 export const FIELD_REFUND = 0.7;
 export const MACHINE_REFUND = 0.6;
@@ -117,7 +119,7 @@ export function sellProduct(game, productId, qty, opts = {}) {
   if (!(qty > 0)) return fail('Jumlah tidak valid.');
   if (qty > stock + 1e-9) return fail('Stok tidak cukup.');
   if (qty > avail + 1e-9) return fail(`Stok tidak cukup: ${fmtNum(stock - avail)} ${p.unit} dicadangkan untuk pakan.`);
-  const value = round2(qty * game.state.market[productId]);
+  const value = round2(qty * game.state.market[productId] * takeSale(game, productId, qty)); // 📉 pasar jenuh
   game.state.silo[productId] = round2(stock - qty);
   if (game.state.silo[productId] <= 0) delete game.state.silo[productId];
   const st = game.state.stats;
@@ -193,6 +195,7 @@ export function netWorth(game) {
     if (def && lvl > 0) v += 0.6 * ((def.price || 0) + (def.upgradeCost || 0) * (lvl * (lvl - 1)) / 2);
   }
   v += pondsValue(game); // kolam ikan + aerator (fishView.js)
+  v += projectsValue(game); // 🏛️ Proyek Warisan: legacyValue × finished stage spend (projects.js)
   return round2(v);
 }
 
@@ -208,7 +211,8 @@ export function unlocksBetween(data, from, to) {
   const pick = (arr) => (arr || []).filter((x) => inRange(x.unlockLevel)).map((x) => x.id);
   return { crops: [...pick(data.CROPS), ...pick(data.TREES)], machines: pick(data.MACHINES), animals: pick(data.ANIMALS),
     fields: (data.FIELDS || []).filter((f) => inRange(fieldUnlockLevel(data, f))).map((f) => f.id),
-    regions: pick(data.REGIONS), factories: pick(data.FACTORIES ?? []), ponds: pick(data.PONDS) };
+    regions: pick(data.REGIONS), factories: pick(data.FACTORIES ?? []), ponds: pick(data.PONDS),
+    mandors: pick(data.BALANCE?.mandor?.tiers) }; // 👷 Mandor Ladang tiers (js/engine/mandor.js)
 }
 
 /** Money paid for reaching `level`: `BALANCE.levelReward` × level. */
@@ -237,6 +241,8 @@ export function addXp(game, n) {
 export function statValue(game, key) {
   if (key === 'pondsOwned') return (game.state.ponds || []).length;
   if (key === 'factoryManagerRuns') return game.state.factoryManager?.stats?.runs ?? 0;
+  if (key === 'projectStages' || key === 'projectsDone' || key === 'monuments') return projectStat(game, key); // v17
+  if (key === 'dilemmasDecided') return game.state.kabar?.stats?.decided ?? 0; // 📰 Kabar Desa decisions made by hand
   return game.state.stats[key] ?? 0;
 }
 

@@ -47,8 +47,10 @@ test('coarse progress is monotonic in the time away and runs at 50% of the exact
   // Mode hemat = 50% of the plan rate the owned machines allow: half of a 100% run, and never better than playing.
   const tons = (g) => g.state.stats.tonsHarvested;
   const span = (48 + 24 * 40) * RS;
-  const withEff = (efficiency) => { const g = loadGame(json, { data: { ...DATA, BALANCE: { ...DATA.BALANCE, offline: { efficiency } } } }); g.catchUp(span); return tons(g); };
-  const window = load(json);
+  // 📰 Kabar Desa outcomes (field damage) depend on money/income, so they are off for the pure-rate comparison.
+  const calm = (offline) => ({ ...DATA, BALANCE: { ...DATA.BALANCE, ...(offline ? { offline } : {}), kabar: { ...DATA.BALANCE.kabar, unlockLevel: 999 } } });
+  const withEff = (efficiency) => { const g = loadGame(json, { data: calm({ efficiency }) }); g.catchUp(span); return tons(g); };
+  const window = loadGame(json, { data: calm() });
   window.catchUp(48 * RS);
   const half = withEff(0.5) - tons(window), full = withEff(1) - tons(window);
   assert.ok(Math.abs(half / full - 0.5) < 0.05, `50% vs 100%: ${half} / ${full}`);

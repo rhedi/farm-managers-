@@ -48,7 +48,7 @@ test('promote keeps settings, aktif/jeda, stats and recent runs; the new tier pl
   assert.equal(r.ok, true);
   const v = g.factoryManagerView();
   assert.equal(v.hired.id, 'direktur');
-  assert.deepEqual(v.settings, before.settings);
+  assert.deepEqual(v.settings, { ...before.settings, buyInputs: true }); // v17: promoting to Direktur turns buying on (never set by player)
   assert.equal(v.on, true);
   assert.ok(v.stats.runs >= before.stats.runs);
   assert.deepEqual(v.recent.slice(-before.recent.length).map((x) => x.day), before.recent.map((x) => x.day));

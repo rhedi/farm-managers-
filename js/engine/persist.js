@@ -7,6 +7,9 @@ import { normalizeLedger } from './ledger.js';
 import { ensureAutoFeed } from './autoFeed.js';
 import { ensureOverflow } from './overflow.js';
 import { ensureCalendar } from './calendar.js';
+import { migrateMandor } from './mandor.js';
+import { ensureKabar } from './kabar.js';
+import { ensureProjects } from './projects.js';
 
 export const SAVE_KEY = 'farm-manager-save';
 export const SAVE_VERSION = 1;
@@ -101,6 +104,11 @@ export function normalizeState(s, data, idx) {
   ensureAutoFeed(s);
   ensureOverflow(s);
   ensureCalendar(s);
+  // 👷 Mandor Ladang: a save without `mandor` predates the 2-free-fields rule → a covering Mandor for free (one toast).
+  migrateMandor(s, data);
+  // v17 📰 Kabar Desa (missing = nothing open; the first dilemma comes the next day) + 🏛️ Proyek Warisan (none built).
+  ensureKabar(s);
+  ensureProjects(s, data);
   if (s.history.length > HISTORY_SIZE) s.history.splice(0, s.history.length - HISTORY_SIZE);
   return s;
 }

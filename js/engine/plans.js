@@ -4,6 +4,7 @@ import { witherFactor, WITHER_AFTER_HOURS } from './fields.js';
 import { phOf, LIME_TARGET_PH } from './soil.js';
 import { NO_WORKER } from './workers.js';
 import { orchardAllows, ownsShaker } from './orchard.js';
+import { coveredFields, pausedLabel, trackActive } from './mandor.js';
 
 const ok = (extra = {}) => ({ ok: true, ...extra });
 const fail = (reason) => ({ ok: false, reason });
@@ -39,7 +40,7 @@ export function setFieldPlan(game, fieldId, plan) {
     blocked: null,
   };
   runPlans(game);
-  return ok({ plan: { ...f.plan } });
+  return ok({ plan: { ...f.plan }, paused: !!f.plan?.paused });
 }
 
 /** Crop the plan seeds next: alternates cropId ↔ rotateCropId using the field's last harvested crop. */
@@ -78,11 +79,20 @@ function startHarvest(game, fieldId, f) {
   return fail(r.reason === NO_WORKER ? NO_WORKER : 'Menunggu pemanen bebas.');
 }
 
-/** Start the next step on every planned, idle-machine field. Records `plan.blocked` reasons. */
+/**
+ * Start the next step on every planned, idle-machine field. Records `plan.blocked` reasons. Plans past the Mandor
+ * cap (mandor.js) stay configured but paused: `plan.paused` true, `plan.blocked` = "Butuh Mandor (2/2 ladang gratis)".
+ */
 export function runPlans(game) {
+  const covered = coveredFields(game);
+  trackActive(game, covered);
+  let label = null;
   for (const def of game.data.FIELDS) {
     const f = game.state.fields[def.id];
-    if (!f?.plan || f.busy) continue;
+    if (!f?.plan) continue;
+    if (!covered.has(def.id)) { f.plan.paused = true; f.plan.blocked = label ??= pausedLabel(game); continue; }
+    if (f.plan.paused) { f.plan.paused = false; f.plan.blocked = null; }
+    if (f.busy) continue;
     const step = nextStepFor(game, def.id);
     if (!step) { f.plan.blocked = null; continue; }
     let r;

@@ -18,7 +18,7 @@ function withMill(seed = 1, wheat = 50) {
 }
 
 test('factory data: unlock levels, products exist, value-add 25–60%', () => {
-  assert.deepEqual(DATA.FACTORIES.map((f) => f.unlockLevel), [11, 13, 15, 18, 19, 21, 24, 11]); // + Pabrik Pakan Ikan
+  assert.deepEqual(DATA.FACTORIES.map((f) => f.unlockLevel), [11, 13, 15, 18, 19, 21, 24, 11, 30, 48]); // + Pabrik Pakan Ikan, v17 Kopi + Cokelat
   for (const f of DATA.FACTORIES) for (const r of f.recipes) {
     const val = (m) => Object.entries(m).reduce((s, [id, q]) => { assert.ok(P[id], `${f.id}/${r.id}: ${id}`); return s + q * P[id].basePrice; }, 0);
     const add = val(r.outputs) / val(r.inputs) - 1;

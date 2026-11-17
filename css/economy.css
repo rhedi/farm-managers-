@@ -55,3 +55,7 @@
   .eco-reserve-row input { flex: 1 1 4em; }
   .eco-quick .btn { flex: 1 1 auto; }
 }
+
+/* 📉 Pasar jenuh: price dip from recent sales of an animal/fish/processed product (js/ui/stock.js dipNote) */
+.sat-note { color: var(--red); font-weight: 600; }
+.sat-hint { font-size: .75rem; }

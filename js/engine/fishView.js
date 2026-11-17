@@ -1,7 +1,7 @@
 // Peternakan ikan: UI views, pelet quotes/purchase and pond value (net worth). Rules live in fish.js.
 import { round2 } from './rng.js';
 import { buyProduct, BUY_MARKUP } from './purchase.js';
-import { fishCfg, pondsOf, pondAccess, feedNeed, totalFeedNeed, waterGrowth, mortality, aeratorCost } from './fish.js';
+import { fishCfg, pondsOf, pondAccess, feedNeed, totalFeedNeed, waterGrowth, mortality, aeratorCost, pondCostOf } from './fish.js';
 
 const fail = (reason) => ({ ok: false, reason });
 
@@ -32,7 +32,7 @@ export function pondEconomics(game, def) {
   const water = def.waterCost * Math.floor(def.growDays * def.waterDecay / (100 - fishCfg(game).autoWaterBelow));
   const profitPerDay = (revenue - feed - fry - water) / def.growDays;
   return { kg: round2(kg), revenue: round2(revenue), feedCost: round2(feed), fryCost: round2(fry), waterCost: round2(water),
-    profitPerDay: round2(profitPerDay), paybackDays: profitPerDay > 0 ? Math.ceil((def.buildCost + fry) / profitPerDay) : null };
+    profitPerDay: round2(profitPerDay), paybackDays: profitPerDay > 0 ? Math.ceil((pondCostOf(game, def) + fry) / profitPerDay) : null };
 }
 
 /** Everything the Ternak › Peternakan Ikan section shows. */
@@ -41,6 +41,7 @@ export function fishView(game) {
   const defs = (game.data.PONDS || []).map((def) => {
     const access = pondAccess(game, def);
     return { ...def, ...access, owned: pondsOf(game).filter((p) => p.pondId === def.id).length,
+      buildCost: pondCostOf(game, def), baseBuildCost: def.buildCost, // next pond of this type (rises per pond owned)
       aeratorCost: aeratorCost(game, def), economics: pondEconomics(game, def) };
   });
   const ponds = pondsOf(game).map((p) => {

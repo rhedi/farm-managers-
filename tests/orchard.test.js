@@ -109,7 +109,7 @@ test('prune: optional, mature trees only, +yield this cycle (perawatan_kebun)', 
   const y0 = g.estimateYield(fid, TREE.id);
   runTask(g, fid, 'prune');
   assert.ok(g.state.fields[fid].orchard.pruned);
-  assert.ok(g.estimateYield(fid, TREE.id) > y0);
+  assert.equal(g.getFieldView(fid).yieldFactors.prune, 1 + DATA.BALANCE.orchard.pruneBonus, `y0 ${y0}`); // weather may differ by seed
   assert.ok(g.state.ledger.total.perawatan_kebun > 0);
   assert.equal(g.estimateTask(fid, 'prune').ok, false, 'once per cycle');
 });

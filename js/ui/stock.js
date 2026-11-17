@@ -44,7 +44,7 @@ const bulkQty = (it) => Math.max(0, it.bulk ?? sellableQty(it));
 export async function sellGroup(items, label) {
   const list = items.filter((it) => bulkQty(it) > 0);
   if (!list.length) return;
-  const total = list.reduce((s, it) => s + bulkQty(it) * it.price, 0);
+  const total = list.reduce((s, it) => s + saleValueOf(it, bulkQty(it)), 0);
   const feedRisk = list.some((it) => it.isFeed && !(it.reserve > 0) && !(it.kept > 0));
   const kept = items.some((it) => it.kept > 0);
   const ok = await confirmModal({
@@ -70,12 +70,25 @@ export function trendChip(change) {
   return h(`span.trend.${cls}`, `${change > 0 ? '▲' : change < 0 ? '▼' : '•'} ${fmtSignedPct(change)}`);
 }
 
+/** 📉 Pasar jenuh: "harga turun 8% karena banyak dijual hari ini" (siloView `dip`, ≥ 1%), or null. */
+export function dipNote(it) {
+  const pct = Math.round((it.dip || 0) * 100);
+  if (pct < 1) return null;
+  return h('div.small.sat-note', { title: 'Pulih dalam beberapa hari bila tidak dijual lagi' },
+    `📉 Harga turun ${pct}% karena banyak dijual ${it.dipToday ? 'hari ini' : 'beberapa hari terakhir'}`);
+}
+
+/** What selling `qty` earns now: the saturation-aware quote when the view has it (all sellable), else qty × price. */
+const saleValueOf = (it, qty) => (it.saleValue != null && Math.abs(qty - (it.sellable ?? qty)) < 1e-9 ? it.saleValue : qty * it.price);
+
 /**
- * One stock row: emoji · name (+ feed/reserve tags) · amount × price · [Jual $value].
+ * One stock row: emoji · name (+ feed/reserve tags) · amount × price · [Jual $value] (+ 📉 saturation note).
  * `extra` (optional) is appended to the meta line (e.g. a trend chip).
  */
 export function stockRow(it, extra = null) {
   const sellable = sellableQty(it);
+  const value = saleValueOf(it, sellable);
+  const bigDip = sellable > 0 && value < sellable * it.price * 0.99;
   return h('div.stock-row', { dataset: { productId: it.id } },
     h('span.stock-emoji', iconOf(it)),
     h('div.stock-main',
@@ -83,10 +96,12 @@ export function stockRow(it, extra = null) {
       h('div.stock-meta',
         h('span', fmtAmt(it.qty, it.unit)), ' · ', h('span', `${fmtPrice(it.price)}/${it.unit}`),
         it.reserve > 0 ? [' · ', h('span.eco-reserve', `🔒 ${fmtAmt(it.reserve, it.unit)}`)] : null,
-        extra ? [' ', extra] : null)),
+        extra ? [' ', extra] : null),
+      dipNote(it),
+      bigDip ? h('div.small.muted.sat-hint', `Jual semua sekaligus ≈ ${Math.round((1 - value / (sellable * it.price)) * 100)}% di bawah harga · jual bertahap lebih untung`) : null),
     h('button.btn.btn-small.btn-primary.stock-sell', {
       type: 'button', disabled: !(sellable > 0),
       title: sellable > 0 ? `Jual ${fmtAmt(sellable, it.unit)}` : 'Semua stok dicadangkan untuk pakan',
       onclick: (e) => { e.preventDefault(); e.stopPropagation(); sellItem(it); },
-    }, `Jual ${fmtMoney(sellable * it.price)}`));
+    }, `Jual ${fmtMoney(value)}`));
 }

@@ -1,6 +1,7 @@
 // Map ambience: per-region season tint + emoji label, rain/snow over raining regions,
 // drifting clouds. Elements are built with the map; updateMapFx only toggles classes.
 import { h } from './dom.js';
+import { landmarkLayer } from './mapLandmarks.js';
 
 /** Region boxes (percent coords) from the field list. */
 export function regionBoxes(fields) {
@@ -43,11 +44,12 @@ export function mapFxLayers(game, regions) {
     dataset: { region: r.id },
     style: { left: `${r.x0 - 8}%`, top: `${r.y0 - 14}%`, width: `${r.x1 - r.x0 + 16}%`, height: `${r.y1 - r.y0 + 22}%` },
   }, h('span.map-rain-cloud', '☁️')));
+  const lm = landmarkLayer(game, regions); // 🏛️ Proyek Warisan: icon row on the label line + continent Monumen (mapLandmarks.js)
   const labels = regions.map((r) => h('div.map-region-label', {
     dataset: { region: r.id }, style: { left: `${r.x}%`, top: `${r.labelY}%` },
-  }, r.name));
+  }, h('span.map-label-text', r.name), lm.rows.get(r.id) ?? null));
   const clouds = h('div.map-clouds', h('span.c1'), h('span.c2'), h('span.c3'));
-  return { lands, tints, rain, labels, clouds };
+  return { lands, tints, rain, labels, clouds, landmarks: lm.monument };
 }
 
 /** Toggle rain/snow and season tint classes; refresh label emoji. */
@@ -67,9 +69,10 @@ export function updateMapFx(mapEl, game, regions) {
     const sid = s?.id ?? '';
     if (tint && tint.dataset.season !== sid) tint.dataset.season = sid;
     const label = mapEl.querySelector(`.map-region-label${sel}`);
+    const textEl = label?.querySelector('.map-label-text') ?? label; // keeps the landmark row next to the name
     const text = s?.emoji ? `${s.emoji} ${r.name}` : r.name;
-    if (label && label.textContent !== text) {
-      label.textContent = text;
+    if (textEl && textEl.textContent !== text) {
+      textEl.textContent = text;
       label.title = s?.name ?? '';
     }
   }

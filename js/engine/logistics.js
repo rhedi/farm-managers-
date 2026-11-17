@@ -12,6 +12,11 @@ import { wearMachines, wearFactor, REPAIR_RATE } from './wear.js';
 import { NO_WORKER } from './workers.js';
 import { BUY_MARKUP } from './purchase.js';
 import { perk } from './research.js';
+import { projectPerk } from './projects.js';
+import { takeSale } from './saturation.js';
+
+/** Continent of a city: the one of the first region it is reachable from (⚓ Pelabuhan Ekspor bonus). */
+const cityContinent = (game, city) => game.idx.regions.get(Object.keys(city.km || {})[0])?.continent ?? null;
 
 const DEFAULTS = { wearPerHour: 0.0006, cropCap: 1.15 };
 export const cfg = (game) => ({ ...DEFAULTS, ...game.data.BALANCE.logistics });
@@ -29,8 +34,15 @@ export const tonsPerUnit = (game, productId) => (game.idx.products.get(productId
  * City price multiplier: demand (or base) × (1 + perk 'cityPrice' + `bonus`); crops never above cropCap (< BUY_MARKUP).
  * `bonus` = the Manajer Logistik's negotiation bonus on its own trips (0 for manual trips).
  */
+/** v17 Diversifikasi: non-crop goods sell for more in cities as the farm grows (BALANCE.diversify.city). */
+export function lateNonCropBonus(game, productId) {
+  const c = game.data.BALANCE.diversify?.city;
+  if (!c || game.idx.crops.has(productId) || game.idx.products.get(productId)?.buyable) return 0; // buy-and-ship never profits
+  return Math.min(c.max, Math.max(0, (game.state.level - c.fromLevel) * c.perLevel));
+}
 export function cityMult(game, city, productId, bonus = 0) {
-  let m = (city.demand?.[productId] ?? city.base ?? 1) * (1 + perk(game, 'cityPrice') + bonus);
+  let m = (city.demand?.[productId] ?? city.base ?? 1) * (1 + perk(game, 'cityPrice') + bonus + lateNonCropBonus(game, productId)
+    + projectPerk(game, 'cityPrice', cityContinent(game, city)));
   if (game.idx.crops.has(productId)) m = Math.min(m, Math.min(cfg(game).cropCap, BUY_MARKUP - 0.01));
   return r4(m);
 }
@@ -137,7 +149,7 @@ function arrive(game, t) {
   const split = {};
   let value = 0, local = 0;
   for (const [id, qty] of Object.entries(t.cargo)) {
-    const price = s.market[id] ?? 0, v = round2(qty * price * (city ? cityMult(game, city, id, t.bonus || 0) : 1));
+    const price = s.market[id] ?? 0, v = round2(qty * price * (city ? cityMult(game, city, id, t.bonus || 0) : 1) * takeSale(game, id, qty));
     const cat = saleCategory(game, id);
     split[cat] = round2((split[cat] || 0) + v);
     value += v; local += qty * price;

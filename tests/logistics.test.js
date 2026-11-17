@@ -70,10 +70,10 @@ test('mixed cargo: animal goods book penjualan_ternak_produk; kg/L/pcs do not us
   const e = g.estimateShipment(uid, 'bandung', { rice: 4, milk: 3000 });
   assert.equal(e.ok, true, e.reason);
   assert.equal(e.tons, 4);
-  const t0 = g.state.ledger.total.penjualan_ternak_produk || 0;
+  const t0 = g.state.ledger.total.penjualan_ternak_produk || 0, mult = g.saleQuote('milk', 3000).mult; // 📉 pasar jenuh
   g.shipToCity(uid, 'bandung', { rice: 4, milk: 3000 });
   g.advance(3);
-  near((g.state.ledger.total.penjualan_ternak_produk || 0) - t0, 3000 * g.state.market.milk * BANDUNG.base, 1);
+  near((g.state.ledger.total.penjualan_ternak_produk || 0) - t0, 3000 * g.state.market.milk * mult * BANDUNG.base, 1);
 });
 
 test('capacity, stock, feed reserve, locked/unreachable city are refused', () => {

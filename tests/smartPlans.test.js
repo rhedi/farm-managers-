@@ -131,6 +131,7 @@ test('plan auto-sell sells at market before the silo overflows', () => {
 
 test('Manajer Pabrik idle for a day shows the reason and a one-tap fix', () => {
   const g = setup({ silo: {} });
+  g.setFactoryManagerSettings({ buyInputs: false }); // player turned buying off (v17 default: on for a new Direktur)
   g.hireFactoryManager('direktur');
   assert.equal(g.factoryManagerView().blocked, null, 'not before a full day');
   g.advance(25);

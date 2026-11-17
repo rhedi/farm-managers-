@@ -16,14 +16,27 @@ export function herdOf(game, animalId) {
 
 export const capacityOf = (game, a) => herdOf(game, a.id).barns * a.barnCapacity;
 
+/**
+ * Rising expansion cost (v17 balance): `base × (1 + BALANCE.expansion[kind] × owned)`, 3 significant digits.
+ * kind 'barn' (owned = barns of that animal) or 'pond' (owned = ponds of that type).
+ */
+export function expansionCost(game, kind, base, owned) {
+  const x = base * (1 + (game.data.BALANCE.expansion?.[kind] ?? 0) * Math.max(0, owned || 0));
+  const e = 10 ** Math.max(0, Math.floor(Math.log10(x)) - 2);
+  return Math.round(x / e) * e;
+}
+/** Price of the next barn for animal def `a`. */
+export const barnCostOf = (game, a) => expansionCost(game, 'barn', a.barnCost, game.state.animals[a.id]?.barns);
+
 export function buildBarn(game, animalId) {
   const a = game.idx.animals.get(animalId);
   if (!a) return fail('Hewan tidak ditemukan.');
   if (a.unlockLevel > game.state.level) return fail(`${a.name} terbuka di level ${a.unlockLevel}.`);
-  if (!game.spend(a.barnCost, 'kandang')) return fail('Uang tidak cukup.');
+  const cost = barnCostOf(game, a);
+  if (!game.spend(cost, 'kandang')) return fail('Uang tidak cukup.');
   herdOf(game, animalId).barns++;
   game.emit('barn', `Kandang ${a.name} dibangun.`, { animalId });
-  return ok({ capacity: capacityOf(game, a) });
+  return ok({ capacity: capacityOf(game, a), cost });
 }
 
 export function buyAnimal(game, animalId, n = 1) {
@@ -117,6 +130,7 @@ export function animalsView(game) {
     const stock = feedStock(game, a);
     return {
       ...a, count: h.count, barns: h.barns, capacity: h.barns * a.barnCapacity,
+      barnCost: barnCostOf(game, a), baseBarnCost: a.barnCost, // next barn (rises per barn owned)
       quality: round2(h.quality), happiness: round2(h.happiness), fed: h.fed,
       productionPerDay: round2(h.count * a.productPerDay * h.quality * mods.production),
       unlocked: a.unlockLevel <= game.state.level,

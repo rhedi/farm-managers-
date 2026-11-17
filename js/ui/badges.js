@@ -39,8 +39,11 @@ export function updateBadges(game) {
   const todo = fields.filter(needsAction);
   const trouble = todo.filter((f) => f.pest || f.withering).length;
   const ready = todo.filter((f) => f.state === 'ready').length;
-  setBadge('farm', todo.length ? String(todo.length) : '',
-    `${todo.length} ladang perlu tindakan (${ready} siap panen${trouble ? `, ${trouble} bermasalah` : ''})`, trouble > 0);
+  const kv = game.kabarView?.(); // 📰 open dilemma / ⚠️ unprepared Bencana Besar when no field needs action
+  const alarm = kv?.disaster?.phase === 'forecast' && !kv.disaster.choice;
+  const news = todo.length ? String(todo.length) : alarm ? '⚠️' : kv?.open ? '📰' : '';
+  setBadge('farm', news, todo.length ? `${todo.length} ladang perlu tindakan (${ready} siap panen${trouble ? `, ${trouble} bermasalah` : ''})`
+    : alarm ? `Bencana Besar: ${kv.disaster.name} — siapkan` : kv?.open ? `Kabar Desa: ${kv.open.title}` : '', trouble > 0 || alarm);
 
   const worn = game.machinesView().filter((m) => (m.condition ?? 1) < WORN).length;
   setBadge('garage', worn ? String(worn) : '', worn ? `${worn} mesin hampir rusak — perbaiki` : '', true);

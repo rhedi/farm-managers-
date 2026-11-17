@@ -100,9 +100,9 @@ function managePanel(a, free) {
 // ---- Kandang hidup (v16 Juice Pass): idle animals walk, graze or peck; now and then one "says" something or a
 // product pops up. CSS-only loops (transform/opacity), paused while the tab is hidden; reduced motion only slows them.
 const SAYS = { cows: 'Mooo!', buffalo: 'Mooo!', sheep: 'Mbeee!', goats: 'Mbek!', pigs: 'Oink!', chickens: 'Petok!',
-  ducks: 'Kwek!', bees: 'Bzzz', alpaca: 'Hmm~' };
+  ducks: 'Kwek!', bees: 'Bzzz', alpaca: 'Hmm~', walet: 'Cit-cit!', wagyu: 'Moo~' };
 const PECKERS = new Set(['chickens', 'ducks']);
-const FLYERS = new Set(['bees']);
+const FLYERS = new Set(['bees', 'walet']);
 if (typeof document !== 'undefined' && !window.__herdVis) {
   window.__herdVis = true;
   document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('anim-paused', document.hidden));

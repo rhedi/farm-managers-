@@ -4,6 +4,7 @@ import { confirmModal } from './modal.js';
 import { app, act } from './app.js';
 import { managerItem, dispatcherSig } from './dispatcher.js';
 import { factoryManagerItem, factoryManagerSig } from './factoryManager.js';
+import { mandorCard, mandorSig } from './mandor.js';
 
 const stars = (skill) => { const n = Math.max(1, Math.round(skill * 5)); return '★'.repeat(n) + '☆'.repeat(5 - n); };
 const fieldName = (id) => app.game.data.FIELDS.find((f) => f.id === id)?.name ?? id;
@@ -12,7 +13,7 @@ const fieldName = (id) => app.game.data.FIELDS.find((f) => f.id === id)?.name ??
 export function workersSig(game) {
   if (!game.workersView) return '';
   return `|W${game.workersView().map((w) => `${w.id}:${w.busy}:${w.skill}`).join(',')}`
-    + `|C${game.workerCandidates().map((c) => c.id).join(',')}|${dispatcherSig(game)}|${factoryManagerSig(game)}`;
+    + `|C${game.workerCandidates().map((c) => c.id).join(',')}|${dispatcherSig(game)}|${factoryManagerSig(game)}|${mandorSig(game)}`;
 }
 
 async function fireFlow(w) {
@@ -54,13 +55,14 @@ export function workersSection(game) {
   if (!game.workersView) return null;
   const ws = game.workersView();
   const cs = game.workerCandidates();
-  const mgr = game.dispatcherView?.().hired, fm = game.factoryManagerView?.().hired;
-  const wages = ws.reduce((s, w) => s + w.wage, 0) + (mgr?.wage ?? 0) + (fm?.wage ?? 0);
+  const mgr = game.dispatcherView?.().hired, fm = game.factoryManagerView?.().hired, md = game.mandorView?.().hired;
+  const wages = ws.reduce((s, w) => s + w.wage, 0) + (mgr?.wage ?? 0) + (fm?.wage ?? 0) + (md?.wagePaid ?? 0);
   const free = ws.filter((w) => !w.busy).length;
   return h('section.section',
     h('div.section-title', '👷 Pekerja', h('span.spacer'),
       h('span.small.muted', `${free}/${ws.length} bebas · gaji ${fmtMoney(wages)}/hari`)),
     h('div.small.muted.ops-hint', 'Setiap tugas ladang butuh satu pekerja bebas (pemanen sewaan sudah termasuk sopir). Gaji dibayar tiap pergantian hari.'),
+    mandorCard(game),
     h('div.list', ws.map((w) => workerItem(w, ws.length <= 1))),
     h('div.section-title.ops-sub', '🧑‍💼 Manajer Logistik'),
     h('div.list', managerItem(game)),

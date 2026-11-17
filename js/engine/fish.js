@@ -5,6 +5,7 @@ import { clamp, round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { xpForValue } from './taskrun.js';
 import { storeProduct } from './storage.js';
+import { expansionCost } from './animals.js';
 
 const ok = (extra = {}) => ({ ok: true, ...extra });
 const fail = (reason) => ({ ok: false, reason });
@@ -38,13 +39,15 @@ export function mortality(game, water, fed) {
   return c.baseMortality + bad + c.hungerMortality * (1 - fed);
 }
 export const aeratorCost = (game, def) => round2(def.buildCost * fishCfg(game).aeratorRate);
+/** Price of the next pond of this type: rises with the ponds of that type already built (BALANCE.expansion.pond). */
+export const pondCostOf = (game, def) => expansionCost(game, 'pond', def.buildCost, pondsOf(game).filter((p) => p.pondId === def.id).length);
 
 export function buildPond(game, pondId) {
   const def = game.idx.ponds.get(pondId);
   if (!def) return fail('Kolam tidak ditemukan.');
   const access = pondAccess(game, def);
   if (!access.unlocked) return fail(access.reason);
-  if (!game.spend(def.buildCost, 'kolam')) return fail('Uang tidak cukup.');
+  if (!game.spend(pondCostOf(game, def), 'kolam')) return fail('Uang tidak cukup.');
   const s = game.state;
   s.nextPondUid = (s.nextPondUid || 1);
   const pond = { uid: `k${s.nextPondUid++}`, pondId, count: 0, stocked: 0, growth: 0, water: 100, fed: 1,

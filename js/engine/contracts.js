@@ -5,6 +5,7 @@ import { random, randRange, round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { BUY_MARKUP } from './purchase.js';
 import { perk } from './research.js';
+import { batchHours } from './factories.js';
 
 const DEFAULTS = { offers: 3, maxActive: 3, offerDays: 3, dueMin: 5, dueMax: 12, priceMin: 1.1, priceMax: 1.19,
   harvestsMin: 1, harvestsMax: 2, penaltyRate: 0.1, xpPerValue: 0.01 };
@@ -18,7 +19,42 @@ const EPS = 1e-9;
 export const contractConfig = (game) => ({ ...DEFAULTS, ...(game.data.BALANCE?.contracts || {}) });
 const list = (game) => (game.state.contracts ||= []);
 const findContract = (game, id) => list(game).find((c) => c.id === id);
-const activeCount = (game) => list(game).filter((c) => c.status === 'active').length;
+const activeCount = (game, special = false) => list(game).filter((c) => c.status === 'active' && !!c.special === special).length;
+
+/**
+ * v17 Diversifikasi "⭐ Kontrak premium": goods only non-crop systems make — owned herds and ponds (daily output) and
+ * factory outputs of owned factories (all recipes at the factory's level, 24 h). Buyable goods (pelet) never qualify.
+ */
+function specialCandidates(game) {
+  const s = game.state, out = new Map(), add = (id, q) => {
+    const p = game.idx.products.get(id);
+    if (p && p.category !== 'crop' && !p.buyable && q > 0) out.set(id, (out.get(id) || 0) + q);
+  };
+  for (const a of game.data.ANIMALS) add(a.product, (s.animals?.[a.id]?.count || 0) * a.productPerDay);
+  for (const p of s.ponds || []) { const d = game.idx.ponds.get(p.pondId); if (d) add(d.product, d.capacity * d.harvestKg / d.growDays); }
+  for (const def of game.data.FACTORIES || []) {
+    const f = s.factories?.[def.id];
+    if (!f?.level) continue;
+    for (const r of def.recipes) for (const [id, q] of Object.entries(r.outputs)) add(id, q * 24 / batchHours(r, f.level) / def.recipes.length);
+  }
+  return [...out].map(([productId, perDay]) => ({ productId, perDay }));
+}
+
+function makeSpecial(game, sc, day) {
+  const s = game.state;
+  const taken = new Set(list(game).filter((c) => c.status === 'offer' || c.status === 'active').map((c) => c.productId));
+  const pool = specialCandidates(game).filter((c) => !taken.has(c.productId));
+  if (!pool.length) return null;
+  const pick = pool[Math.floor(random(s) * pool.length)], p = game.idx.products.get(pick.productId);
+  const qty = roundQty(pick.perDay * randRange(s, sc.qtyDaysMin, sc.qtyDaysMax), p.unit);
+  const market = Math.max(s.market[p.id] ?? p.basePrice, p.basePrice * 0.9);
+  const grow = 1 + sc.perLevel * Math.max(0, s.level - sc.fromLevel);
+  const rate = Math.min(sc.maxRate, randRange(s, sc.priceMin, sc.priceMax) * grow * (1 + perk(game, 'contractPrice')));
+  const price = r4(market * rate), days = sc.dueMin + Math.floor(random(s) * (sc.dueMax - sc.dueMin + 1)), value = round2(qty * price);
+  s.nextUid = (s.nextUid || 1) + 1;
+  return { id: `k${s.nextUid - 1}`, productId: p.id, qty, delivered: 0, price, value, days, special: true,
+    offeredDay: day, expiresDay: day + 3, dueDay: day + days, penalty: round2(value * 0.1), xp: Math.round(value * 0.01), status: 'offer' };
+}
 
 function avgFieldHa(game) {
   const ids = Object.keys(game.state.fields);
@@ -50,7 +86,7 @@ function roundQty(q, unit) {
   return unit === 't' ? Math.max(0.5, Math.round(q * 2) / 2) : Math.max(1, Math.round(q));
 }
 
-function makeOffer(game, cfg, day) {
+export function makeOffer(game, cfg, day) { // exported: 📰 Krisis Pangan adds extra offers (kabarDisasters.js)
   const s = game.state;
   const taken = new Set(list(game).filter((c) => c.status === 'offer' || c.status === 'active').map((c) => c.productId));
   const pool = candidates(game).filter((c) => !taken.has(c.productId));
@@ -91,11 +127,20 @@ export function stepContractsDay(game) {
   s.contracts = list(game).filter((c) => !(c.status === 'offer' && day > c.expiresDay)
     && !((c.status === 'done' || c.status === 'failed') && day > (c.closedDay ?? day) + KEEP_FINISHED_DAYS));
   let added = 0;
-  while (s.contracts.filter((c) => c.status === 'offer').length < cfg.offers) {
+  while (s.contracts.filter((c) => c.status === 'offer' && !c.special).length < cfg.offers) {
     const c = makeOffer(game, cfg, day);
     if (!c) break;
     s.contracts.push(c);
     added++;
+  }
+  const sc = game.data.BALANCE.diversify?.special; // ⭐ Kontrak premium (non-crop goods), from sc.fromLevel
+  if (sc && s.level >= sc.fromLevel) {
+    while (s.contracts.filter((c) => c.status === 'offer' && c.special).length < sc.offers) {
+      const c = makeSpecial(game, sc, day);
+      if (!c) break;
+      s.contracts.push(c);
+      added++;
+    }
   }
   if (added) game.emit('contract_offer', `📋 ${added} tawaran kontrak baru di Pasar.`, { count: added });
 }
@@ -104,7 +149,8 @@ export function acceptContract(game, id) {
   const c = findContract(game, id), cfg = contractConfig(game);
   if (!c) return fail('Kontrak tidak ditemukan.');
   if (c.status !== 'offer') return fail('Kontrak ini tidak bisa diterima.');
-  if (activeCount(game) >= cfg.maxActive) return fail(`Maksimal ${cfg.maxActive} kontrak aktif.`);
+  const max = c.special ? game.data.BALANCE.diversify?.special?.extraActive ?? 1 : cfg.maxActive;
+  if (activeCount(game, !!c.special) >= max) return fail(c.special ? `Maksimal ${max} kontrak premium aktif.` : `Maksimal ${cfg.maxActive} kontrak aktif.`);
   c.status = 'active';
   c.acceptedDay = game.day;
   c.dueDay = game.day + c.days;
@@ -147,7 +193,7 @@ export function deliverContract(game, id, qty) {
 /** Contracts for the UI, active first. Adds product info, progress, days left and what can be done now. */
 export function contractsView(game) {
   const s = game.state, day = game.day, cfg = contractConfig(game);
-  const canAcceptMore = activeCount(game) < cfg.maxActive;
+  const canAcceptMore = activeCount(game) < cfg.maxActive, canSpecial = activeCount(game, true) < (game.data.BALANCE.diversify?.special?.extraActive ?? 1);
   return list(game).map((c) => {
     const p = game.idx.products.get(c.productId) || { name: c.productId, emoji: '', unit: '' };
     const market = s.market[c.productId] ?? 0;
@@ -158,7 +204,7 @@ export function contractsView(game) {
       premium: market ? round2(c.price / market - 1) : 0,
       basePrice: p.basePrice ?? 0, premiumBase: p.basePrice ? round2(c.price / p.basePrice - 1) : 0,
       daysLeft: c.status === 'offer' ? c.expiresDay - day : c.dueDay - day,
-      canAccept: c.status === 'offer' && canAcceptMore,
+      canAccept: c.status === 'offer' && (c.special ? canSpecial : canAcceptMore),
       canDeliver: c.status === 'active' && avail > 0 };
   }).sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.daysLeft - b.daysLeft);
 }

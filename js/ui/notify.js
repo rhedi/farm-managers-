@@ -9,6 +9,7 @@ import { fmtMoney } from './dom.js';
 import { queueLevelUp } from './levelUp.js';
 import { onboardingEvent } from './onboarding.js';
 import { app } from './app.js';
+import { maybeShowDisaster } from './kabar.js';
 
 export const DEDUP_MS = 60000;
 
@@ -39,6 +40,13 @@ const TOAST_EVENTS = {
   factory_manager_run: { kind: 'success', merged: (n) => `🏭 Manajer pabrik menjalankan ${n} resep.` },
   fish_ready: { kind: 'success', merged: (n) => `🐟 ${n} kolam siap panen.` },
   pond_alert: { kind: 'warn', merged: (n) => `⚠️ ${n} peringatan kolam ikan.` },
+  // v17 📰 Kabar Desa / ⚠️ Bencana Besar / 🏛️ Proyek Warisan
+  dilemma_new: { kind: 'warn' },
+  dilemma_resolved: { kind: '', merged: (n) => `📰 ${n} kabar desa diputuskan otomatis.` },
+  disaster_start: { kind: 'error' },
+  disaster_end: { kind: 'success' },
+  contract_bonus: { kind: 'success' },
+  project_done: { kind: 'success', merged: (n) => `🎉 ${n} tahap Proyek Warisan selesai!` },
 };
 
 /** key → {at, n, sum}: repeats inside DEDUP_MS real time. */
@@ -72,9 +80,12 @@ function bornToast(ev) {
 /** Returns true when the event should trigger a full re-render. */
 export function notifyEvent(ev) {
   const t = TOAST_EVENTS[ev.type];
-  const bannerShown = ev.type === 'event_start' && document.getElementById('view')?.dataset.tab === 'farm';
+  const onFarm = document.getElementById('view')?.dataset.tab === 'farm';
+  const bannerShown = (ev.type === 'event_start' || ev.type === 'dilemma_new') && onFarm; // the Ladangku banner/card shows it
   const skip = bannerShown || (ev.type === 'season_change' && !ownsRegion(ev.regionId))
-    || (ev.type === 'crop_ready' && planned(ev.fieldId));
+    || (ev.type === 'crop_ready' && planned(ev.fieldId))
+    || (ev.type === 'dilemma_resolved' && !ev.auto); // a chosen option shows its result stamp in the sheet
+  if (ev.type === 'disaster_forecast') setTimeout(() => maybeShowDisaster(app.game), 0); // big disaster: the one blocking sheet
   // Types with a `merged` summary ("3 ladang siap panen", one feed warning, "N prestasi baru") merge by type; all
   // others merge only identical messages, so a different message never shows under the first one's text.
   if (t && !skip) dedupToast(t.merged ? ev.type : `${ev.type}|${ev.msg}`, ev.msg, t.kind, t.merged ?? null, ev.reward || 0);

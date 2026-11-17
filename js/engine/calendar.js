@@ -48,11 +48,12 @@ export function boostMult(game, kind) {
   return m;
 }
 
-/** Active boosters for the UI: [{kind, name, emoji, mult, text, hoursLeft}]. */
+/** Active boosters for the UI: [{kind, name, emoji, mult, text, hoursLeft, src}]. Kabar Desa entries (`src`) carry their own texts. */
 export function activeBoosters(game) {
   const t = game.state.time;
-  return (game.state.boosters || []).filter((b) => b.until > t + 1e-9).map((b) => ({ kind: b.kind, name: BOOSTERS[b.kind].name,
-    emoji: BOOSTERS[b.kind].emoji, mult: b.mult, text: BOOSTERS[b.kind].fmt(b.mult), hoursLeft: round2(b.until - t) }));
+  return (game.state.boosters || []).filter((b) => b.until > t + 1e-9).map((b) => ({ kind: b.kind, name: b.name ?? BOOSTERS[b.kind].name,
+    emoji: b.emoji ?? BOOSTERS[b.kind].emoji, mult: b.mult, text: b.text ?? BOOSTERS[b.kind].fmt(b.mult), hoursLeft: round2(b.until - t),
+    src: b.src ?? null }));
 }
 
 /** Daily rollover: forget expired boosters. */
@@ -61,12 +62,19 @@ export function pruneBoosters(game) {
   if (game.state.boosters?.length) game.state.boosters = game.state.boosters.filter((b) => b.until > t + 1e-9);
 }
 
-/** Grant a booster: the same kind keeps the stronger multiplier and its time is extended. */
+/** Grant a booster: the same kind keeps the stronger multiplier and its time is extended. Kabar Desa entries (`src`) stay separate. */
 function addBooster(game, { kind, mult, days }) {
-  const s = game.state, list = (s.boosters ||= []), cur = list.find((b) => b.kind === kind && b.until > s.time);
+  const s = game.state, list = (s.boosters ||= []), cur = list.find((b) => b.kind === kind && !b.src && b.until > s.time);
   if (cur) { cur.until = round2(cur.until + days * 24); cur.mult = kind === 'seedCost' ? Math.min(cur.mult, mult) : Math.max(cur.mult, mult); return; }
-  s.boosters = list.filter((b) => b.kind !== kind);
+  s.boosters = list.filter((b) => b.kind !== kind || b.src);
   s.boosters.push({ kind, mult, until: round2(s.time + days * 24) });
+}
+
+/** Kabar Desa effect (bonus or penalty, js/engine/kabar.js): one entry per `src` + kind, replaced when granted again. */
+export function addSourcedBooster(game, { kind, mult, days, src, name, emoji, text }) {
+  const s = game.state;
+  s.boosters = (s.boosters || []).filter((b) => !(b.src === src && b.kind === kind));
+  s.boosters.push({ kind, mult, until: round2(s.time + days * 24), src, name, emoji, text });
 }
 
 /** Where a claim on `date` would land: {canClaim, reason, gap, streak (after claiming), cycleDay 1–7, broken}. */

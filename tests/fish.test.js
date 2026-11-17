@@ -155,11 +155,11 @@ test('harvest overflow: what the Gudang dingin cannot hold is sold at the overfl
   const cold = g.storageInfo('cold');
   g.state.silo.milk = (cold.capacity - 1) * 1000; // 1 t free
   const kg = p().count * def.harvestKg;
-  const price = g.state.market[def.product];
+  const price = g.state.market[def.product], mult = g.saleQuote(def.product, kg - 1000).mult; // 📉 pasar jenuh
   const r = g.harvestPond(uid);
   near(r.stored, 1000, 1);
   near(r.overflow, kg - 1000, 1);
-  near(r.earned, (kg - 1000) * price * cold.overflowRate, 1);
+  near(r.earned, (kg - 1000) * price * mult * cold.overflowRate, 1);
   near(g.state.ledger.total.penjualan_ternak_produk, r.earned, 0.01);
 });
 
@@ -225,10 +225,10 @@ test('fish sell like milk: market sale, contracts for owned ponds, city demand o
   const L = () => g.state.ledger.total;
   // Pasar › Jual
   g.state.silo.ikan_lele = 500;
-  const t0 = L().penjualan_ternak_produk || 0;
+  const t0 = L().penjualan_ternak_produk || 0, mult = g.saleQuote('ikan_lele', 100).mult; // 📉 pasar jenuh
   const r = g.sellProduct('ikan_lele', 100);
   assert.equal(r.ok, true, r.reason);
-  near((L().penjualan_ternak_produk || 0) - t0, 100 * g.state.market.ikan_lele, 0.01);
+  near((L().penjualan_ternak_produk || 0) - t0, 100 * g.state.market.ikan_lele * mult, 0.01);
   // Kontrak: a built pond makes its species a contract candidate (was herds/crops only)
   let c;
   for (let i = 0; i < 200 && !c; i++) {

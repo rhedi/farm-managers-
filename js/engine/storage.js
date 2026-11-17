@@ -9,6 +9,7 @@ import { fmtMoney, fmtNum } from './defs.js';
 import { saleCategory } from './ledger.js';
 import { perk } from './research.js';
 import { recordOverflow } from './overflow.js';
+import { takeSale } from './saturation.js';
 
 export const STORAGE_KINDS = ['silo', 'cold'];
 const NAMES = { silo: 'Silo', cold: 'Gudang dingin' };
@@ -119,7 +120,7 @@ export function storeProduct(game, productId, qty) {
   if (stored > 0) state.silo[productId] = round2((state.silo[productId] || 0) + stored);
   if (!(overflow > 0)) return { stored, overflow: 0, earned: 0 };
   const rate = cfgOf(game.data, kind).overflowRate;
-  const earned = round2(overflow * (state.market[productId] ?? 0) * rate);
+  const earned = round2(overflow * (state.market[productId] ?? 0) * rate * takeSale(game, productId, overflow)); // 📉 pasar jenuh too
   const st = state.stats;
   st.productsSold = round2(st.productsSold + overflow);
   st.salesValue = round2((st.salesValue || 0) + earned);

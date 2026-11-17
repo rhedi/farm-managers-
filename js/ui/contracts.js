@@ -23,7 +23,7 @@ function head(c, badge) {
   return h('div.card-head',
     h('div.card-icon', iconOf({ id: c.productId, name: c.name, emoji: c.emoji })),
     h('div', { style: { flex: '1', minWidth: '0' } },
-      h('div.card-title', `${fmtAmt(c.qty, c.unit)} ${c.name}`),
+      h('div.card-title', `${fmtAmt(c.qty, c.unit)} ${c.name}`, c.special ? h('span.special-chip', '⭐ Premium non-tani') : null),
       h('div.card-sub', terms(c))),
     badge);
 }

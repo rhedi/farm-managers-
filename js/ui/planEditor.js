@@ -3,6 +3,7 @@ import { h, TASK_ICON, TASK_LABEL } from './dom.js';
 import { act } from './app.js';
 import { fold } from './subtabs.js';
 import { bestCropId, cropOutlook, phFits } from './cropPicker.js';
+import { pausedPlanBox } from './mandor.js';
 
 export const plansSupported = (game) => typeof game.setFieldPlan === 'function';
 
@@ -31,8 +32,9 @@ export function planChip(game, f) {
   const rot = f.plan.rotateCropId && !crop?.perennial ? game.data.CROPS.find((c) => c.id === f.plan.rotateCropId) : null;
   return h('div.plan-chip-row',
     h(`span.plan-chip${f.plan.blocked ? '.blocked' : ''}`, `🔁 ${crop ? `${crop.emoji} ${crop.name}` : 'Rencana'}${rot ? ` ⇄ ${rot.emoji}` : ''}`),
-    f.plan.blocked ? h('span.plan-blocked.small', `⏸ ${blockedText(f.plan.blocked)}`)
-      : step && f.state !== 'busy' ? h('span.small.muted', `➡️ ${step}`) : null);
+    f.plan.paused ? pausedPlanBox(game, f, { compact: true })
+      : f.plan.blocked ? h('span.plan-blocked.small', `⏸ ${blockedText(f.plan.blocked)}`)
+        : step && f.state !== 'busy' ? h('span.small.muted', `➡️ ${step}`) : null);
 }
 
 const picked = new WeakSet(); // drafts whose crop the player chose in the select
@@ -100,15 +102,22 @@ const ownsLime = (game) => (game.availableMachinesFor?.('lime')?.implements?.len
 /** The "🔁 Rencana" section; null when the engine has no plan support. */
 export function planSection(game, f, draft, rerender) {
   if (!plansSupported(game)) return null;
-  const save = () => act(game.setFieldPlan(f.id, { ...draft }), '🔁 Rencana disimpan.');
+  const pausedIds = () => Object.entries(game.state.fields).filter(([, x]) => x.plan?.paused).map(([id]) => id);
+  const save = () => {
+    const before = new Set(pausedIds());
+    const r = game.setFieldPlan(f.id, { ...draft });
+    const fresh = r.ok ? pausedIds().filter((id) => !before.has(id) || id === f.id) : [];
+    const names = fresh.map((id) => (id === f.id ? 'ladang ini' : game.data.FIELDS.find((x) => x.id === id)?.name ?? id));
+    act(r, fresh.length ? `🔁 Rencana disimpan · ⏸ ${names.join(', ')} dijeda: ${game.state.fields[fresh[0]].plan.blocked}.` : '🔁 Rencana disimpan.');
+  };
   const clear = () => act(game.setFieldPlan(f.id, null), 'Rencana dihapus.');
   const next = nextStepText(f);
   const tree = allCrops(game).find((c) => c.id === draft.cropId)?.perennial;
-  return fold('fm-plan', '🔁 Rencana otomatis', { open: !!f.plan, meta: f.plan ? (f.plan.blocked ? '⏸ Tertahan' : '✅ Aktif') : 'Mati', cls: 'plan-section' },
+  return fold('fm-plan', '🔁 Rencana otomatis', { open: !!f.plan, meta: f.plan ? (f.plan.paused ? '⏸ Butuh Mandor' : f.plan.blocked ? '⏸ Tertahan' : '✅ Aktif') : 'Mati', cls: 'plan-section' },
     h('p.small.muted', tree
       ? 'Kebun buah dikerjakan otomatis: bajak → tanam bibit → pupuk/airi tiap siklus → petik, jika pekerja dan uang cukup.'
       : 'Ladang dikerjakan otomatis: bajak → pupuk → tanam → airi → panen, jika mesin, pekerja dan uang cukup.'),
-    f.plan?.blocked ? h('p.small.plan-blocked', `⏸ ${blockedText(f.plan.blocked)}`) : null,
+    f.plan?.paused ? pausedPlanBox(game, f) : f.plan?.blocked ? h('p.small.plan-blocked', `⏸ ${blockedText(f.plan.blocked)}`) : null,
     next && f.plan ? h('p.small', next) : null,
     h('div.field-group', h('label', 'Tanaman'), cropSelect(game, f, draft, rerender)),
     tree ? h('p.small.muted', '🌳 Pohon tetap tumbuh setelah dipetik, jadi tidak ada rotasi.')

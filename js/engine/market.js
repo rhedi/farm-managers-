@@ -3,6 +3,7 @@ import { randNormal, clamp, round2 } from './rng.js';
 import { cropPriceTilt } from './seasons.js';
 import { marketEventMult } from './events.js';
 import { BUY_MARKUP } from './purchase.js';
+import { saleQuote } from './saturation.js';
 
 export const PRICE_MIN = 0.5;
 export const PRICE_MAX = 1.8;
@@ -76,6 +77,7 @@ export function marketView(game) {
       history: hist.slice(),
       stock: state.silo[p.id] || 0,
       reserve: Math.min(state.silo[p.id] || 0, state.feedReserve?.[p.id] || 0), // feed reserve sellProduct keeps
+      dip: saleQuote(game, p.id).dip, // 📉 pasar jenuh: current dip from recent sales (0–1)
     };
   });
 }

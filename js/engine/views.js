@@ -5,10 +5,13 @@ import { conditionOf, repairCost } from './wear.js';
 import { effectiveStats, upgradesOf, upgradeSpent } from './upgrades.js';
 import { kindOf, tonsPerUnit } from './storage.js';
 import { achievementReward } from './rewards.js';
+import { saleQuote } from './saturation.js';
 
 /**
  * Stock items. `reserve` = feed reserve (t) that sellProduct keeps; `isFeed` = an owned herd eats it;
  * `storage` = 'silo' | 'cold' | null (store it fills), `tons` = space it takes there.
+ * 📉 `dip` = current price dip from recent sales (0–1), `dipToday` = it comes from today's sales,
+ * `saleValue` = what selling all `sellable` earns now (dips further as it sells).
  */
 export function siloView(game) {
   const s = game.state;
@@ -18,8 +21,10 @@ export function siloView(game) {
     const price = s.market[id] ?? 0;
     const reserve = Math.min(qty, s.feedReserve?.[id] || 0);
     const storage = kindOf(game.idx.products.get(id));
+    const sellable = round2(qty - reserve), q = saleQuote(game, id, sellable);
     return { id, name: p.name, emoji: p.emoji, unit: p.unit, category: p.category ?? 'crop', qty, price, value: round2(qty * price),
-      reserve, sellable: round2(qty - reserve), isFeed: feed.has(id), storage, tons: storage ? Math.round(qty * tonsPerUnit(p) * 1000) / 1000 : 0 };
+      reserve, sellable, isFeed: feed.has(id), storage, tons: storage ? Math.round(qty * tonsPerUnit(p) * 1000) / 1000 : 0,
+      dip: q.dip, dipToday: q.today, saleValue: q.value };
   });
   return { items, totalValue: round2(items.reduce((sum, i) => sum + i.value, 0)) };
 }

@@ -98,8 +98,14 @@ test('buy inputs: only Direktur with the toggle on, only when still profitable, 
   n.setFactoryManagerSettings({ buyInputs: true, minMargin: 0 });
   assert.equal(n.state.factories.mill.queued, 0);
   assert.equal(n.state.ledger.total.pembelian_produk ?? 0, 0);
+  const def = setup({ silo: {} });
+  def.hireFactoryManager('direktur'); // v17: a new Direktur starts with 🛒 Beli bahan kurang on
+  assert.equal(def.state.factoryManager.settings.buyInputs, true);
+  assert.equal(def.state.factories.mill.queued, 1);
   const off = setup({ silo: {} });
-  off.hireFactoryManager('direktur'); // toggle off by default
+  off.setFactoryManagerSettings({ buyInputs: false }); // the player's own choice is kept
+  off.hireFactoryManager('direktur');
+  assert.equal(off.state.factoryManager.settings.buyInputs, false);
   assert.equal(off.state.factories.mill.queued, 0);
 });
 

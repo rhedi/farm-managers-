@@ -30,7 +30,16 @@ const clamp = (v, [lo, hi]) => Math.min(hi, Math.max(lo, Number(v) || 0));
 /** Staff role for js/engine/staff.js (shared hire / replace / fire with the Manajer Logistik). */
 const ROLE = { key: 'factoryManager', cfg: 'factoryManager', label: 'manajer pabrik', Title: 'Manajer Pabrik', icon: '🏭',
   event: 'factory_manager', fireNote: 'Batch yang sedang diproses tetap selesai; pabrik kembali kamu atur sendiri.',
-  run: (game) => runFactoryManager(game, { force: true }) };
+  run: (game) => { buyInputsDefault(game); runFactoryManager(game, { force: true }); } };
+/**
+ * v17: hiring / promoting to a `buyInputs` tier (Direktur) turns 🛒 Beli bahan kurang on unless the player ever set it
+ * (`settings.buyInputsSet`). Safe: the planner buys only when the recipe still clears the min margin at the ×1.2 buy
+ * price (buy price < output value − margin), so it never buys at a loss. Old saves' hired managers are untouched.
+ */
+function buyInputsDefault(game) {
+  const d = st(game), t = d.hired ? tierOf(game, d.hired.tierId) : null;
+  if (t?.buyInputs && !d.settings.buyInputsSet) d.settings.buyInputs = true;
+}
 const cfg = (game) => staffCfg(game, ROLE);
 export const tierOf = (game, id) => staffTier(game, ROLE, id);
 const st = (game) => game.state.factoryManager;
@@ -66,6 +75,7 @@ function sanitize(game, x) {
     buyInputs: !!x.buyInputs,
     headroom: Math.round(clamp(x.headroom ?? 90, LIMITS.headroom)),
     contracts: x.contracts !== false,
+    ...(x.buyInputsSet ? { buyInputsSet: true } : {}), // v17: the player set 🛒 Beli bahan kurang (Direktur default stays)
   };
 }
 
@@ -109,7 +119,7 @@ export function setFactoryManagerOn(game, on) {
 /** Partial update (`reservePct` replaces the map); values are clamped. Plans at once when working. */
 export function setFactoryManagerSettings(game, patch = {}) {
   const d = st(game);
-  d.settings = sanitize(game, { ...d.settings, ...patch });
+  d.settings = sanitize(game, { ...d.settings, ...patch, ...('buyInputs' in patch ? { buyInputsSet: true } : {}) });
   if (working(game)) runFactoryManager(game, { force: true }); else syncControl(game);
   return ok({ settings: structuredClone(d.settings) });
 }

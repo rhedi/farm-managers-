@@ -32,6 +32,7 @@ export const CATEGORIES = [
   { id: 'listrik_rumah_kaca', name: 'Listrik rumah kaca', emoji: '💡', group: 'opex' },
   { id: 'benih_ikan', name: 'Benih ikan', emoji: '🐟', group: 'opex' },
   { id: 'air_kolam', name: 'Ganti air kolam', emoji: '💧', group: 'opex' },
+  { id: 'kabar_desa', name: 'Kabar Desa & bencana', emoji: '📰', group: 'opex' },
   { id: 'lainnya', name: 'Lain-lain', emoji: '📦', group: 'opex' },
   { id: 'beli_ladang', name: 'Beli ladang', emoji: '🗺️', group: 'capex' },
   { id: 'beli_mesin', name: 'Beli mesin', emoji: '🚜', group: 'capex' },
@@ -44,6 +45,7 @@ export const CATEGORIES = [
   { id: 'pabrik', name: 'Pabrik', emoji: '🏭', group: 'capex' },
   { id: 'bibit_pohon', name: 'Bibit pohon', emoji: '🌳', group: 'capex' },
   { id: 'rumah_kaca', name: 'Rumah kaca', emoji: '🏠', group: 'capex' },
+  { id: 'proyek_warisan', name: 'Proyek Warisan', emoji: '🏛️', group: 'capex' },
   { id: 'pinjaman_masuk', name: 'Pinjaman diterima', emoji: '💳', group: 'financing' },
   { id: 'pelunasan_pinjaman', name: 'Pelunasan pinjaman', emoji: '💸', group: 'financing' },
 ];

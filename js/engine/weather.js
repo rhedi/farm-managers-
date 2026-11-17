@@ -5,6 +5,10 @@
 import { random, randNormal, round2 } from './rng.js';
 import { climateTemp, rainChanceAt, seasonOf } from './seasons.js';
 import { weatherOverride } from './events.js';
+import { projectPerk } from './projects.js';
+
+/** Rain chance with a 🏞️ Bendungan (Proyek Warisan): never below its floor. */
+const rainChance = (game, r, day) => Math.max(rainChanceAt(game, r, day), projectPerk(game, 'rainFloor', r.id));
 
 export const FORECAST_DAYS = 3;
 const FORECAST_TEMP_ERROR = 0.8;
@@ -14,7 +18,7 @@ function genEntry(game, region, day) {
   const { state } = game;
   const temp = climateTemp(game, region, day) + randNormal(state) * region.climate.tempSwing * 0.25;
   const u = random(state);
-  return { day, temp: round2(temp), rain: u < rainChanceAt(game, region, day), u: Math.round(u * 1e6) / 1e6 };
+  return { day, temp: round2(temp), rain: u < rainChance(game, region, day), u: Math.round(u * 1e6) / 1e6 };
 }
 
 /** Make sure every region has forecast entries for day+1..day+FORECAST_DAYS. */
@@ -36,11 +40,12 @@ export function rollWeather(game, day) {
   for (const r of data.REGIONS) {
     const planned = (fc[r.id] || []).find((e) => e.day === day) || genEntry(game, r, day);
     let temp = planned.temp + randNormal(state) * FORECAST_TEMP_ERROR;
-    let rain = planned.u < rainChanceAt(game, r, day);
+    let rain = planned.u < rainChance(game, r, day);
     if (random(state) < FORECAST_RAIN_MISS) rain = !rain;
     const o = weatherOverride(game, r.id, day);
     temp += o.tempAdd;
     if (o.rain != null) rain = o.rain;
+    if (o.drought) rain = planned.u < projectPerk(game, 'rainFloor', r.id) / 2; // El Niño: a dam lets half its floor through
     out[r.id] = { temp: round2(temp), rain };
   }
   state.weather = out;

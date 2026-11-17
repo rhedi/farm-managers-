@@ -6,6 +6,7 @@ import { rollWeather, applyWeatherToFields, weatherSummary, forecastView, fillFo
 import * as seasons from './engine/seasons.js';
 import * as worldEvents from './engine/events.js';
 import { initMarket, stepMarket, marketView } from './engine/market.js';
+import * as saturation from './engine/saturation.js'; // 📉 pasar jenuh
 import { newFieldState, stepFieldsHour, getFieldView, expectedYield, cropFitView } from './engine/fields.js';
 import { planTask, startTask, startTaskAll, availableMachinesFor } from './engine/tasks.js';
 import { stepTasks } from './engine/taskrun.js';
@@ -40,8 +41,12 @@ import * as autoFeed from './engine/autoFeed.js';
 import * as overflowLog from './engine/overflow.js';
 import * as calendar from './engine/calendar.js';
 import * as offline from './engine/offline.js';
+import * as mandor from './engine/mandor.js';
 import * as report from './engine/report.js';
 import * as stockKeep from './engine/stockKeep.js';
+import * as kabar from './engine/kabar.js'; // v17 📰 Kabar Desa + ⚠️ Bencana Besar
+import * as projects from './engine/projects.js'; // v17 🏛️ Proyek Warisan
+import { projectsView } from './engine/projectsView.js';
 import { SAVE_VERSION, MAX_CATCHUP_HOURS, HISTORY_SIZE, newStats, normalizeState, serializeState, parseSave,
   writeStorage, readStorage } from './engine/persist.js';
 
@@ -180,6 +185,7 @@ export class Game {
     applyWeatherToFields(this);
     seasons.stepSeasonsDay(this, day);
     stepMarket(this, day);
+    saturation.stepSaturationDay(this); // 📉 recent sales pressure fades (before today's production overflow)
     autoFeed.stepAutoFeedDay(this); // 🛒 Beli pakan otomatis: before the animals eat
     animals.stepAnimalsDay(this);
     fish.stepFishDay(this); // kolam ikan: pelet, kualitas air, panen otomatis
@@ -188,7 +194,10 @@ export class Game {
     workers.stepWorkersDay(this);
     dispatcher.stepDispatcherDay(this); // Manajer Logistik wage ('gaji')
     factoryManager.stepFactoryManagerDay(this); // Manajer Pabrik wage ('gaji')
+    mandor.stepMandorDay(this); // 👷 Mandor Ladang wage ('gaji')
     contracts.stepContractsDay(this);
+    kabar.stepKabarDay(this, day); // 📰 after contracts: bonuses for finished contracts, disasters, dilemma deadline/new
+    projects.stepProjectsDay(this); // 🏛️ finished builds
     const h = this.state.history;
     h.push({ day: day - 1, money: this.state.money, netWorth: eco.netWorth(this) });
     if (h.length > HISTORY_SIZE) h.splice(0, h.length - HISTORY_SIZE);
@@ -244,6 +253,8 @@ export class Game {
   hireWorker(candidateId) { return workers.hireWorker(this, candidateId); }
   fireWorker(id) { return workers.fireWorker(this, id); }
   sellProduct(productId, qty) { return eco.sellProduct(this, productId, qty); }
+  /** 📉 Price effect of selling `qty` now (`{steady:true}`: the same qty every day) → {dip, dipAfter, mult, price, value, recoverDays, today}. */
+  saleQuote(productId, qty, opts) { return saturation.saleQuote(this, productId, qty, opts); }
   setFeedReserve(cropId, tons) { return eco.setFeedReserve(this, cropId, tons); }
   buyProduct(productId, qty) { return purchase.buyProduct(this, productId, qty); }
   buyFeed(animalId, days) { return purchase.buyFeed(this, animalId, days); }
@@ -369,6 +380,17 @@ export class Game {
   setFactoryManagerSettings(patch) { return factoryManager.setFactoryManagerSettings(this, patch); }
   /** One planning pass now (also runs every tier.intervalHours) → runs queued. */
   runFactoryManager() { return factoryManager.runFactoryManager(this, { force: true }); }
+  // ---- 👷 Mandor Ladang: field plans past BALANCE.mandor.freeFields (js/engine/mandor.js) ----
+  mandorView() { return mandor.mandorView(this); }
+  /** Hire a tier from BALANCE.mandor.tiers → {ok, cost}; hire cost and the daily wage book to 'gaji'. */
+  hireMandor(tierId) { return mandor.hireMandor(this, tierId); }
+  /** Switch tier → {ok, cost, credit, from, to}; cost = max(0, hireCost − tradeIn × current hireCost). */
+  replaceMandor(tierId) { return mandor.replaceMandor(this, tierId); }
+  fireMandor() { return mandor.fireMandor(this); }
+  /** 📌 Prioritise a planned field for the Mandor cap (`on` false drops the pin) → {ok, pins, paused}. */
+  pinMandorField(fieldId, on) { return mandor.pinMandorField(this, fieldId, on); }
+  /** Old save grandfathered with a free Mandor: true once (one toast). */
+  takeMandorNotice() { return mandor.takeMandorNotice(this); }
   // ---- research tree (js/engine/research.js) ----
   researchView() { return research.researchView(this); }
   /** {earned, spent, available}: cheap points summary (topbar/badges). */
@@ -376,6 +398,19 @@ export class Game {
   unlockResearch(nodeId) { return research.unlockResearch(this, nodeId); }
   respecResearch() { return research.respecResearch(this); }
   perk(key) { return research.perk(this, key); }
+  // ---- v17 📰 Kabar Desa (js/engine/kabar*.js) + 🏛️ Proyek Warisan (js/engine/projects*.js) ----
+  /** {unlocked, open, disaster, history, rep, share, stats, scale}: open dilemma, disaster forecast, last 10 decisions. */
+  kabarView() { return kabar.kabarView(this); }
+  /** Decide the open dilemma → {ok, id, option, outcome:{text, good}}. */
+  chooseDilemma(optionId) { return kabar.chooseDilemma(this, optionId); }
+  /** Preparation for a forecast Bencana Besar (paid now) → {ok, id, option}. */
+  prepareDisaster(optionId) { return kabar.prepareDisaster(this, optionId); }
+  projectsView() { return projectsView(this); }
+  /** Build the next stage of a regional project → {ok, stage, cost, days}. */
+  startProject(regionId, typeId) { return projects.startProject(this, regionId, typeId); }
+  startMonument(continentId) { return projects.startMonument(this, continentId); }
+  /** Project effect hook (like perk): 'rainFloor'|'damStage'|'koperasi' (regionId), 'cityPrice'|'portStage' (continentId), 'wages', 'contractBonus'. */
+  projectPerk(key, scope) { return projects.projectPerk(this, key, scope); }
 
   // ---- persistence ----
   serialize() { return serializeState(this.state); }
@@ -401,6 +436,7 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
   workers.ensureWorkers(game);
   dispatcher.ensureDispatcher(game);
   factoryManager.ensureFactoryManager(game);
+  mandor.ensureMandor(game);
   eco.syncCounts(game);
   autoFeed.ensureAutoFeed(state); // v16 state (also migrated by persist.normalizeState)
   overflowLog.ensureOverflow(state);
@@ -408,6 +444,8 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
   missions.ensureMissions(game);
   rivals.ensureRivals(game);
   chapters.ensureChapters(game);
+  kabar.ensureKabar(state); // v17 (also migrated by persist.normalizeState)
+  projects.ensureProjects(state, data);
   return game;
 }
 
@@ -420,6 +458,7 @@ export function loadGame(json, { data = DEFAULT_DATA } = {}) {
   logistics.ensureLogistics(game); // after ensureWorkers: re-marks trucks/drivers on the road
   dispatcher.ensureDispatcher(game); // old saves: no manager hired
   factoryManager.ensureFactoryManager(game); // old saves: no factory manager hired
+  mandor.ensureMandor(game); // old saves: migrated (and grandfathered) by normalizeState
   research.ensureResearch(game);
   missions.ensureMissions(game); // pre-missions saves: today's missions + rival ranks
   rivals.ensureRivals(game);

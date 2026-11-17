@@ -13,7 +13,8 @@ function unlocksOf(game, ev) {
   const d = game.data;
   const byLevel = (arr) => (arr || []).filter((x) => x.unlockLevel === ev.level).map((x) => x.id);
   const u = ev.unlocks ?? { crops: byLevel(d.CROPS), machines: byLevel(d.MACHINES), animals: byLevel(d.ANIMALS),
-    factories: byLevel(d.FACTORIES), regions: byLevel(d.REGIONS), fields: byLevel(d.FIELDS), ponds: byLevel(d.PONDS) };
+    factories: byLevel(d.FACTORIES), regions: byLevel(d.REGIONS), fields: byLevel(d.FIELDS), ponds: byLevel(d.PONDS),
+    mandors: byLevel(d.BALANCE?.mandor?.tiers) };
   const names = (arr, ids, label = (x) => x.name) => (ids || []).map((id) => (arr || []).find((x) => x.id === id))
     .filter(Boolean).map((x) => { const ic = iconOf(x); return ic ? [ic, ' ', label(x)] : label(x); });
   const regionName = (id) => (d.REGIONS || []).find((r) => r.id === id)?.name ?? id;
@@ -23,6 +24,7 @@ function unlocksOf(game, ev) {
     ['🐄 Ternak', names(d.ANIMALS, u.animals)],
     ['🐟 Kolam ikan', names(d.PONDS, u.ponds, (p) => `${p.name}${p.climate ? ` (butuh ladang ${p.climate === 'tropical' ? 'tropis' : 'dingin'})` : ''}`)],
     ['🏭 Pabrik', names(d.FACTORIES, u.factories)],
+    ['👷 Mandor Ladang', names(d.BALANCE?.mandor?.tiers, u.mandors, (t) => `${t.title} (${t.name}) · ${t.fields == null ? 'semua' : `≤ ${t.fields}`} ladang berencana`)],
     ['🌍 Wilayah', names(d.REGIONS, u.regions)],
     ['🗺️ Ladang', names(d.FIELDS, u.fields, (f) => `${f.name} · ${regionName(f.regionId)} · ${fmtNum(f.sizeHa)} ha`)],
   ].filter(([, list]) => list.length);

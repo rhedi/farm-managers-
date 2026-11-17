@@ -11,8 +11,11 @@ import { regionBoxes, mapFxLayers, updateMapFx } from './mapFx.js';
 import { eventsBanner, updateEventsBanner } from './eventsBanner.js';
 import { subTabBar, getSub, fold, setSub, chipBar, goTo } from './subtabs.js';
 import { chapterPill } from './missions.js';
+import { mandorSummary, mandorPlanSig } from './mandor.js';
+import { kabarCard, kabarSig, updateKabarCard } from './kabar.js'; // v17 📰 Kabar Desa
+import { projectsPane, projectsSig, updateProjectsPane } from './projects.js'; // v17 🏛️ Proyek Warisan
 
-const SUBS = ['fields', 'map'];
+const SUBS = ['fields', 'map', 'projects'];
 const FOR_SALE_SHOWN = 3;
 let sig = '';
 let live = new Map(); // fieldId → { bar, status, plot }
@@ -44,7 +47,7 @@ function renderMap(fields, continent) {
   const regions = regionBoxes(fields);
   const fx = mapFxLayers(app.game, regions);
   const el = h('div.map', { role: 'img', 'aria-label': 'Peta ladang', dataset: { continent: continent ?? '' } },
-    fx.lands, fx.tints, fx.labels, fx.rain,
+    fx.lands, fx.tints, fx.labels, fx.rain, fx.landmarks,
     fields.map((f) => h(`button.map-pin.${f.owned ? 'owned' : f.locked ? 'locked' : 'forsale'}.st-${f.state}${f.pest ? '.pest' : ''}`, {
       dataset: { fieldId: f.id },
       style: { left: `${f.x}%`, top: `${f.y}%` },
@@ -101,6 +104,7 @@ function fieldsPane(fields) {
   banner = eventsBanner(app.game);
   return h('div.pane.pane-fields',
     banner,
+    mandorSummary(app.game), // 👷 plan coverage: "Rencana jalan 2/3 · ⏸ 1 dijeda" + Rekrut Mandor
     owned.length ? null : h('div.empty', 'Belum punya ladang. Beli dari daftar di bawah atau dari peta.'),
     todo.length ? h('section.section',
       h('div.section-title', `⚡ Perlu tindakan`, h('span.count-chip.hot', String(todo.length))),
@@ -138,7 +142,8 @@ function mapPane(fields) {
 
 function computeSig(fields) {
   const ch = app.game.chaptersView?.();
-  return `${getSub('farm', SUBS)}|${activeContinent()}|${ch?.started && ch.ready ? ch.current.id : ''}|`
+  return `${getSub('farm', SUBS)}|${activeContinent()}|${ch?.started && ch.ready ? ch.current.id : ''}|${mandorPlanSig(app.game)}|`
+    + `${kabarSig(app.game)}|${projectsSig(app.game)}|${getSub('farm-proj', (app.game.data.CONTINENTS || []).map((c) => c.id))}|`
     + fields.map((f) => fieldSignature(f) + (f.locked ? ':L' : '') + (f.pest ? ':P' : '')).join('|');
 }
 
@@ -149,14 +154,20 @@ export function renderFarm(root) {
   map = null;
   const sub = getSub('farm', SUBS);
   const todo = fields.filter(needsAction).length;
-  const panes = [fieldsPane(fields), mapPane(fields)];
-  panes[sub === 'map' ? 0 : 1].hidden = true;
-  const pill = chapterPill(app.game, goTo); // 📖 Bab Petani: a step's reward is ready (top of Ladangku)
-  if (pill) panes[0].prepend(pill);
+  const panes = sub === 'projects' ? [projectsPane(app.game)] : [fieldsPane(fields), mapPane(fields)];
+  if (sub !== 'projects') {
+    panes[sub === 'map' ? 0 : 1].hidden = true;
+    const pill = chapterPill(app.game, goTo); // 📖 Bab Petani: a step's reward is ready (top of Ladangku)
+    if (pill) panes[0].prepend(pill);
+    const news = kabarCard(app.game); // 📰 open dilemma / Bencana Besar, above everything else
+    if (news) panes[0].prepend(news);
+  }
+  const pv = app.game.projectsView?.();
   mount(root,
     subTabBar('farm', [
       { id: 'fields', icon: '🌾', label: 'Ladangku', badge: todo || null },
       { id: 'map', icon: '🗺️', label: 'Peta' },
+      { id: 'projects', icon: '🏛️', label: 'Proyek', badge: pv?.building || null },
     ], sub),
     panes);
 }
@@ -175,4 +186,6 @@ export function updateFarm(root) {
   }
   if (map) updateMapFx(map.el, app.game, map.regions);
   updateEventsBanner(banner, app.game);
+  updateKabarCard(root, app.game);
+  updateProjectsPane(root, app.game);
 }

@@ -40,13 +40,17 @@ export function treatPestCost(game, fieldId) {
 
 export const pestFactor = (game, f) => (f?.pest ? cfg(game).pestYield : 1);
 
-/** Weather changes from active events for a region/day: heatwave = hot & dry, storm = rain. */
+/** Weather changes from active events for a region/day: heatwave = hot & dry, storm = rain, 📰 El Niño = hot & dry (`drought`). */
 export function weatherOverride(game, regionId, day) {
-  const o = { tempAdd: 0, rain: null };
+  const o = { tempAdd: 0, rain: null, drought: false };
   for (const e of game.state.events || []) {
     if (e.regionId !== regionId || e.startDay > day || (e.endsDay != null && e.endsDay < day)) continue;
     if (e.type === 'heatwave') { o.tempAdd += HEATWAVE_TEMP; o.rain = false; }
     if (e.type === 'storm') o.rain = true;
+  }
+  const dz = game.state.kabar?.disaster; // Bencana Besar (kabarDisasters.js), already during its forecast days
+  if (dz?.type === 'elnino' && dz.regionId === regionId && dz.startDay <= day && day <= dz.endDay) {
+    o.tempAdd += game.data.BALANCE.kabar?.disasters?.elnino?.tempAdd ?? 2; o.rain = false; o.drought = true;
   }
   return o;
 }
@@ -54,10 +58,12 @@ export function weatherOverride(game, regionId, day) {
 export const eventGrowthMult = (game, regionId) =>
   (active(game, 'perfect', (e) => e.regionId === regionId).length ? cfg(game).perfectGrowth : 1);
 
-/** Product of active boom/crash multipliers for a product. */
+/** Product of active boom/crash multipliers for a product (× the 📰 Krisis Pangan crop multiplier while it runs). */
 export function marketEventMult(game, productId) {
+  const dz = game.state.kabar?.disaster;
+  const krisis = dz?.type === 'krisis' && dz.phase === 'active' && game.idx.crops.has(productId) ? dz.ctx?.mult ?? 1 : 1;
   return list(game).filter((e) => (e.type === 'boom' || e.type === 'crash') && e.productId === productId)
-    .reduce((m, e) => m * e.mult, 1);
+    .reduce((m, e) => m * e.mult, krisis);
 }
 
 function describe(game, e) {
