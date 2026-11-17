@@ -1,17 +1,21 @@
 // Prestasi tab: 🎯 Misi (daily missions + leaderboard) | 🔬 Riset | 🏆 Prestasi (achievements, stats, log)
-// | 💰 Keuangan (report summary, loans, net worth). Settings live in the top-bar ⚙️ dialog.
+// | 📖 Ensiklopedia (v18 stamp book, cosmetics, Buku Rekor) | 💰 Keuangan (report summary, loans, net worth).
+// Settings live in the top-bar ⚙️ dialog.
 import { h, mount, fmtMoney, fmtNum, progressBar } from './dom.js';
 import { app } from './app.js';
 import { netWorthCard } from './netWorthChart.js';
 import { financeCard } from './finance.js';
 import { loansPanel, loansSig } from './loans.js';
-import { missionsCard, leaderboardCard, missionsSig, updateMissionsCountdown, chapterCard } from './missions.js';
+import { missionsCard, missionsSig, updateMissionsCountdown, chapterCard } from './missions.js';
 import { researchSection, researchSig } from './research.js';
 import { subTabBar, getSub, fold, goTo } from './subtabs.js';
 import { calendarCard, calendarSig } from './calendar.js';
 import { kabarHistory, kabarHistorySig } from './kabar.js';
+import { encyclopediaPane, encyclopediaSig } from './encyclopedia.js'; // v18 📖 Ensiklopedia Tani
+import { leagueCard, leagueSig } from './league.js'; // v18 🏆 Liga Musiman (replaces the wealth leaderboard, kept folded)
+import { legacyPane, legacySig } from './legacy.js'; // v18 🌳 Warisan
 
-const SUBS = ['missions', 'research', 'trophies', 'finance'];
+const SUBS = ['missions', 'research', 'trophies', 'book', 'legacy', 'finance'];
 const NEXT_SHOWN = 5; // closest achievements shown; the rest are folded
 const LOG_ICON = {
   task_done: '✅', crop_ready: '🌾', wither: '🥀', achievement: '🏆', level_up: '⭐', weather: '🌦️',
@@ -25,6 +29,9 @@ const LOG_ICON = {
   factory_manager_run: '🏭', factory_manager_hired: '🏭', factory_manager_replaced: '🏭', factory_manager_fired: '🏭',
   dilemma_new: '📰', dilemma_resolved: '📰', disaster_forecast: '⚠️', disaster_prepared: '🛡️', disaster_start: '⚠️', disaster_end: '🏁',
   contract_bonus: '🤝', project_started: '🏗️', project_done: '🏛️',
+  quality_record: '🏅', stamp_new: '📖', cosmetic_unlocked: '🎁', // v18
+  tender_offer: '🚢', tender_delivery: '🚢', tender_ship: '🚚', tender_done: '🏆', tender_failed: '❌', tender_expired: '🚢',
+  league_season_end: '🏆', challenge_done: '🌳', challenge_forfeit: '🏳️', legacy_perk: '🌳', generation_start: '🌳',
 };
 let sig = '';
 
@@ -70,7 +77,7 @@ function missionsPane(game) {
     h('section.section',
       h('div.section-title', '🎯 Misi hari ini (hari game)', h('span.small.muted', `Hari ${game.day}`)),
       missionsCard(game)),
-    h('section.section', h('div.section-title', '🏅 Papan peringkat'), leaderboardCard(game)),
+    h('section.section', h('div.section-title', '🏆 Liga Musiman'), leagueCard(game)),
   ];
 }
 
@@ -103,7 +110,8 @@ function financePane(game) {
 function computeSig(game) {
   const log = game.state.log;
   return `${getSub('achievements', SUBS)}|${game.state.achievements.length}|${log.length}|${log[log.length - 1]?.msg ?? ''}|${game.day}|`
-    + `${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}|${loansSig(game)}|${calendarSig(game)}|${kabarHistorySig(game)}`;
+    + `${game.state.history?.length ?? 0}|${missionsSig(game)}|${researchSig(game)}|${loansSig(game)}|${calendarSig(game)}|${kabarHistorySig(game)}`
+    + `|${encyclopediaSig(game)}|${leagueSig(game)}|${legacySig(game)}`;
 }
 
 export function renderAchievements(root) {
@@ -117,11 +125,15 @@ export function renderAchievements(root) {
       { id: 'missions', icon: '🎯', label: 'Misi', badge: claimable || null },
       { id: 'research', icon: '🔬', label: 'Riset', badge: points || null },
       { id: 'trophies', icon: '🏆', label: 'Prestasi' },
+      { id: 'book', icon: '📖', label: 'Ensiklopedia' },
+      { id: 'legacy', icon: '🌳', label: 'Warisan', badge: game.legacyView().perks.some((p) => p.status === 'ready') ? '⭐' : null },
       { id: 'finance', icon: '💰', label: 'Keuangan' },
     ], sub),
     sub === 'missions' ? missionsPane(game)
       : sub === 'research' ? researchSection(game)
         : sub === 'trophies' ? trophiesPane(game)
+          : sub === 'book' ? encyclopediaPane(game)
+          : sub === 'legacy' ? legacyPane(game)
           : financePane(game));
 }
 

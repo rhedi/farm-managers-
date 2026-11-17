@@ -5,6 +5,7 @@ import { confirmModal } from './modal.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { iconOf } from './fishArt.js';
+import { gradeBadge } from './quality.js'; // v18 ⭐ stock grade (crops)
 
 export const CATEGORIES = [
   { id: 'crop', sub: 'crop', icon: '🌾', label: 'Pertanian', long: 'Hasil pertanian' },
@@ -88,17 +89,19 @@ const saleValueOf = (it, qty) => (it.saleValue != null && Math.abs(qty - (it.sel
 export function stockRow(it, extra = null) {
   const sellable = sellableQty(it);
   const value = saleValueOf(it, sellable);
-  const bigDip = sellable > 0 && value < sellable * it.price * 0.99;
+  const qm = it.grade?.mult ?? 1; // ⭐ the quality multiplier is already in saleValue
+  const bigDip = sellable > 0 && value < sellable * it.price * qm * 0.99;
   return h('div.stock-row', { dataset: { productId: it.id } },
     h('span.stock-emoji', iconOf(it)),
     h('div.stock-main',
-      h('div.stock-name', it.name, it.isFeed ? h('span.stock-tag', 'pakan') : null),
+      h('div.stock-name', it.name, it.isFeed ? h('span.stock-tag', 'pakan') : null,
+        it.grade && it.grade.id !== 'B' ? gradeBadge(it.grade.id, { small: true, title: `Kualitas rata-rata stok: ${it.grade.label} (harga ×${it.grade.mult.toFixed(2)})` }) : null),
       h('div.stock-meta',
         h('span', fmtAmt(it.qty, it.unit)), ' · ', h('span', `${fmtPrice(it.price)}/${it.unit}`),
         it.reserve > 0 ? [' · ', h('span.eco-reserve', `🔒 ${fmtAmt(it.reserve, it.unit)}`)] : null,
         extra ? [' ', extra] : null),
       dipNote(it),
-      bigDip ? h('div.small.muted.sat-hint', `Jual semua sekaligus ≈ ${Math.round((1 - value / (sellable * it.price)) * 100)}% di bawah harga · jual bertahap lebih untung`) : null),
+      bigDip ? h('div.small.muted.sat-hint', `Jual semua sekaligus ≈ ${Math.round((1 - value / (sellable * it.price * qm)) * 100)}% di bawah harga · jual bertahap lebih untung`) : null),
     h('button.btn.btn-small.btn-primary.stock-sell', {
       type: 'button', disabled: !(sellable > 0),
       title: sellable > 0 ? `Jual ${fmtAmt(sellable, it.unit)}` : 'Semua stok dicadangkan untuk pakan',

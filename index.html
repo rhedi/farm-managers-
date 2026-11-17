@@ -22,7 +22,7 @@
     // network, at most once per session. Until then the modules may run old files; they load and autosave
     // the save as usual, and the new files migrate it.
     (function () {
-      var VERSION = "8f31ed4703";
+      var VERSION = "b755e918a0";
       document.documentElement.setAttribute('data-version', VERSION);
       var sw = navigator.serviceWorker, GUARD = 'farm-manager-sw-reset';
       if (!sw || !sw.controller || !window.caches) return;
@@ -77,6 +77,8 @@
   <link rel="stylesheet" href="css/v16.css">
   <link rel="stylesheet" href="css/mandor.css">
   <link rel="stylesheet" href="css/v17.css">
+  <link rel="stylesheet" href="css/v18.css">
+  <link rel="stylesheet" href="css/legacy.css">
   <link rel="stylesheet" href="css/layout.css">
 </head>
 <body>

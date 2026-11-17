@@ -10,6 +10,8 @@ import { pondsValue } from './fishView.js';
 import { achievementReward, grantResearchPoints } from './rewards.js';
 import { projectsValue, projectStat } from './projects.js';
 import { takeSale } from './saturation.js';
+import { stockMult } from './quality.js';
+import { challengeBlock, xpMult } from './legacyPerks.js';
 
 export const FIELD_REFUND = 0.7;
 export const MACHINE_REFUND = 0.6;
@@ -50,6 +52,8 @@ export function buyField(game, fieldId) {
   if (game.state.fields[fieldId]) return fail('Ladang sudah dimiliki.');
   const need = fieldUnlockLevel(game.data, def);
   if (game.state.level < need) return fail(`Ladang ini terkunci sampai level ${need}.`);
+  const rule = challengeBlock(game, 'field', def); // 🌳 Generasi Baru challenge ("Hanya wilayah tropis")
+  if (rule) return fail(rule);
   if (!game.spend(def.price, 'beli_ladang')) return fail('Uang tidak cukup.');
   game.state.fields[fieldId] = newFieldState(def);
   game.emit('field_bought', `${def.name} dibeli (${fmtNum(def.sizeHa)} ha).`, { fieldId });
@@ -119,7 +123,7 @@ export function sellProduct(game, productId, qty, opts = {}) {
   if (!(qty > 0)) return fail('Jumlah tidak valid.');
   if (qty > stock + 1e-9) return fail('Stok tidak cukup.');
   if (qty > avail + 1e-9) return fail(`Stok tidak cukup: ${fmtNum(stock - avail)} ${p.unit} dicadangkan untuk pakan.`);
-  const value = round2(qty * game.state.market[productId] * takeSale(game, productId, qty)); // 📉 pasar jenuh
+  const value = round2(qty * game.state.market[productId] * takeSale(game, productId, qty) * stockMult(game, productId)); // 📉 pasar jenuh · ⭐ kualitas
   game.state.silo[productId] = round2(stock - qty);
   if (game.state.silo[productId] <= 0) delete game.state.silo[productId];
   const st = game.state.stats;
@@ -220,7 +224,7 @@ export const levelReward = (data, level) => (data.BALANCE.levelReward ?? 1000) *
 
 export function addXp(game, n) {
   const s = game.state;
-  s.xp = round2(s.xp + n);
+  s.xp = round2(s.xp + (n > 0 ? n * xpMult(game) : n)); // 🌳 legacy perks: XP +5% / +10%
   const lvl = levelForXp(game.data.LEVELS, s.xp);
   if (lvl > s.level) {
     const unlocks = unlocksBetween(game.data, s.level, lvl);

@@ -3,6 +3,7 @@ import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { roomFor } from './storage.js';
 import { breedingMods } from './breeding.js';
+import { blendStock } from './quality.js';
 
 export const BUY_MARKUP = 1.2;
 
@@ -21,6 +22,7 @@ export function buyProduct(game, productId, qty, category = 'pembelian_produk', 
   const cost = round2(qty * buyPriceOf(game, productId));
   if (!game.spend(cost, category)) return fail('Uang tidak cukup.');
   const s = game.state.silo;
+  blendStock(game, productId, qty, 1); // ⭐ bought stock counts as grade B in the silo's average quality
   s[productId] = Math.round(((s[productId] || 0) + qty) * 1e6) / 1e6;
   if (!quiet) game.emit('purchase', `Membeli ${fmtNum(qty)} ${p.unit} ${p.name} seharga ${fmtMoney(cost)}.`, { productId, qty, cost });
   return { ok: true, cost, qty };

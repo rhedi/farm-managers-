@@ -2,6 +2,7 @@
 // drifting clouds. Elements are built with the map; updateMapFx only toggles classes.
 import { h } from './dom.js';
 import { landmarkLayer } from './mapLandmarks.js';
+import { mapBanner } from './encyclopedia.js'; // v18 🚩 farm banner cosmetic
 
 /** Region boxes (percent coords) from the field list. */
 export function regionBoxes(fields) {
@@ -47,7 +48,7 @@ export function mapFxLayers(game, regions) {
   const lm = landmarkLayer(game, regions); // 🏛️ Proyek Warisan: icon row on the label line + continent Monumen (mapLandmarks.js)
   const labels = regions.map((r) => h('div.map-region-label', {
     dataset: { region: r.id }, style: { left: `${r.x}%`, top: `${r.labelY}%` },
-  }, h('span.map-label-text', r.name), lm.rows.get(r.id) ?? null));
+  }, mapBanner(game, r), h('span.map-label-text', r.name), lm.rows.get(r.id) ?? null));
   const clouds = h('div.map-clouds', h('span.c1'), h('span.c2'), h('span.c3'));
   return { lands, tints, rain, labels, clouds, landmarks: lm.monument };
 }

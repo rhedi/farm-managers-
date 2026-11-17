@@ -4,6 +4,8 @@ import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { fold } from './subtabs.js';
 import { iconOf } from './fishArt.js';
+import { tenderSection, tenderSig } from './tender.js'; // v18 🚢 Tender Ekspor
+import { gradeBadge } from './quality.js'; // v18 ⭐ Kontrak kualitas
 
 const MAX_ACTIVE = () => app.game.data.BALANCE?.contracts?.maxActive ?? 3;
 
@@ -23,7 +25,8 @@ function head(c, badge) {
   return h('div.card-head',
     h('div.card-icon', iconOf({ id: c.productId, name: c.name, emoji: c.emoji })),
     h('div', { style: { flex: '1', minWidth: '0' } },
-      h('div.card-title', `${fmtAmt(c.qty, c.unit)} ${c.name}`, c.special ? h('span.special-chip', '⭐ Premium non-tani') : null),
+      h('div.card-title', `${fmtAmt(c.qty, c.unit)} ${c.name}`, c.special ? h('span.special-chip', '⭐ Premium non-tani') : null,
+        c.minGrade ? h('span.special-chip.q-chip', '⭐ Kualitas ≥', gradeBadge(c.minGrade, { small: true })) : null),
       h('div.card-sub', terms(c))),
     badge);
 }
@@ -38,10 +41,11 @@ function activeCard(c) {
       + (c.stock > c.available ? ` (+${fmtAmt(c.stock - c.available, c.unit)} dicadangkan)` : '')),
     progressBar(c.progress, 'blue'),
     h('div.card-actions',
-      h('span.small.muted', c.available >= c.remaining ? 'Stok cukup untuk menyelesaikan.' : `Kurang ${fmtAmt(c.remaining - c.available, c.unit)}.`),
+      h('span.small.muted', c.minGrade && !c.qualityOk ? `Stok rata-rata ${c.stockGrade}: butuh ≥ ${c.minGradeLabel}.`
+        : c.available >= c.remaining ? 'Stok cukup untuk menyelesaikan.' : `Kurang ${fmtAmt(c.remaining - c.available, c.unit)}.`),
       h('span.spacer'),
       h('button.btn.btn-small.btn-primary', {
-        disabled: !c.canDeliver, title: c.canDeliver ? null : 'Stok gudang kosong',
+        disabled: !c.canDeliver, title: c.canDeliver ? null : c.minGrade && !c.qualityOk ? `Butuh kualitas ≥ ${c.minGradeLabel}` : 'Stok gudang kosong',
         onclick: () => {
           const r = game.deliverContract?.(c.id);
           act(r, r?.ok && !r.done ? `Terkirim ${fmtAmt(r.delivered, c.unit)} ${c.name}.` : null); // contract_done is toasted by the engine event
@@ -74,7 +78,9 @@ export function contractsPanel() {
   const offers = all.filter((c) => c.status === 'offer');
   const closed = all.filter((c) => c.status === 'done' || c.status === 'failed');
   const full = active.length >= MAX_ACTIVE();
+  const tender = tenderSection(app.game), tenderLive = !!(app.game.state.tenders?.active || app.game.state.tenders?.offer);
   return h('div.eco-contracts',
+    tenderLive ? tender : null,
     h('section.section',
       h('div.section-title', '📋 Kontrak berjalan', h('span.small.muted', `${active.length}/${MAX_ACTIVE()}`)),
       active.length ? h('div.cards', active.map(activeCard)) : h('div.empty.compact', 'Belum ada kontrak. Terima tawaran di bawah.')),
@@ -83,7 +89,8 @@ export function contractsPanel() {
       h('p.hint', 'Harga di atas pasar, dibayar saat pengiriman lengkap. Terlambat = denda.'),
       offers.length ? h('div.cards', offers.map((c) => offerCard(c, full)))
         : h('div.empty.compact', 'Belum ada tawaran. Tawaran baru datang setiap pagi.')),
-    closed.length ? fold('contracts-closed', '🗂️ Riwayat', { meta: String(closed.length) }, h('div.eco-closed', closed.map(closedLine))) : null);
+    closed.length ? fold('contracts-closed', '🗂️ Riwayat', { meta: String(closed.length) }, h('div.eco-closed', closed.map(closedLine))) : null,
+    tenderLive ? null : tender);
 }
 
 /** Active contracts that can receive stock right now (bottom-nav and sub-tab badge). */
@@ -94,5 +101,5 @@ export function deliverableCount(game) {
 /** Render signature for the contracts panel. */
 export function contractsSig(game) {
   const all = game.contractsView?.() || [];
-  return all.map((c) => `${c.id}:${c.status}:${c.delivered}:${c.available}:${c.daysLeft}:${c.canAccept}`).join(',');
+  return all.map((c) => `${c.id}:${c.status}:${c.delivered}:${c.available}:${c.daysLeft}:${c.canAccept}:${c.canDeliver}`).join(',') + `|${tenderSig(game)}`;
 }

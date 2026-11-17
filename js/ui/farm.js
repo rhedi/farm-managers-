@@ -14,6 +14,7 @@ import { chapterPill } from './missions.js';
 import { mandorSummary, mandorPlanSig } from './mandor.js';
 import { kabarCard, kabarSig, updateKabarCard } from './kabar.js'; // v17 📰 Kabar Desa
 import { projectsPane, projectsSig, updateProjectsPane } from './projects.js'; // v17 🏛️ Proyek Warisan
+import { fieldQualityRow } from './quality.js'; // v18 ⭐ last grade + 🏅 record
 
 const SUBS = ['fields', 'map', 'projects'];
 const FOR_SALE_SHOWN = 3;
@@ -78,6 +79,7 @@ function fieldCard(f) {
       h(`span.badge.st-${st}`, STATE_LABEL[st])),
     plot,
     h('div.fc-status', bar, status),
+    fieldQualityRow(f),
     planChip(app.game, f),
     acts.length ? h('div.card-actions', acts.map((a) => actionButton(f, a))) : null);
 }

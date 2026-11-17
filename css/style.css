@@ -692,6 +692,8 @@ body.modal-open .toast.leaving { transform: translateY(-8px); }
 .spark-down { stroke: var(--chart-down); }
 .achievement.done { border-color: var(--wheat); background: linear-gradient(180deg, var(--ach-bg), var(--surface)); }
 .achievement.done .card-icon { background: var(--gold-l); }
+.achievement { min-width: 0; } /* grid item: never wider than the column (long reward badges at 360 px) */
+.achievement .card-head > .badge { flex-shrink: 1; min-width: 0; white-space: normal; text-align: right; }
 
 /* ---------- Larger screens ---------- */
 @media (min-width: 560px) {

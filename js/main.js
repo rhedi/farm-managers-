@@ -1,5 +1,5 @@
 // Bootstrap: load/create game, game loop, autosave, tabs, event toasts.
-import { createGame, loadFrom } from './engine.js';
+import { createGame, loadFrom, loadLegacy } from './engine.js';
 import { SAVE_KEY } from './engine/persist.js';
 import { app } from './ui/app.js';
 import { fmtHours } from './ui/dom.js';
@@ -25,6 +25,7 @@ import { initTheme } from './ui/theme.js';
 import { initSubtabSwipe } from './ui/subtabs.js';
 import { showMorningReport, MIN_AWAY_S } from './ui/morningReport.js';
 import { maybeShowDisaster } from './ui/kabar.js';
+import { flushLeagueResults } from './ui/league.js';
 
 const VIEWS = {
   farm: { render: renderFarm, update: updateFarm },
@@ -113,7 +114,7 @@ function loadOrCreate() {
     setTimeout(() => toast(`Data simpanan rusak — memulai permainan baru.${bak ? ` Cadangan disimpan sebagai "${bak}".` : ''}`, 'error'), 0);
     game = null;
   }
-  if (!game) return createGame({ seed: Date.now() });
+  if (!game) return createGame({ seed: Date.now(), legacy: loadLegacy(storage) }); // 🌳 stars/museum survive a corrupt save
   const away = (Date.now() - (game.state.savedAt ?? Date.now())) / 1000;
   if (away > 0) welcomeBack(game, away);
   return game;
@@ -150,6 +151,7 @@ function frame(now) {
     updateBadges(app.game);
     updateOnboarding(app.game, currentTab);
     flushLevelUps(app.game);
+    flushLeagueResults(app.game); // 🏆 end-of-season modal (after level-ups)
   }
   requestAnimationFrame(frame);
 }
@@ -161,10 +163,15 @@ app.requestRender = () => {
 };
 app.saveNow = save;
 app.setTab = setTab;
+app.startGame = (game) => { // 🌳 Generasi Baru: the inherited run replaces this one
+  closeModal();
+  start(game);
+  save();
+};
 app.resetGame = () => {
   closeModal();
   try { storage?.removeItem(SAVE_KEY); } catch { /* ignore */ }
-  start(createGame({ seed: Date.now() }));
+  start(createGame({ seed: Date.now(), legacy: app.game?.legacy ?? loadLegacy(storage) })); // 🌳 the legacy block survives a reset
   resetOnboarding();
   save();
   toast('Permainan baru dimulai. Selamat bertani!', 'success');

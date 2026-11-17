@@ -3,7 +3,7 @@
 // (skipWaiting + clients.claim); js/ui/pwa.js then saves and reloads open pages once. After changing
 // any file, regenerate VERSION (here and in index.html) and PRECACHE with the command in README →
 // "Pasang di HP (PWA)".
-const VERSION = "8f31ed4703";
+const VERSION = "b755e918a0";
 const PREFIX = 'farm-manager-';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = [
@@ -18,6 +18,7 @@ const PRECACHE = [
   "./css/fish.css",
   "./css/juice.css",
   "./css/layout.css",
+  "./css/legacy.css",
   "./css/levels.css",
   "./css/logistics.css",
   "./css/mandor.css",
@@ -27,6 +28,7 @@ const PRECACHE = [
   "./css/style.css",
   "./css/v16.css",
   "./css/v17.css",
+  "./css/v18.css",
   "./css/world.css",
   "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",
@@ -44,6 +46,7 @@ const PRECACHE = [
   "./js/engine/defs.js",
   "./js/engine/dispatcher.js",
   "./js/engine/economy.js",
+  "./js/engine/encyclopedia.js",
   "./js/engine/events.js",
   "./js/engine/factories.js",
   "./js/engine/factoryManager.js",
@@ -59,7 +62,10 @@ const PRECACHE = [
   "./js/engine/kabarTypes.js",
   "./js/engine/kabarTypes2.js",
   "./js/engine/kabarTypes3.js",
+  "./js/engine/league.js",
   "./js/engine/ledger.js",
+  "./js/engine/legacy.js",
+  "./js/engine/legacyPerks.js",
   "./js/engine/logistics.js",
   "./js/engine/logisticsView.js",
   "./js/engine/mandor.js",
@@ -73,6 +79,7 @@ const PRECACHE = [
   "./js/engine/projects.js",
   "./js/engine/projectsView.js",
   "./js/engine/purchase.js",
+  "./js/engine/quality.js",
   "./js/engine/report.js",
   "./js/engine/research.js",
   "./js/engine/rewards.js",
@@ -86,6 +93,7 @@ const PRECACHE = [
   "./js/engine/storage.js",
   "./js/engine/taskrun.js",
   "./js/engine/tasks.js",
+  "./js/engine/tenders.js",
   "./js/engine/upgrades.js",
   "./js/engine/views.js",
   "./js/engine/wear.js",
@@ -106,6 +114,7 @@ const PRECACHE = [
   "./js/ui/dispatcher.js",
   "./js/ui/dom.js",
   "./js/ui/ecoFmt.js",
+  "./js/ui/encyclopedia.js",
   "./js/ui/eventsBanner.js",
   "./js/ui/factories.js",
   "./js/ui/factoryBlock.js",
@@ -125,6 +134,8 @@ const PRECACHE = [
   "./js/ui/fx.js",
   "./js/ui/garage.js",
   "./js/ui/kabar.js",
+  "./js/ui/league.js",
+  "./js/ui/legacy.js",
   "./js/ui/levelUp.js",
   "./js/ui/loans.js",
   "./js/ui/machineUpgrade.js",
@@ -143,6 +154,7 @@ const PRECACHE = [
   "./js/ui/plot.js",
   "./js/ui/projects.js",
   "./js/ui/pwa.js",
+  "./js/ui/quality.js",
   "./js/ui/research.js",
   "./js/ui/settings.js",
   "./js/ui/sfx.js",
@@ -152,6 +164,7 @@ const PRECACHE = [
   "./js/ui/stock.js",
   "./js/ui/subtabs.js",
   "./js/ui/taskModal.js",
+  "./js/ui/tender.js",
   "./js/ui/theme.js",
   "./js/ui/topbar.js",
   "./js/ui/workers.js",

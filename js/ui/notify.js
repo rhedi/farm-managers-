@@ -10,6 +10,7 @@ import { queueLevelUp } from './levelUp.js';
 import { onboardingEvent } from './onboarding.js';
 import { app } from './app.js';
 import { maybeShowDisaster } from './kabar.js';
+import { celebrateV18 } from './quality.js'; // v18 🏅 records, 🎁 cosmetics, 🏆 tenders
 
 export const DEDUP_MS = 60000;
 
@@ -47,6 +48,17 @@ const TOAST_EVENTS = {
   disaster_end: { kind: 'success' },
   contract_bonus: { kind: 'success' },
   project_done: { kind: 'success', merged: (n) => `🎉 ${n} tahap Proyek Warisan selesai!` },
+  // v18 ⭐ Kualitas & Rekor · 📖 Ensiklopedia · 🚢 Tender Ekspor
+  quality_record: { kind: 'success', merged: (n) => `🏅 ${n} rekor panen baru!` },
+  stamp_new: { kind: 'success', merged: (n) => `📖 ${n} prangko Ensiklopedia baru.` },
+  cosmetic_unlocked: { kind: 'success' },
+  tender_offer: { kind: 'warn' },
+  tender_delivery: { kind: '', merged: (n) => `🚢 ${n} kiriman tender diterima.` },
+  tender_done: { kind: 'success' },
+  tender_failed: { kind: 'error' },
+  tender_expired: { kind: '' },
+  // v18 🌳 Generasi Baru (the 🏆 league season end has its own modal)
+  challenge_done: { kind: 'success' },
 };
 
 /** key → {at, n, sum}: repeats inside DEDUP_MS real time. */
@@ -93,6 +105,7 @@ export function notifyEvent(ev) {
   onboardingEvent(ev);
   if (ev.type === 'fish_harvest' && ev.auto) dedupToast('fish_harvest', ev.msg, 'success', (n) => `🎣 ${n} kolam dipanen otomatis.`);
   if (ev.type === 'level_up') queueLevelUp(ev);
+  if (ev.type === 'quality_record' || ev.type === 'cosmetic_unlocked' || ev.type === 'tender_done') celebrateV18(ev);
   return ev.type === 'level_up' || ev.type === 'achievement' || ev.type === 'chapter_step';
 }
 

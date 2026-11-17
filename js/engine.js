@@ -47,8 +47,13 @@ import * as stockKeep from './engine/stockKeep.js';
 import * as kabar from './engine/kabar.js'; // v17 📰 Kabar Desa + ⚠️ Bencana Besar
 import * as projects from './engine/projects.js'; // v17 🏛️ Proyek Warisan
 import { projectsView } from './engine/projectsView.js';
+import * as quality from './engine/quality.js'; // v18 ⭐ Kualitas & Rekor
+import * as encyclopedia from './engine/encyclopedia.js'; // v18 📖 Ensiklopedia Tani
+import * as tenders from './engine/tenders.js'; // v18 🚢 Tender Ekspor
+import * as legacyMod from './engine/legacy.js'; // v18 🌳 Generasi Baru (legacy block outside the run state)
+import * as league from './engine/league.js'; // v18 🏆 Liga Musiman
 import { SAVE_VERSION, MAX_CATCHUP_HOURS, HISTORY_SIZE, newStats, normalizeState, serializeState, parseSave,
-  writeStorage, readStorage } from './engine/persist.js';
+  writeStorage, readStorage, writeLegacy, readLegacy } from './engine/persist.js';
 
 export const SPEEDS = [0, 1, 2, 5];
 export const LOG_SIZE = 50;
@@ -60,6 +65,7 @@ export class Game {
     this.data = data;
     this.idx = indexData(data);
     this.listeners = new Set();
+    this.legacy = legacyMod.newLegacy(); // 🌳 createGame / loadGame replace it with the saved block
   }
 
   // ---- events ----
@@ -70,6 +76,8 @@ export class Game {
     if (this.state.log.length > LOG_SIZE) this.state.log.splice(0, this.state.log.length - LOG_SIZE);
     if (this.tally) this.tally[type] = (this.tally[type] || 0) + 1; // catch-up report (catchUpReport)
     if (!type.startsWith('mission_')) missions.trackEvent(this, ev); // daily-mission progress (stream C)
+    encyclopedia.trackEvent(this, ev); // v18 📖 stamp counters (harvests, batches, ponds, city trips)
+    league.trackEvent(this, ev); // v18 🏆 harvested t/ha for the league yield metric
     if (this.muted) return ev; // coarse offline days: no toast flood; the morning report sums them up
     for (const fn of this.listeners) { try { fn(ev); } catch { /* listener errors never break the sim */ } }
     return ev;
@@ -173,8 +181,9 @@ export class Game {
         if (nextHour % 24 === 0) this.#dailyRollover();
         factoryManager.runFactoryManager(this); // every tier.intervalHours; before the dispatcher (it holds the inputs)
         runPlans(this);
+        tenders.runTenderAuto(this); // 🚢 idle trucks → export port (before the Manajer Logistik takes them)
         dispatcher.runDispatcher(this); // after plans: field work gets the free workers first
-      } else if (finished) { runPlans(this); dispatcher.runDispatcher(this); }
+      } else if (finished) { runPlans(this); tenders.runTenderAuto(this); dispatcher.runDispatcher(this); }
     }
   }
   /** `light`: a coarse offline day (offline.js) that is not the last one — no daily missions or rival ranking. */
@@ -198,6 +207,10 @@ export class Game {
     contracts.stepContractsDay(this);
     kabar.stepKabarDay(this, day); // 📰 after contracts: bonuses for finished contracts, disasters, dilemma deadline/new
     projects.stepProjectsDay(this); // 🏛️ finished builds
+    tenders.stepTendersDay(this, day); // 🚢 v18: port loading, deadline, offers
+    encyclopedia.stepEncyclopediaDay(this); // 📖 v18: herd peaks, stamps, cosmetics
+    league.stepLeagueDay(this, day); // 🏆 v18: sample the ended day; season end/start at a new game year (also coarse days)
+    legacyMod.stepLegacyDay(this); // 🌳 v18: challenge completed at Lv 30
     const h = this.state.history;
     h.push({ day: day - 1, money: this.state.money, netWorth: eco.netWorth(this) });
     if (h.length > HISTORY_SIZE) h.splice(0, h.length - HISTORY_SIZE);
@@ -411,13 +424,73 @@ export class Game {
   startMonument(continentId) { return projects.startMonument(this, continentId); }
   /** Project effect hook (like perk): 'rainFloor'|'damStage'|'koperasi' (regionId), 'cityPrice'|'portStage' (continentId), 'wages', 'contractBonus'. */
   projectPerk(key, scope) { return projects.projectPerk(this, key, scope); }
+  // ---- v18 ⭐ Kualitas & Rekor · 📖 Ensiklopedia Tani · 🚢 Tender Ekspor ----
+  /** 📒 Buku Rekor: every crop/tree with best t/ha, best grade (field, day), harvests; harvested first. */
+  recordsView() { return quality.recordsView(this); }
+  /** Grade a crop on a field would get now → {score, grade, label, mult, parts}. */
+  qualityPreview(fieldId, cropId) { return quality.scoreHarvest(this, fieldId, cropId ?? this.state.fields[fieldId]?.cropId); }
+  /** Stock grade of a crop product ({id, label, mult}) or null for non-crops. */
+  stockGrade(productId) { return quality.stockGrade(this, productId); }
+  encyclopediaView() { return encyclopedia.encyclopediaView(this); }
+  /** `kind` 'banner' | 'barn', `id` an unlocked cosmetic (null = none) → {ok, [kind]}. */
+  setCosmetic(kind, id) { return encyclopedia.setCosmetic(this, kind, id); }
+  /** Active banner / barn cosmetic def, or null. */
+  activeCosmetic(kind) { return encyclopedia.activeCosmetic(this, kind); }
+  tenderView() { return tenders.tenderView(this); }
+  acceptTender() { return tenders.acceptTender(this); }
+  declineTender() { return tenders.declineTender(this); }
+  /** Send every idle truck (keeping reserve workers) to the export port → {ok, trips, tons}. */
+  shipTender() { return tenders.shipTender(this); }
+  setTenderAuto(on) { return tenders.setTenderAuto(this, on); }
+  // ---- v18 🌳 Generasi Baru (js/engine/legacy.js) + 🏆 Liga Musiman (js/engine/league.js) ----
+  /** Stars, perk tree, star preview, challenge, museum, emblem for the 🌳 Warisan sub-tab. */
+  legacyView() { return legacyMod.legacyView(this); }
+  /** ⭐ inheritFarm would grant now: {parts, raw, mult, total, challenge, canInherit, reason}. */
+  legacyPreview() { return legacyMod.legacyPreview(this); }
+  /** Spend stars → {ok, perkId, stars, applied}; start effects are also given at once for this run. */
+  buyLegacyPerk(id) { return legacyMod.buyLegacyPerk(this, id); }
+  /** Cosmetic emblem {icon?, color?} (needs Lambang Keluarga). */
+  setEmblem(emblem) { return legacyMod.setEmblem(this, emblem); }
+  /** Give up this generation's challenge (rules off, no star multiplier). */
+  forfeitChallenge() { return legacyMod.forfeitChallenge(this); }
+  /**
+   * "Wariskan pertanian" (Lv ≥ 30): {ok, stars, entry, game} where `game` is the fresh Lv 1 run carrying the new legacy
+   * block. This game is left untouched (the caller switches to the new one and saves). `opts` = {challengeId, regionId,
+   * buy: [perkId], emblem, seed}.
+   */
+  inheritFarm(opts = {}) {
+    const plan = legacyMod.planInheritance(this, opts);
+    if (!plan.ok) return plan;
+    const seed = opts.seed ?? hashSeed(`${this.state.seed}|gen|${plan.legacy.generation}`);
+    const next = createGame({ seed, data: this.data, legacy: plan.legacy, challenge: plan.challenge });
+    // v18 collections stay with the family (hall of fame): 📖 encyclopedia, ⭐ harvest records, 🚢 tender trophies/done.
+    const copy = (v) => JSON.parse(JSON.stringify(v ?? null));
+    const s = this.state, n = next.state;
+    if (s.encyclopedia) n.encyclopedia = copy(s.encyclopedia);
+    if (s.quality?.records) n.quality.records = copy(s.quality.records);
+    if (s.tenders) Object.assign(n.tenders, { trophies: copy(s.tenders.trophies) ?? {}, done: s.tenders.done || 0 });
+    quality.ensureQuality(n, next.idx);
+    encyclopedia.ensureEncyclopedia(n, this.data, next.idx);
+    tenders.ensureTenders(n);
+    next.emit('generation_start', `🌳 Generasi ${plan.legacy.generation} dimulai dengan ${plan.legacy.stars} ⭐ Bintang Warisan.`, { generation: plan.legacy.generation, stars: plan.stars });
+    return { ok: true, stars: plan.stars, entry: plan.entry, game: next };
+  }
+  /** Division, season (metric, countdown), live standings, rewards, history and the trophy shelf. */
+  leagueView() { return league.leagueView(this); }
+  /** Season results not shown yet (end-of-season modal); returns and clears them. */
+  takeLeagueResults() { return league.takeLeagueResults(this); }
 
   // ---- persistence ----
-  serialize() { return serializeState(this.state); }
-  save(storage) { writeStorage(storage, this.serialize()); return { ok: true }; }
+  serialize() { return serializeState(this.state, this.legacy); }
+  /** Writes the save and mirrors the 🌳 legacy block to its own key (survives ⚙️ Reset game). */
+  save(storage) { writeStorage(storage, this.serialize()); writeLegacy(storage, this.legacy); return { ok: true }; }
 }
 
-export function createGame({ seed, data = DEFAULT_DATA } = {}) {
+/**
+ * New run. `legacy` (🌳 block from a save / inheritance / the mirrored key) keeps stars, perks and museum and applies the
+ * perks' start effects; `challenge` = this generation's challenge id (inheritFarm). Without them: a plain new game.
+ */
+export function createGame({ seed, data = DEFAULT_DATA, legacy = null, challenge = null } = {}) {
   const S = data.STARTING;
   const state = {
     version: SAVE_VERSION, seed: seed ?? Date.now(), rng: hashSeed(seed ?? Date.now()),
@@ -429,8 +502,10 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
     shipments: [], nextTripId: 1, research: { unlocked: [], respecs: 0 }, ponds: [], nextPondUid: 1,
   };
   const game = new Game(state, data);
+  game.legacy = legacyMod.normalizeLegacy(legacy, data);
   for (const id of S.fieldIds) state.fields[id] = newFieldState(game.idx.fields.get(id));
   for (const id of S.machineIds) eco.addMachine(game, id);
+  legacyMod.applyLegacyStart(game, { challenge }); // 🌳 state.generation + start perks (money, RP, silo, region, paint)
   rollWeather(game, 1);
   initMarket(game);
   workers.ensureWorkers(game);
@@ -446,11 +521,18 @@ export function createGame({ seed, data = DEFAULT_DATA } = {}) {
   chapters.ensureChapters(game);
   kabar.ensureKabar(state); // v17 (also migrated by persist.normalizeState)
   projects.ensureProjects(state, data);
+  quality.ensureQuality(state); // v18 (also migrated by persist.normalizeState)
+  encyclopedia.ensureEncyclopedia(state, data); // no idx: a new game starts with an empty book (no back-fill)
+  tenders.ensureTenders(state);
+  league.ensureLeague(state, data); // 🏆 v18 (the first season starts lazily: a warm-up below the unlock level)
   return game;
 }
 
-export function loadGame(json, { data = DEFAULT_DATA } = {}) {
-  const game = new Game(parseSave(json), data);
+/** `legacy`: fallback 🌳 block for a save without one (loadFrom passes the mirrored key). */
+export function loadGame(json, { data = DEFAULT_DATA, legacy = null } = {}) {
+  const { legacy: saved, ...state } = parseSave(json); // the legacy block lives outside the run state
+  const game = new Game(state, data);
+  game.legacy = legacyMod.normalizeLegacy(saved ?? legacy, data);
   normalizeState(game.state, data, game.idx);
   fillForecast(game, game.day); // pre-F5 saves have no forecast yet
   eco.syncCounts(game);
@@ -469,5 +551,10 @@ export function loadGame(json, { data = DEFAULT_DATA } = {}) {
 /** Returns a Game or null if nothing saved. Throws on corrupt save. */
 export function loadFrom(storage, opts) {
   const json = readStorage(storage);
-  return json ? loadGame(json, opts) : null;
+  return json ? loadGame(json, { ...opts, legacy: opts?.legacy ?? readLegacy(storage) }) : null;
+}
+
+/** 🌳 The mirrored legacy block (normalized; a fresh one when missing): new games after ⚙️ Reset or a corrupt save. */
+export function loadLegacy(storage, { data = DEFAULT_DATA } = {}) {
+  return legacyMod.normalizeLegacy(readLegacy(storage), data);
 }

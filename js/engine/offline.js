@@ -24,7 +24,12 @@ import { sellableStock } from './economy.js';
 import { effectiveStats } from './upgrades.js';
 import { RENT_HA_PER_HOUR } from './tasks.js';
 import { yearDays, seasonIdAt, cropSeasonFit, climateTemp, SEASONS, OFF_SEASON_GROWTH } from './seasons.js';
+import { blendStock, coarseMult } from './quality.js';
+import { bump } from './encyclopedia.js';
+import { coarseTenderDay } from './tenders.js';
 import { coveredFields } from './mandor.js';
+import { challengeBlock } from './legacyPerks.js';
+import { trackHarvest } from './league.js';
 
 export const OFFLINE_DEFAULTS = { exactHours: 48, maxRealHours: 8, efficiency: 0.5, fuelLitersPerHa: 6 };
 export const offlineCfg = (game) => ({ ...OFFLINE_DEFAULTS, ...(game.data.BALANCE.offline || {}) });
@@ -64,20 +69,22 @@ export function fieldRates(game) {
   const s = game.state, B = game.data.BALANCE, C = offlineCfg(game), out = [], Y = yearDays(game);
   const { rig, tractors, workers } = rigsOf(game), demand = {};
   const annual = [], covered = coveredFields(game); // 👷 plans past the Mandor cap stay paused offline too
+  const noRent = !!challengeBlock(game, 'rent'); // 🌳 challenge "Tanpa sewa panen": own harvester / tree shaker only
   for (const [fieldId, f] of Object.entries(s.fields)) {
     const plan = f.plan, def = game.idx.fields.get(fieldId), crop = plan && game.idx.crops.get(plan.cropId);
     if (!crop || !def || !covered.has(fieldId)) continue;
     const ha = def.sizeHa, base = game.idx.products.get(crop.id)?.basePrice ?? 0;
     if (isTree(crop)) {
       if (f.cropId !== crop.id || !f.orchard || ageDays(game, f) < crop.maturityDays) continue; // young trees: no fruit yet
+      if (noRent && !rig.pick) continue;
       const o = orchardOutlook(game, fieldId, crop.id), perDay = o.harvestsPerYear / Y;
       if (!(perDay > 0)) continue;
       out.push({ fieldId, cropId: crop.id, sell: !!plan.sell, tons: o.tons * perDay, cost: { perawatan_kebun: o.yearlyCost / Y },
         xp: perDay * (2 * B.xpPerTask + xpForValue(game, o.tons * base)), harvests: perDay });
       continue;
     }
-    if (!rig.plow || !rig.seed) continue; // plans cannot plow/seed without the implements
-    const fert = plan.fertilize && !!rig.fertilize, irr = plan.irrigate && !!rig.irrigate, ownHarvest = !!rig.harvest && !plan.rent;
+    if (!rig.plow || !rig.seed || (noRent && !rig.harvest)) continue; // plans cannot plow/seed (or harvest) without the machines
+    const fert = plan.fertilize && !!rig.fertilize, irr = plan.irrigate && !!rig.irrigate, ownHarvest = !!rig.harvest && (!plan.rent || noRent);
     const hours = { plow: ha / rig.plow.rate, seed: ha / rig.seed.rate, ...(fert ? { fertilize: ha / rig.fertilize.rate } : {}),
       ...(irr ? { irrigate: ha / rig.irrigate.rate } : {}), ...(ownHarvest ? { harvest: ha / rig.harvest.rate } : {}) };
     const growth = f.greenhouse ? 1 : yearGrowth(game, def.regionId, crop);
@@ -112,7 +119,7 @@ export function fieldRates(game) {
 
 /** One coarse day of field plans at `eff`. Mutates `carry` (fractional harvest counts per field). */
 function fieldsDay(game, rates, eff, carry, hold) {
-  const s = game.state, crops = new Map();
+  const s = game.state, crops = new Map(), qsum = new Map();
   const sum = {};
   for (const r of rates) for (const k in r.cost) sum[k] = (sum[k] || 0) + r.cost[k] * eff;
   const total = round2(Object.values(sum).reduce((a, v) => a + v, 0));
@@ -129,7 +136,10 @@ function fieldsDay(game, rates, eff, carry, hold) {
     if (!(tons > 0)) continue;
     const key = `${r.cropId}|${r.sell ? 1 : 0}`;
     crops.set(key, round2((crops.get(key) || 0) + tons));
+    r.qmult ??= coarseMult(game, r.fieldId, r.cropId, s.fields[r.fieldId]?.plan?.fertilize); // ⭐ grade if harvested on time
+    qsum.set(key, (qsum.get(key) || 0) + tons * r.qmult);
     carry[r.fieldId] = (carry[r.fieldId] || 0) + r.harvests * eff;
+    trackHarvest(game, r.cropId, tons, r.harvests * eff * (game.idx.fields.get(r.fieldId)?.sizeHa ?? 0)); // 🏆 league t/ha
     const n = Math.floor(carry[r.fieldId] + 1e-9);
     if (n > 0) { s.stats.harvests += n; carry[r.fieldId] -= n; }
     xp += r.xp * eff;
@@ -138,6 +148,8 @@ function fieldsDay(game, rates, eff, carry, hold) {
   const kept = keptStock(game, { factory: hold });
   for (const [key, tons] of crops) {
     const [cropId, sell] = key.split('|');
+    blendStock(game, cropId, tons, qsum.get(key) / tons); // ⭐ v18 stock quality
+    bump(game, `${game.idx.crops.get(cropId)?.perennial ? 'tree' : 'crop'}:${cropId}`, tons); // 📖 stamp counter
     storeHarvest(game, cropId, tons, { sell: sell === '1', kept });
     s.stats.tonsHarvested = round2(s.stats.tonsHarvested + tons);
   }
@@ -181,7 +193,7 @@ function factoriesDay(game, lines, eff, carry) {
     const { o, k } = best;
     carry[line.id] = ((carry[line.id] || 0) + best.per) % 1; // only the fraction carries; stock-limited days don't bank batches
     for (const id in o.r.inputs) { s.silo[id] = round2((s.silo[id] || 0) - o.r.inputs[id] * k); if (s.silo[id] <= 0) delete s.silo[id]; }
-    for (const id in o.r.outputs) storeProduct(game, id, round2(o.r.outputs[id] * k));
+    for (const id in o.r.outputs) { storeProduct(game, id, round2(o.r.outputs[id] * k)); bump(game, `product:${id}`, k); } // 📖 batches
     for (const kind in o.net) room[kind] -= o.net[kind] * k;
     game.addXp(round2(xpForValue(game, o.value * k)));
     if (line.managed && s.factoryManager?.stats) s.factoryManager.stats.batches += k;
@@ -212,6 +224,7 @@ export function runCoarse(game, hours, { rollover, advance }) {
     fieldsDay(game, rates, eff * dt / 24, carry, hold);
     factoriesDay(game, lines, eff * dt / 24, fcarry);
     contractsDay(game);
+    coarseTenderDay(game, eff * dt / 24); // 🚢 auto-send: the fleet's daily haul at `eff`
     s.time = next;
     left -= dt;
     rollover(left >= 24 - 1e-9);

@@ -5,6 +5,7 @@
 import { round2 } from './rng.js';
 import { fmtMoney } from './defs.js';
 import { perk } from './research.js';
+import { challengeBlock } from './legacyPerks.js';
 
 const ok = (extra = {}) => ({ ok: true, ...extra });
 const fail = (reason) => ({ ok: false, reason });
@@ -21,18 +22,25 @@ export function staffWage(game, role, t = hiredTier(game, role)) {
   return t ? round2(t.wage * (1 - perk(game, 'wages'))) : 0;
 }
 
+/** First hire price of a tier: `role.hireCost(game, t)` (🌳 Mandor Keluarga discount) or the tier's hireCost. */
+const hirePrice = (game, role, t) => (role.hireCost ? role.hireCost(game, t) : t.hireCost);
+
 export function hireStaff(game, role, tierId) {
   const d = game.state[role.key], t = staffTier(game, role, tierId);
   if (!t) return fail('Calon manajer tidak ditemukan.');
   if (d.hired) return fail(`Sudah ada ${role.label}. Pakai "Ganti / promosikan" untuk mengganti.`);
   if (game.state.level < t.unlockLevel) return fail(`Butuh level ${t.unlockLevel}.`);
-  if (!game.spend(t.hireCost, 'gaji')) return fail('Uang tidak cukup.');
+  const rule = challengeBlock(game, 'staff', role.key); // 🌳 challenge "Tanpa Manajer"
+  if (rule) return fail(rule);
+  const cost = hirePrice(game, role, t);
+  if (!game.spend(cost, 'gaji')) return fail('Uang tidak cukup.');
   d.hired = { tierId: t.id, hiredDay: game.day };
   d.on = true;
   d.note = '';
-  game.emit(`${role.event}_hired`, `${role.icon} ${t.name} (${t.title}) bergabung sebagai ${role.Title} (${fmtMoney(t.wage)}/hari).`, { tierId: t.id, cost: t.hireCost });
+  role.onHire?.(game);
+  game.emit(`${role.event}_hired`, `${role.icon} ${t.name} (${t.title}) bergabung sebagai ${role.Title} (${fmtMoney(t.wage)}/hari).`, { tierId: t.id, cost });
   role.run(game);
-  return ok({ cost: t.hireCost });
+  return ok({ cost });
 }
 
 /** Price of switching to `t`: its hireCost − tradeIn × the current tier's hireCost, never < 0. */
@@ -82,9 +90,9 @@ export function staffCandidates(game, role, tierView) {
   const s = game.state, cur = hiredTier(game, role);
   return staffCfg(game, role).tiers.map((t) => {
     const locked = s.level < t.unlockLevel, current = t === cur, swap = cur ? staffSwapCost(game, role, t) : null;
-    const price = swap ? swap.cost : t.hireCost;
+    const price = swap ? swap.cost : hirePrice(game, role, t), rule = cur ? '' : challengeBlock(game, 'staff', role.key);
     return { ...tierView(t), locked, current, price, credit: swap?.credit ?? 0,
       wageDiff: cur ? round2(staffWage(game, role, t) - staffWage(game, role, cur)) : 0,
-      reason: current ? 'Manajer saat ini.' : locked ? `Terbuka di level ${t.unlockLevel}.` : s.money < price ? 'Uang tidak cukup.' : null };
+      reason: current ? 'Manajer saat ini.' : rule || (locked ? `Terbuka di level ${t.unlockLevel}.` : s.money < price ? 'Uang tidak cukup.' : null) };
   });
 }

@@ -9,6 +9,7 @@ import { getFieldView } from './fields.js';
 import { netWorth } from './economy.js';
 import { BUY_MARKUP } from './purchase.js';
 import { nice, recentIncome, scaledCash, grantResearchPoints, RECENT_DAYS } from './rewards.js';
+import { missionSlots } from './legacyPerks.js';
 
 export const MISSIONS_PER_DAY = 3;
 export const STREAK_GOAL = 7;
@@ -113,7 +114,8 @@ function candidates(game, base) {
 export function generateMissions(game, day) {
   const base = baseReward(game), r = dayRng(game, day), pool = candidates(game, base), list = [];
   const gap = levelGap(game);
-  while (list.length < MISSIONS_PER_DAY && pool.length) {
+  const count = MISSIONS_PER_DAY + missionSlots(game); // 🌳 legacy perk Daftar Tugas Ayah: +1 slot
+  while (list.length < count && pool.length) {
     let x = random(r) * pool.reduce((a, c) => a + c.weight, 0), i = 0;
     while (x >= pool[i].weight && i < pool.length - 1) x -= pool[i++].weight;
     const c = pool.splice(i, 1)[0], { cap, ...p } = c.make(r);

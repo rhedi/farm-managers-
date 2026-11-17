@@ -6,6 +6,7 @@ import { effectiveStats, upgradesOf, upgradeSpent } from './upgrades.js';
 import { kindOf, tonsPerUnit } from './storage.js';
 import { achievementReward } from './rewards.js';
 import { saleQuote } from './saturation.js';
+import { stockGrade, stockMult } from './quality.js';
 
 /**
  * Stock items. `reserve` = feed reserve (t) that sellProduct keeps; `isFeed` = an owned herd eats it;
@@ -21,10 +22,11 @@ export function siloView(game) {
     const price = s.market[id] ?? 0;
     const reserve = Math.min(qty, s.feedReserve?.[id] || 0);
     const storage = kindOf(game.idx.products.get(id));
-    const sellable = round2(qty - reserve), q = saleQuote(game, id, sellable);
+    const sellable = round2(qty - reserve), q = saleQuote(game, id, sellable), g = stockGrade(game, id); // ⭐ v18 stock grade (crops)
     return { id, name: p.name, emoji: p.emoji, unit: p.unit, category: p.category ?? 'crop', qty, price, value: round2(qty * price),
       reserve, sellable, isFeed: feed.has(id), storage, tons: storage ? Math.round(qty * tonsPerUnit(p) * 1000) / 1000 : 0,
-      dip: q.dip, dipToday: q.today, saleValue: q.value };
+      dip: q.dip, dipToday: q.today, saleValue: round2(q.value * stockMult(game, id)),
+      grade: g ? { id: g.id, label: g.label, mult: stockMult(game, id) } : null };
   });
   return { items, totalValue: round2(items.reduce((sum, i) => sum + i.value, 0)) };
 }

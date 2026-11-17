@@ -2,6 +2,8 @@
 // effectiveStats() is the single source of upgraded hp/speed/haPerHour/fuelPerHour for tasks and views.
 import { round2 } from './rng.js';
 import { fmtMoney } from './defs.js';
+import { cosmeticPaints } from './encyclopedia.js';
+import { legacyPaints } from './legacyPerks.js';
 
 export const TRACKS = ['engine', 'transmission', 'efficiency'];
 export const MAX_UPGRADE = 3;
@@ -12,6 +14,8 @@ const DEFAULTS = { costs: [0.15, 0.25, 0.4], levelGap: 2, resale: 0.5, engineHp:
 export const cfg = (game) => ({ ...DEFAULTS, ...game.data.BALANCE.machineUpgrades });
 export const emptyUpgrades = () => ({ engine: 0, transmission: 0, efficiency: 0 });
 export const upgradesOf = (m) => ({ ...emptyUpgrades(), ...m?.upgrades });
+/** Paint palette: BALANCE paints + colours unlocked in the 📖 Ensiklopedia / 🚢 Tender Ekspor + 🌳 heritage paints (v18). */
+export const paintsOf = (game) => [...new Set([...cfg(game).paints, ...cosmeticPaints(game), ...legacyPaints(game)])];
 
 /** Implements only have a transmission (work rate); tractors and harvesters have all three tracks. */
 export const trackApplies = (d, track) => !!d && TRACKS.includes(track) && (d.type !== 'implement' || track === 'transmission');
@@ -107,14 +111,14 @@ export function machineUpgradeInfo(game, uid, resale) {
       reason: blockReason(game, m, d, t) };
   });
   return { uid, defId: d.id, name: d.name, type: d.type, busy: m.busy || false, paint: m.paint ?? null,
-    paints: cfg(game).paints, stats: cur, upgrades: u, spent: upgradeSpent(game, m), resaleValue: resale, tracks };
+    paints: paintsOf(game), stats: cur, upgrades: u, spent: upgradeSpent(game, m), resaleValue: resale, tracks };
 }
 
 /** Free cosmetic paint (`null` = factory colour). */
 export function paintMachine(game, uid, color) {
   const m = game.state.machines.find((x) => x.uid === uid);
   if (!m) return { ok: false, reason: 'Mesin tidak ditemukan.' };
-  if (color != null && !cfg(game).paints.includes(color)) return { ok: false, reason: 'Warna tidak tersedia.' };
+  if (color != null && !paintsOf(game).includes(color)) return { ok: false, reason: 'Warna tidak tersedia.' };
   m.paint = color ?? null;
   return { ok: true, paint: m.paint };
 }

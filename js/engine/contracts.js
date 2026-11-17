@@ -6,6 +6,7 @@ import { fmtMoney, fmtNum } from './defs.js';
 import { BUY_MARKUP } from './purchase.js';
 import { perk } from './research.js';
 import { batchHours } from './factories.js';
+import { stepGradeContracts, meetsGrade, gradeById, stockGrade } from './quality.js';
 
 const DEFAULTS = { offers: 3, maxActive: 3, offerDays: 3, dueMin: 5, dueMax: 12, priceMin: 1.1, priceMax: 1.19,
   harvestsMin: 1, harvestsMax: 2, penaltyRate: 0.1, xpPerValue: 0.01 };
@@ -127,7 +128,7 @@ export function stepContractsDay(game) {
   s.contracts = list(game).filter((c) => !(c.status === 'offer' && day > c.expiresDay)
     && !((c.status === 'done' || c.status === 'failed') && day > (c.closedDay ?? day) + KEEP_FINISHED_DAYS));
   let added = 0;
-  while (s.contracts.filter((c) => c.status === 'offer' && !c.special).length < cfg.offers) {
+  while (s.contracts.filter((c) => c.status === 'offer' && !c.special && !c.minGrade).length < cfg.offers) {
     const c = makeOffer(game, cfg, day);
     if (!c) break;
     s.contracts.push(c);
@@ -142,6 +143,7 @@ export function stepContractsDay(game) {
       added++;
     }
   }
+  added += stepGradeContracts(game, day); // v18 ⭐ Kontrak kualitas (stock ≥ A), hash-seeded
   if (added) game.emit('contract_offer', `📋 ${added} tawaran kontrak baru di Pasar.`, { count: added });
 }
 
@@ -175,6 +177,9 @@ export function deliverContract(game, id, qty) {
   if (!(amount > 0)) return fail(`Stok ${p.name} di gudang kosong${s.feedReserve?.[c.productId] ? ' (sisanya dicadangkan untuk pakan)' : ''}.`);
   amount = round2(Math.min(amount, remaining));
   if (amount > avail + EPS) return fail('Stok tidak cukup.');
+  if (c.minGrade && !meetsGrade(game, c.productId, c.minGrade)) {
+    return fail(`Butuh kualitas ≥${gradeById(game, c.minGrade)?.label ?? c.minGrade}: stok ${p.name} rata-rata ${stockGrade(game, c.productId)?.label ?? 'B'}.`);
+  }
   s.silo[c.productId] = round2((s.silo[c.productId] || 0) - amount);
   if (s.silo[c.productId] <= 0) delete s.silo[c.productId];
   c.delivered = round2(c.delivered + amount);
@@ -199,12 +204,15 @@ export function contractsView(game) {
     const market = s.market[c.productId] ?? 0;
     const avail = available(game, c.productId);
     const remaining = round2(c.qty - c.delivered);
+    const qualityOk = !c.minGrade || meetsGrade(game, c.productId, c.minGrade);
     return { ...c, name: p.name, emoji: p.emoji, unit: p.unit, stock: s.silo[c.productId] || 0, available: avail,
       remaining, progress: c.qty ? Math.min(1, c.delivered / c.qty) : 0, marketPrice: market,
       premium: market ? round2(c.price / market - 1) : 0,
       basePrice: p.basePrice ?? 0, premiumBase: p.basePrice ? round2(c.price / p.basePrice - 1) : 0,
       daysLeft: c.status === 'offer' ? c.expiresDay - day : c.dueDay - day,
       canAccept: c.status === 'offer' && (c.special ? canSpecial : canAcceptMore),
-      canDeliver: c.status === 'active' && avail > 0 };
+      minGradeLabel: c.minGrade ? gradeById(game, c.minGrade)?.label ?? c.minGrade : null,
+      stockGrade: c.minGrade ? stockGrade(game, c.productId)?.label ?? 'B' : null, qualityOk,
+      canDeliver: c.status === 'active' && avail > 0 && qualityOk };
   }).sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.daysLeft - b.daysLeft);
 }

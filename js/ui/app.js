@@ -11,6 +11,8 @@ export const app = {
   saveNow: () => {},
   /** Switch the bottom-nav tab (main.js wires this). */
   setTab: () => {},
+  /** Switch to another Game (🌳 a new generation) and save it (main.js wires this). */
+  startGame: () => {},
 };
 
 /**

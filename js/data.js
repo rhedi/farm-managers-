@@ -716,3 +716,135 @@ ACHIEVEMENTS.push(
   { id: 'kabar_25', name: 'Kepala Desa Bijak', desc: 'Ambil 25 keputusan Kabar Desa sendiri.', reward: 20000, incomeDays: 0.5, condition: { stat: 'dilemmasDecided', gte: 25 } },
 );
 // ===== v17 END (w2world) =====
+
+// ===== v18 START (w4mastery): ⭐ Kualitas & Rekor, 📖 Ensiklopedia Tani, 🚢 Tender Ekspor =====
+// ⭐ Kualitas (js/engine/quality.js): every crop/fruit harvest scores 0–100 from the yield factors at harvest time
+// (penalty points: pH × ph (≤ phMax), nutrient factor shortfall, same crop twice, no fertilizer, pests, dry days)
+// and the timing (ready > readyGraceHours: up to `late` points by readyLateHours, then the wither loss × wither);
+// a lime cycle adds limeBonus. Grades (best first) set the sale price of the stock: the silo keeps one average
+// multiplier per crop (tons-weighted; bought stock counts as B). ⭐ Kontrak kualitas: `contracts.offers` extra
+// offers for a crop the farm harvests, deliverable only while the stock average is ≥ minGrade.
+BALANCE.quality = {
+  grades: [
+    { id: 'S', label: 'A★', min: 92, mult: 1.15 },
+    { id: 'A', label: 'A', min: 78, mult: 1.08 },
+    { id: 'B', label: 'B', min: 55, mult: 1 },
+    { id: 'C', label: 'C', min: 0, mult: 0.9 },
+  ],
+  penalty: { ph: 150, phMax: 30, nutrients: 25, rotation: 15, fertilizer: 12, pest: 8, weather: 30, weatherMax: 15,
+    readyGraceHours: 12, readyLateHours: 72, late: 12, wither: 60, witherMax: 40 },
+  limeBonus: 4,
+  recordFreshHours: 48, // field card "🏅 Rekor baru!" for this many game hours
+  contracts: { fromLevel: 5, offers: 1, minGrade: 'A', priceMin: 1.22, priceMax: 1.3, harvestsMin: 1, harvestsMax: 2,
+    dueMin: 6, dueMax: 12, offerDays: 3, penaltyRate: 0.1, xpPerValue: 0.012 },
+};
+// 📖 Ensiklopedia Tani (js/engine/encyclopedia.js): a stamp per crop, tree, animal, pond species, factory product,
+// region and city with 3 tiers; `tiers[cat]` = [tier 1, tier 2, tier 3] goals (see TIER_TEXT in the module).
+// Completing a row (every stamp ≥ tier) unlocks the cosmetics whose `from` names it; tenders unlock by count.
+BALANCE.encyclopedia = {
+  tiers: { crop: [0.01, 100, 'S'], tree: [0.01, 100, 'S'], animal: [1, 100, 1.25], fish: [1, 10, 25],
+    product: [1, 10, 100], region: [1, 1, 3], city: [1, 10, 50] },
+  cosmetics: [
+    { id: 'paint_panen', kind: 'paint', name: 'Cat Emas Panen', emoji: '🎨', color: '#d4a017', from: { cat: 'crop', tier: 1 } },
+    { id: 'banner_bintang', kind: 'banner', name: 'Panji Petani Bintang', emoji: '⭐', from: { cat: 'crop', tier: 3 } },
+    { id: 'banner_kebun', kind: 'banner', name: 'Panji Raja Kebun', emoji: '🌳', from: { cat: 'tree', tier: 1 } },
+    { id: 'barn_merah', kind: 'barn', name: 'Lumbung Merah Klasik', emoji: '🛖', from: { cat: 'animal', tier: 1 } },
+    { id: 'barn_jati', kind: 'barn', name: 'Kandang Kayu Jati', emoji: '🪵', from: { cat: 'animal', tier: 3 } },
+    { id: 'paint_laut', kind: 'paint', name: 'Cat Biru Laut', emoji: '🎨', color: '#16a085', from: { cat: 'fish', tier: 1 } },
+    { id: 'banner_pabrik', kind: 'banner', name: 'Panji Industri Tani', emoji: '🏭', from: { cat: 'product', tier: 1 } },
+    { id: 'banner_jelajah', kind: 'banner', name: 'Panji Penjelajah', emoji: '🧭', from: { cat: 'region', tier: 1 } },
+    { id: 'paint_perak', kind: 'paint', name: 'Cat Perak Ekspor', emoji: '🎨', color: '#8e9aa6', from: { cat: 'city', tier: 1 } },
+    { id: 'paint_ungu', kind: 'paint', name: 'Cat Ungu Juara', emoji: '🎨', color: '#8e44ad', from: { cat: 'city', tier: 3 } },
+    { id: 'banner_ekspor', kind: 'banner', name: 'Panji Eksportir Dunia', emoji: '🚢', from: { tenders: 1 } },
+    { id: 'paint_rotterdam', kind: 'paint', name: 'Cat Biru Rotterdam', emoji: '🎨', color: '#1f4e9c', from: { tenders: 1 } },
+    { id: 'barn_kontainer', kind: 'barn', name: 'Gudang Kontainer', emoji: '📦', from: { tenders: 3 } },
+  ],
+};
+// 🚢 Tender Ekspor (js/engine/tenders.js): from unlockLevel, one offer every everyDays (first one firstDelayDays after
+// unlocking), valid offerDays, durationDays to deliver. Qty = min(farmShare × the farm's daily tons if every owned
+// field grew the crop, truckShare × what the owned trucks haul to the port per day + port loading) × durationDays,
+// nice-rounded, ≥ minQty. Chunks travel by truck to the export port (a city in `ports`) and are paid on arrival at
+// max(market, 0.9 × base) × priceRate; finishing pays premium × value (+portPremiumPerStage per ⚓ Pelabuhan Ekspor
+// stage of the port's continent), rp research points, a trophy and cosmetics. A Pelabuhan also loads
+// portLoadPerStage × qty per stage from the silo every midnight. A missed deadline costs penaltyRate × the
+// undelivered value (deliveries already paid stay paid).
+BALANCE.tenders = {
+  unlockLevel: 35, everyDays: 40, firstDelayDays: 2, offerDays: 6, durationDays: 30,
+  farmShare: 0.45, truckShare: 0.5, minQty: 2000, priceRate: 1.1, premium: 0.25, rp: 3, penaltyRate: 0.03, xpPerValue: 0.004,
+  portLoadPerStage: 0.005, portPremiumPerStage: 0.05, reserveWorkers: 1,
+  ports: ['jakarta', 'banjarmasin', 'hcmc', 'brisbane', 'sapporo', 'chicago', 'odesa', 'buenosaires', 'mombasa', 'vancouver', 'paris'],
+  destinations: [
+    { id: 'rotterdam', name: 'Rotterdam', trophy: 'Piala Tulip Rotterdam', emoji: '🌷' },
+    { id: 'shanghai', name: 'Shanghai', trophy: 'Piala Naga Shanghai', emoji: '🐉' },
+    { id: 'dubai', name: 'Dubai', trophy: 'Piala Menara Dubai', emoji: '🕌' },
+    { id: 'tokyo', name: 'Tokyo', trophy: 'Piala Fuji Tokyo', emoji: '🗻' },
+    { id: 'hamburg', name: 'Hamburg', trophy: 'Piala Jangkar Hamburg', emoji: '⚓' },
+    { id: 'singapura', name: 'Singapura', trophy: 'Piala Singa Singapura', emoji: '🦁' },
+    { id: 'losangeles', name: 'Los Angeles', trophy: 'Piala Palem Los Angeles', emoji: '🌴' },
+    { id: 'mumbai', name: 'Mumbai', trophy: 'Piala Gajah Mumbai', emoji: '🐘' },
+    { id: 'santos', name: 'Santos', trophy: 'Piala Kopi Santos', emoji: '☕' },
+    { id: 'lagos', name: 'Lagos', trophy: 'Piala Matahari Lagos', emoji: '🌞' },
+  ],
+};
+// ===== v18 END (w4mastery) =====
+
+// ===== v18 BEGIN (w4meta) · 🌳 Generasi Baru (js/engine/legacy.js, legacyPerks.js) + 🏆 Liga Musiman (js/engine/league.js) =====
+// Generasi Baru: from unlockLevel the farm can be passed on ("Wariskan pertanian"); the run restarts at Lv 1 and earns
+// ⭐ = floor((perLevel × (level − levelFrom) + √(netWorth / nwUnit) + √achievements + √(project stages + monumentStages ×
+// monuments)) × challenge mult). E.g. Lv 33, $1 B, 30 achievements, 12 stages → 6 + 6,32 + 5,48 + 3,46 = 21 ⭐.
+// Perks are permanent: start* effects at every generation start (and once at once when bought mid-run), the rest live.
+// A challenge is completed by reaching unlockLevel under its rules (×mult on that generation's stars).
+BALANCE.legacy = {
+  unlockLevel: 30, museumMax: 30,
+  stars: { levelFrom: 27, perLevel: 1, nwUnit: 25000000, monumentStages: 3 },
+  branches: [
+    { id: 'modal', name: 'Modal & Lahan', emoji: '💰' }, { id: 'ilmu', name: 'Ilmu Keluarga', emoji: '📜' },
+    { id: 'usaha', name: 'Usaha', emoji: '🎯' }, { id: 'gaya', name: 'Gaya', emoji: '🎨' },
+  ],
+  perks: [
+    { id: 'akar', branch: 'modal', name: 'Akar Keluarga', emoji: '🌱', cost: 1, requires: [], effects: { startMoney: 15000 } },
+    { id: 'lumbung', branch: 'modal', name: 'Lumbung Tua', emoji: '🏚️', cost: 2, requires: ['akar'], effects: { startSilo: 1 } },
+    { id: 'celengan', branch: 'modal', name: 'Celengan Warisan', emoji: '💰', cost: 3, requires: ['akar'], effects: { startMoney: 50000 } },
+    { id: 'tanah', branch: 'modal', name: 'Tanah Leluhur', emoji: '🗺️', cost: 4, requires: ['lumbung'], effects: { regionChoice: 1 } },
+    { id: 'catatan', branch: 'ilmu', name: 'Catatan Kakek', emoji: '📜', cost: 2, requires: ['akar'], effects: { startRp: 1 } },
+    { id: 'pengalaman', branch: 'ilmu', name: 'Pengalaman Turun-temurun', emoji: '⭐', cost: 3, requires: ['catatan'], effects: { xp: 0.05 } },
+    { id: 'pustaka', branch: 'ilmu', name: 'Perpustakaan Keluarga', emoji: '📚', cost: 4, requires: ['catatan'], effects: { startRp: 1 } },
+    { id: 'bijak', branch: 'ilmu', name: 'Kebijaksanaan Leluhur', emoji: '🌟', cost: 6, requires: ['pengalaman'], effects: { xp: 0.05 } },
+    { id: 'misi', branch: 'usaha', name: 'Daftar Tugas Ayah', emoji: '🎯', cost: 3, requires: ['akar'], effects: { missionSlot: 1 } },
+    { id: 'mandor', branch: 'usaha', name: 'Mandor Keluarga', emoji: '👷', cost: 2, requires: ['misi'], effects: { mandorDiscount: 0.5 } },
+    { id: 'lambang', branch: 'gaya', name: 'Lambang Keluarga', emoji: '🛡️', cost: 1, requires: [], effects: { emblem: 1 } },
+    { id: 'cat', branch: 'gaya', name: 'Cat Traktor Warisan', emoji: '🎨', cost: 1, requires: ['lambang'], effects: { paints: 1 } },
+  ],
+  // waive: Bab Petani steps the rules make impossible count as met. starter: machines added to the start kit.
+  challenges: [
+    { id: 'tropis', name: 'Hanya wilayah tropis', emoji: '🌴', mult: 1.5, waive: ['regions5', 'fields25', 'regions13'],
+      desc: 'Hanya boleh membeli ladang di wilayah tropis (Jawa Barat, Kalimantan, Mato Grosso, Delta Mekong, Kenya). Mulai di Jawa Barat.' },
+    { id: 'tanpaSewa', name: 'Tanpa sewa panen', emoji: '🚫', mult: 1.3, starter: ['mf_activa'],
+      desc: 'Tidak boleh menyewa pemanen atau pemetik buah: panen hanya dengan mesin sendiri. Mulai dengan satu pemanen bekas.' },
+    { id: 'tanpaManajer', name: 'Tanpa Manajer', emoji: '🧑‍💼', mult: 1.3, waive: ['dispatcher', 'factoryManager'],
+      desc: 'Tidak boleh merekrut Manajer Logistik atau Manajer Pabrik (Mandor tetap boleh). Kirim dan olah sendiri.' },
+  ],
+  emblem: { icons: ['🌱', '🌾', '🌳', '🐄', '🚜', '🌻', '🍇', '🐝', '⚓', '🏔️'], colors: ['hijau', 'emas', 'merah', 'biru', 'ungu', 'coklat'] },
+  paints: ['#b8860b', '#6d2e8f'], // heritage machine paints (perk 'cat'): Emas Warisan, Ungu Bangsawan
+};
+// 🏆 Liga Musiman: one season per game year (yearDays), one metric per season, 8 farms per division (you + 7 rivals).
+// Rival targets = your form (EMA of past seasons, formWeight) × division strength × (1 + bias + spread × z).
+// Top `promote` go up, bottom `relegate` go down. Rewards: cups (shelf), research points by division, a timed booster.
+BALANCE.league = {
+  unlockLevel: 5, history: 12, shelfMax: 60, promote: 2, relegate: 2, formWeight: 0.5, spread: 0.08, graceDays: 3,
+  minTons: 10, minHa: 5, minHead: 10,
+  divisions: [
+    { id: 'perunggu', name: 'Perunggu', emoji: '🥉', strength: 0.9 },
+    { id: 'perak', name: 'Perak', emoji: '🥈', strength: 0.97 },
+    { id: 'emas', name: 'Emas', emoji: '🥇', strength: 1.03 },
+    { id: 'berlian', name: 'Berlian', emoji: '💎', strength: 1.09 },
+  ],
+  rewards: [
+    { rank: 1, cup: 'emas', rp: [1, 2, 2, 3], boosterDays: 10 },
+    { rank: 2, cup: 'perak', rp: [0, 1, 1, 2], boosterDays: 6 },
+    { rank: 3, cup: 'perunggu', rp: [0, 0, 1, 1], boosterDays: 4 },
+  ],
+  boosters: { profitHa: { kind: 'seedCost', mult: 0.8 }, yieldIdx: { kind: 'yield', mult: 1.1 }, contracts: { kind: 'yield', mult: 1.05 },
+    fuelT: { kind: 'taskSpeed', mult: 1.15 }, animalIdx: { kind: 'animalProd', mult: 1.1 } },
+};
+// ===== v18 END (w4meta) =====

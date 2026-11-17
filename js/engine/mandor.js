@@ -7,9 +7,13 @@
 // state.mandor = { hired: null | {tierId, hiredDay}, on, pins: [fieldId], note, notice /* grandfathered, toast once */ }
 import { staffCfg, staffTier, staffWage, hireStaff, replaceStaff, fireStaff, payStaffDay, staffCandidates } from './staff.js';
 import { runPlans } from './plans.js';
+import { mandorHireCost } from './legacyPerks.js';
 
+// hireCost / onHire: 🌳 legacy perk Mandor Keluarga (first Mandor of a generation cheaper).
 const ROLE = { key: 'mandor', cfg: 'mandor', label: 'mandor', Title: 'Mandor Ladang', icon: '👷', event: 'mandor',
-  fireNote: 'Rencana di luar ladang gratis dijeda (tetap tersimpan).', run: (game) => runPlans(game) };
+  fireNote: 'Rencana di luar ladang gratis dijeda (tetap tersimpan).', run: (game) => runPlans(game),
+  hireCost: (game, t) => mandorHireCost(game, t.hireCost),
+  onHire: (game) => { if (game.state.generation) game.state.generation.mandorHired = true; } };
 export const MANDOR_DEFAULTS = { freeFields: 2, tradeIn: 0.5, tiers: [] };
 export const mandorCfg = (game) => ({ ...MANDOR_DEFAULTS, ...staffCfg(game, ROLE) });
 export const mandorTier = (game, id) => staffTier(game, ROLE, id);

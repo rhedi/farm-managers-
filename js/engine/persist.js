@@ -10,8 +10,15 @@ import { ensureCalendar } from './calendar.js';
 import { migrateMandor } from './mandor.js';
 import { ensureKabar } from './kabar.js';
 import { ensureProjects } from './projects.js';
+import { ensureQuality } from './quality.js';
+import { ensureEncyclopedia } from './encyclopedia.js';
+import { ensureTenders } from './tenders.js';
+import { ensureGeneration } from './legacy.js';
+import { ensureLeague } from './league.js';
 
 export const SAVE_KEY = 'farm-manager-save';
+/** 🌳 Legacy block (game.legacy), mirrored outside the save so ⚙️ Reset game keeps it (js/engine/legacy.js). */
+export const LEGACY_KEY = 'farm-manager-legacy';
 export const SAVE_VERSION = 1;
 export const MAX_CATCHUP_HOURS = 48;
 export const HISTORY_SIZE = 120;
@@ -22,10 +29,11 @@ export const STATS_KEYS = ['harvests', 'fieldsOwned', 'machinesOwned', 'machineM
 
 export const newStats = () => Object.fromEntries(STATS_KEYS.map((k) => [k, 0]));
 
-/** A pause caused by the level-up modal (`modalPause` = speed before it) is never saved: the save keeps that speed. */
-export function serializeState(state) {
+/** A pause caused by the level-up modal (`modalPause` = speed before it) is never saved: the save keeps that speed.
+ *  `legacy` (🌳 game.legacy, outside the run state) is written as the top-level `legacy` key. */
+export function serializeState(state, legacy) {
   const { modalPause, ...rest } = state;
-  return JSON.stringify({ ...rest, ...(modalPause > 0 ? { speed: modalPause } : {}), version: SAVE_VERSION, savedAt: Date.now() });
+  return JSON.stringify({ ...rest, ...(modalPause > 0 ? { speed: modalPause } : {}), ...(legacy ? { legacy } : {}), version: SAVE_VERSION, savedAt: Date.now() });
 }
 
 /** Parse + validate a save. Returns the state object or throws Error on corrupt input. */
@@ -109,6 +117,15 @@ export function normalizeState(s, data, idx) {
   // v17 📰 Kabar Desa (missing = nothing open; the first dilemma comes the next day) + 🏛️ Proyek Warisan (none built).
   ensureKabar(s);
   ensureProjects(s, data);
+  // v18 ⭐ Kualitas (missing = stock grade B ×1, no records), 📖 Ensiklopedia (missing = back-filled from what the
+  // save proves: fields' last crops, orchards, herds, ponds, factories, regions, trips), 🚢 Tender Ekspor (none yet).
+  ensureQuality(s, idx);
+  ensureEncyclopedia(s, data, idx);
+  ensureTenders(s);
+  // v18 🌳 Generasi Baru (missing = generation 1, no challenge) + 🏆 Liga Musiman (missing = Perunggu, no season yet;
+  // the first season starts lazily, as a warm-up when the save is past the season's first days).
+  ensureGeneration(s, data);
+  ensureLeague(s, data);
   if (s.history.length > HISTORY_SIZE) s.history.splice(0, s.history.length - HISTORY_SIZE);
   return s;
 }
@@ -119,4 +136,13 @@ export function writeStorage(storage, json) {
 
 export function readStorage(storage) {
   return storage.getItem(SAVE_KEY);
+}
+
+export function writeLegacy(storage, legacy) {
+  storage.setItem(LEGACY_KEY, JSON.stringify(legacy));
+}
+
+/** The mirrored legacy block (raw object) or null. */
+export function readLegacy(storage) {
+  try { const raw = storage?.getItem?.(LEGACY_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
 }

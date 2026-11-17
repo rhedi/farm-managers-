@@ -19,9 +19,9 @@ function fxLayer() {
 export function floatText(anchor, text, kind = '') {
   const r = anchor?.getBoundingClientRect?.();
   let p = r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : anchor;
-  // Top-bar pills (v16): the money delta rises over the money amount itself; the XP pill sits on the XP bar (right
-  // of the level number, above the gap to the speed buttons). Neither covers the level number, the date or the speed
-  // buttons, nor cards/toasts below.
+  // Top-bar pills (v16): the money delta is a small pill in the gap BELOW the money amount (above the date row), so it
+  // never covers the money digits, the date, the level or the speed buttons; the XP pill sits on the XP bar (right
+  // of the level number, above the gap to the speed buttons). Neither covers cards/toasts below.
   const bar = kind.includes('xp') ? document.querySelector('#topbar .progress-xp')?.getBoundingClientRect() : null;
   if (kind.includes('top') && r) p = bar?.width ? { x: bar.left + bar.width / 2, y: bar.top } : { x: p.x, y: r.top };
   if (!p || (r && !r.width)) return;
@@ -42,8 +42,11 @@ export function floatText(anchor, text, kind = '') {
     if (box?.width) {
       const lo = box.left + w / 2, hi = box.right - w / 2;
       el.style.left = `${lo <= hi ? Math.min(Math.max(p.x, lo), hi) : (kind.includes('xp') ? hi : lo)}px`;
-      if (!kind.includes('xp')) el.style.top = `${r.top + (r.height - hgt) / 2}px`; // centred on the money text
-      else if (bar?.width) el.style.top = `${bar.top + bar.height / 2 - hgt / 2 + 1}px`; // centred on the XP bar
+      if (!kind.includes('xp')) { // in the gap between the money line and the date/speed row
+        const next = ['#clock', '#topbar .speed-group'].map((s) => document.querySelector(s)?.getBoundingClientRect()).filter((b) => b?.height);
+        const below = next.length ? Math.min(...next.map((b) => b.top)) : r.bottom + hgt;
+        el.style.top = `${Math.max(r.bottom + 2, (r.bottom + below - hgt) / 2)}px`;
+      } else if (bar?.width) el.style.top = `${bar.top + bar.height / 2 - hgt / 2 + 1}px`; // centred on the XP bar
     }
   }
   setTimeout(() => el.remove(), 2000);
@@ -99,7 +102,9 @@ export function truckDepart(cityEmoji = '🏙️') {
   setTimeout(() => el.remove(), 2000);
 }
 
+/** Haptic tick; only after the player has touched the page (Chrome blocks — and logs — vibrate before a gesture). */
 export function vibrate(pattern = 25) {
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
   try { navigator.vibrate?.(pattern); } catch { /* unsupported */ }
 }
 

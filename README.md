@@ -67,7 +67,7 @@ Enam tab di bawah: **🗺️ Ladang**, **🚜 Garasi**, **📈 Pasar**, **🐄 T
 | Pasar | 💰 Jual · 📋 Kontrak · 🚚 Kirim (🧑‍💼 Manajer Logistik + kirim manual) · 📊 Harga |
 | Ternak | satu halaman: gudang dingin, kandangku, mulai beternak, ternak terkunci, cadangan pakan |
 | Gudang | 🌾 Pertanian (silo) · 🐄 Peternakan (gudang dingin) · 🏭 Olahan (stok olahan + pabrik) |
-| Prestasi | 🎯 Misi · 🔬 Riset · 🏆 Prestasi · 💰 Keuangan (laporan, pinjaman, kekayaan) |
+| Prestasi | 🎯 Misi (misi harian, 🏆 Liga Musiman) · 🔬 Riset · 🏆 Prestasi · 📖 Ensiklopedia (prangko, 📒 Buku Rekor, kosmetik, piala ekspor) · 🌳 Warisan · 💰 Keuangan (laporan, pinjaman, kekayaan) |
 
 Pindah sub-tab dengan mengetuk bilahnya atau **menggeser layar ke kiri/kanan** (minimal sekitar 60 px dan lebih mendatar daripada tegak); isi baru masuk dari arah geseran, dan penanda di bilah ikut bergeser. Menggulir ke atas/bawah tidak terganggu. Geseran yang dimulai di peta, grafik, kolom isian, atau deretan yang bisa digulir ke samping (misalnya filter Toko) tidak mengganti sub-tab, dan di sub-tab pertama/terakhir isi hanya memantul sedikit. Bila bilah sub-tab tidak muat (layar sempit atau huruf besar), bilahnya bisa digulir ke samping dan sub-tab aktif selalu terlihat. Petunjuk "← geser untuk pindah →" muncul sekali saat pertama kali mengetuk sub-tab di layar sentuh. Sub-tab terakhir tiap tab tetap diingat.
 
@@ -420,8 +420,73 @@ Penanda iklim di `REGIONS[].climate`: `tropical` (musim basah/kering) dan `south
 - **🎯 Misi hari ini (hari game)**: setiap hari game (±1 menit nyata pada 1×; hitung mundurnya menampilkan jam game dan detik nyata) ada 3 misi baru yang disesuaikan dengan level, ladang, dan tempo bermainmu, misalnya "Panen 30 t Jagung", "Jual hasil sendiri senilai $8.000" (barang yang dibeli dari pasar lalu dijual lagi tidak dihitung), "Selesaikan 2 tugas bajak", "Sediakan 2 t pakan ternak (panen/beli)", "Kumpulkan 1.200 XP", "Selesaikan 1 kontrak", atau "Produksi 2 batch di pabrik". Semua bisa diselesaikan dengan otomatisasi: tugas dari 🔁 Rencana, jual otomatis, Manajer Logistik, dan Manajer Pabrik ikut dihitung (baris 🤖 di tiap misi). Target XP = 60–90% XP rata-rata 3 hari game terakhir. Misi yang selesai diambil lewat **Ambil** (dengan konfeti); hadiah yang lupa diambil tetap dibayar saat pergantian hari.
 - **Hadiah Berskala**: uang hadiah ikut naik dengan pendapatan produksi rata-rata 3 hari game terakhir (penjualan panen, ternak, olahan, dan kontrak dikurangi pembelian di pasar), dengan jumlah tetap lama sebagai batas bawah. Misi: 5–12% per misi (ketiganya ≤ ±30% pendapatan sehari); bonus beruntun: setengah hari; prestasi: ¼–1 hari; langkah Bab: 15%. Karena uang di akhir permainan melimpah, hadiah "besar" untuk yang sulit berupa XP dan **poin riset** (misi panen/kontrak/pabrik kadang +1 🔬, prestasi besar +1–3 🔬).
 - **🔥 Beruntun**: selesaikan ketiga misi beberapa hari berturut-turut. Setiap 7 hari beruntun ada bonus besar; satu hari terlewat membuat hitungan kembali ke 0.
-- **🏆 Papan peringkat**: 7 pertanian pesaing (misalnya Koperasi Sido Rukun, Hoeness Agrar, PT Tani Makmur, Iowa Golden Acres) yang kekayaannya tumbuh setiap hari dengan gaya masing-masing (stabil, agresif, fluktuatif). Baris pertanianmu disorot, dan ▲/▼ menunjukkan perubahan peringkat sejak kemarin. Pesaing terlemah bisa disalip dalam beberapa minggu dan peringkat #2 sekitar hari 120–180. Agro Nusantara Group terus tumbuh pesat, baru bisa disalip sekitar level 20–23, dan tetap membayangi sesudahnya.
+- **🏆 Papan peringkat** (v18: dilipat di bawah kartu 🏆 Liga Musiman sebagai **💰 Peringkat kekayaan (lama)**): 7 pertanian pesaing (misalnya Koperasi Sido Rukun, Hoeness Agrar, PT Tani Makmur, Iowa Golden Acres) yang kekayaannya tumbuh setiap hari dengan gaya masing-masing (stabil, agresif, fluktuatif). Baris pertanianmu disorot, dan ▲/▼ menunjukkan perubahan peringkat sejak kemarin. Pesaing terlemah bisa disalip dalam beberapa minggu dan peringkat #2 sekitar hari 120–180. Agro Nusantara Group terus tumbuh pesat, baru bisa disalip sekitar level 20–23, dan tetap membayangi sesudahnya.
 - **📅 Kalender Panen** (Prestasi › 🎯 Misi, juga di Laporan Pagi): satu hadiah per hari kalender nyata (jam lokal HP), siklus 7 hari, bukan uang tunai: H1 🌱 Benih Hemat (benih −50%, 5 hari game), H2 🧪 Pupuk Super (hasil panen +10%, 10 hari game), H3 🔬 +1 poin riset, H4 🐄 Ternak Ceria (produksi ternak +15%), H5 ⚡ Kerja Kilat (tugas ladang 25% lebih cepat), H6 🧺 Paket Tanam (benih −50% + hasil +10%), H7 🏆 Panen Raya (+1 poin riset, 🏅 lencana, hasil +20% dan ternak +15%). Booster dihitung dalam jam game (1 hari game = 1 menit nyata pada 1×) dan tampil sebagai chip "⚡ Booster aktif" di kartu kalender. Booster sejenis memperpanjang waktu dan memakai pengali terkuat. Satu hari terlewat membuat kalender mulai lagi dari H1; "terpanjang" tetap disimpan. Jam HP yang dimundurkan dari klaim terakhir ditolak.
+
+### 🏆 Liga Musiman (v18)
+
+Papan kekayaan sudah tidak seru di akhir permainan (kamu bisa 6× lebih kaya dari pesaing), jadi **Prestasi › 🎯 Misi** kini dibuka dengan liga keahlian. Mulai **Lv 5**, setiap **tahun game (40 hari) adalah satu musim**, dan tiap musim menilai **satu** keahlian yang dinormalkan dengan ukuran pertanian, sehingga pertanian kecil pun bisa juara:
+
+| Metrik | Arti |
+|---|---|
+| 💰 Untung per hektare | laba operasional musim ini (penjualan panen, ternak, olahan, kontrak − biaya operasional) ÷ luas ladang rata-rata ÷ hari |
+| 🌾 Panen terbaik per hektare | t/ha tanaman terbaikmu dibanding hasil dasar tanaman itu (min. 5 ha dipanen) |
+| 📋 Kontrak selesai | jumlah kontrak selesai musim ini (slot kontrak sama untuk semua ukuran) |
+| ⛽ Hemat BBM | liter BBM ladang per ton panen (min. 10 t), makin kecil makin baik |
+| 🐄 Produktivitas ternak | produk per ekor dibanding standar jenisnya (hanya bila punya ≥ 10 ekor saat musim dimulai) |
+
+- Kamu bertanding melawan 7 pesaing yang sama (Koperasi Sido Rukun … Agro Nusantara Group). Di awal tiap musim target mereka **disesuaikan dengan formmu** (rata-rata nilaimu di musim-musim sebelumnya) × kekuatan divisi ± sebaran per pesaing (stabil sempit, fluktuatif lebar). Jadi yang menentukan adalah apakah kamu lebih baik dari dirimu sendiri, bukan seberapa besar pertanianmu.
+- **Divisi** 🥉 Perunggu (pesaing ±0,90× formmu) → 🥈 Perak (0,97×) → 🥇 Emas (1,03×) → 💎 Berlian (1,09×). 2 teratas naik (▲, baris hijau), 2 terbawah turun (▼, baris merah).
+- **Hadiah** juara 1–3: piala di **🏆 Rak piala** (tetap ada lintas generasi), poin riset (juara 1: 1/2/2/3 🔬 per divisi) dan booster bertema metrik (mis. ⛽ → tugas ladang 15% lebih cepat 10 hari). Tidak pernah uang tunai.
+- Kartu liga: divisi, hitung mundur musim, penjelasan metrik, klasemen langsung, hadiah, rak piala, dan riwayat 12 musim. Saat musim berakhir muncul jendela dengan piala, peringkat, naik/turun divisi, dan konfeti; musim yang selesai saat offline (mode hemat tetap menjalankan liga, panen kasar ikut dihitung) dirangkum di jendela yang sama.
+- **Simpanan lama**: mulai di Perunggu. Bila dimuat lebih dari 3 hari setelah musim dimulai, sisa musim menjadi **🔥 Pemanasan** (formmu diukur, tanpa klasemen); musim pertama yang dinilai dimulai di awal tahun game berikutnya.
+
+### 🌳 Generasi Baru (v18)
+
+Mulai **Lv 30**, **Prestasi › 🌳 Warisan** menawarkan **Wariskan pertanian** (tidak wajib). Permainan dimulai lagi dari Lv 1 (hari 1, modal awal) dan kamu mendapat **⭐ Bintang Warisan**:
+
+`⭐ = bulat ke bawah[(level − 27) + √(kekayaan bersih ÷ $25 jt) + √prestasi + √(tahap Proyek Warisan + 3 × Monumen)] × pengali tantangan`
+
+Contoh: Lv 33, kekayaan $1 M, 30 prestasi, 12 tahap proyek → 6 + 6,3 + 5,5 + 3,5 = **21 ⭐**. Rinciannya selalu terlihat sebelum konfirmasi, dan jumlah itulah yang diberikan.
+
+- **Konfirmasi 2 langkah**: (1) peringatan apa yang hilang dan yang tetap, rincian bintang, beli perk dengan bintang yang akan didapat, pilih tantangan dan wilayah awal; (2) layar terakhir dengan tombol merah yang baru aktif setelah 2 detik. Sebelum mewariskan, simpanan lama dicadangkan ke `farm-manager-save.bak-<waktu>`.
+- **Yang tetap**: bintang, perk, lambang, rak piala liga, dan **🏛️ Museum** (ringkasan tiap generasi: nama, hari, level, kekayaan, lambang, bintang). Blok warisan disimpan di luar data permainan (kunci `legacy` di simpanan dan salinan di `localStorage` `farm-manager-legacy`), jadi juga bertahan setelah ⚙️ Reset game.
+- **Pohon perk** (12 perk, total 32 ⭐): 🌱 Akar Keluarga (modal +$15.000, 1⭐) → 🏚️ Lumbung Tua (silo +1 tingkat, 2⭐) → 🗺️ Tanah Leluhur (pilih wilayah awal Lv 1, 4⭐); 💰 Celengan Warisan (modal +$50.000, 3⭐); 📜 Catatan Kakek (+1 poin riset, 2⭐) → 📚 Perpustakaan Keluarga (+1 lagi, 4⭐); ⭐ Pengalaman Turun-temurun (XP +5%, 3⭐) → 🌟 Kebijaksanaan Leluhur (XP +5% lagi, 6⭐); 🎯 Daftar Tugas Ayah (+1 misi harian, 3⭐) → 👷 Mandor Keluarga (Mandor pertama −50%, 2⭐); 🛡️ Lambang Keluarga (pilih lambang & warna, 1⭐) → 🎨 Cat Traktor Warisan (cat mesin emas/ungu, 1⭐). Efek awal berlaku di awal setiap generasi, dan langsung sekali bila dibeli di tengah generasi; XP, misi, Mandor, dan kosmetik langsung berlaku.
+- **Tantangan** (opsional, dipilih saat mewariskan; selesai bila Lv 30 tercapai dengan aturannya): 🌴 *Hanya wilayah tropis* ×1,5 (ladang hanya di Jawa Barat, Kalimantan, Mato Grosso, Delta Mekong, Kenya), 🚫 *Tanpa sewa panen* ×1,3 (mulai dengan satu pemanen bekas; sewa pemanen/pemetik ditolak, juga di mode hemat), 🧑‍💼 *Tanpa Manajer* ×1,3 (tanpa Manajer Logistik/Pabrik; Mandor boleh). Langkah Bab Petani yang mustahil di bawah aturan itu dilewati. Tantangan bisa dilepas kapan saja (aturan dan bonusnya hilang).
+- Animasi: pohon keluarga tumbuh (satu daun per perk, satu buah per generasi di museum), bintang terbang saat membeli perk dan saat mewariskan, lambang dengan bingkai divisi liga tertinggi.
+
+### ⭐ Kualitas & Rekor (v18)
+
+Setiap panen tanaman dan buah mendapat nilai **A★ / A / B / C** dari 0–100 poin. Poin dipotong oleh faktor hasil yang sama dengan **📈 Faktor hasil**: pH di luar rentang ideal (maks. −30), nutrisi tanah rendah (maks. −25), tanaman sama dua kali (−15), tanpa pupuk (−12), hama (−8), hari kering (maks. −15), dan **panen terlambat** (lewat 12 jam setelah siap mulai turun, −12 di jam ke-72, lalu kerugian layu). Pengapuran di siklus itu memberi +4. ≥ 92 = A★, ≥ 78 = A, ≥ 55 = B, sisanya C.
+
+- **Harga jual**: A★ +15%, A +8%, B ±0, C −10%. Silo menyimpan satu kualitas rata-rata per tanaman (ditimbang per ton); stok yang dibeli di pasar dihitung B. Semua penjualan pasar (Jual, Jual semua, jual otomatis rencana, truk ke kota) memakai rata-rata itu; jual paksa gudang penuh tetap 70% harga pasar. Gudang/Pasar menampilkan lencana A★/A/C di baris produk (B tidak ditandai).
+- **⭐ Kontrak kualitas** (mulai Lv 5): satu tawaran tambahan untuk tanaman yang pernah kamu panen, harga 22–30% di atas pasar, hanya bisa dikirim bila stok rata-rata ≥ A. Memakai slot kontrak biasa.
+- **Kartu ladang**: perkiraan nilai tanaman yang sedang tumbuh, nilai dan t/ha panen terakhir, dan rekor pribadi tanaman itu (🏅). Panen yang memecahkan rekor menampilkan pita **🏅 Rekor baru!** yang bergoyang (48 jam game), toast, konfeti, dan pita besar di tengah layar. Detail ladang punya lipatan **⭐ Kualitas panen** dengan meter poin, rincian potongan, dan saran.
+- **📒 Buku Rekor** (Prestasi › 📖 Ensiklopedia): per tanaman/pohon t/ha terbaik, nilai terbaik, ladang, hari, dan jumlah panen. Mode hemat offline memberi nilai panen tepat waktu tanpa memecahkan rekor.
+
+### 📖 Ensiklopedia Tani (v18)
+
+Sub-tab **Prestasi › 📖 Ensiklopedia** berisi prangko untuk setiap tanaman, pohon buah, ternak, jenis ikan, produk olahan pabrik, wilayah, dan kota. Tiap prangko punya 3 tingkat (perunggu/perak/emas):
+
+| Baris | ★ | ★★ | ★★★ |
+|---|---|---|---|
+| Tanaman, pohon | panen pertama | 100 t dipanen | panen A★ |
+| Ternak | ternak pertama | 100 ekor sekaligus | genetika ★4 |
+| Ikan | panen pertama | 10× panen | 25× panen |
+| Produk olahan | produksi pertama | 10 batch | 100 batch |
+| Wilayah | ladang pertama | Proyek Warisan | proyek tahap 3 |
+| Kota | kiriman pertama | 10 kiriman | 50 kiriman |
+
+Prangko baru dicap dengan animasi; prangko tidak pernah turun. Melengkapi satu baris membuka **kosmetik**: 🎨 cat traktor (Emas Panen, Biru Laut, Perak Ekspor, Ungu Juara, Biru Rotterdam; dipakai di Garasi › 🔧 Upgrade), 🚩 **panji** yang berkibar di depan nama wilayahmu di 🗺️ Peta (Raja Kebun, Petani Bintang, Industri Tani, Penjelajah, Eksportir Dunia), dan 🏠 **gaya kandang** di Ternak (Lumbung Merah Klasik, Kandang Kayu Jati, Gudang Kontainer). Panji dan kandang dipilih di kartu 🎁 Kosmetik. **Simpanan lama** langsung mendapat prangko ★ yang terbukti dari simpanannya (tanaman terakhir tiap ladang, kebun yang pernah berbuah, kawanan, kolam, pabrik, wilayah, kota tujuan truk) tanpa banjir notifikasi.
+
+### 🚢 Tender Ekspor (v18)
+
+Mulai **level 35**, kira-kira tiap 40 hari muncul satu tawaran tender di atas **Pasar › 📋 Kontrak**: ribuan ton satu tanaman (mis. 26.000 t kedelai) ke pelabuhan dunia (Rotterdam, Shanghai, Dubai, Tokyo, …) dalam **30 hari**, lewat kota pelabuhan yang bisa dicapai truk (Jakarta, Odesa, Chicago, …). Besarnya dihitung dari luas ladangmu dan armada truk (±45% produksi seandainya semua ladang menanamnya, ±50% daya angkut truk), jadi tidak bisa dibeli dengan uang saja. Hanya satu tender aktif.
+
+- Kiriman berangkat dengan truk (tombol **🚚 Kirim truk**, atau **Kirim otomatis** yang mengirim truk bebas tiap jam sebelum Manajer Logistik, menyisakan 1 pekerja). Muatan dibayar saat tiba di pelabuhan (harga terkunci = pasar × 1,1). Stok tanaman tender tidak ikut dijual otomatis.
+- **⚓ Pelabuhan Ekspor** di benua pelabuhan itu memuat 0,5% tender per tahap langsung dari silo tiap malam dan menambah bonus 5% per tahap.
+- **Selesai**: bonus 25% nilai tender, +3 🔬, piala unik per tujuan (🏆 Lemari Piala di Ensiklopedia), dan kosmetik (tender pertama: Panji Eksportir Dunia + Cat Biru Rotterdam; tender ketiga: Gudang Kontainer). **Gagal**: denda kecil 3% dari sisa yang belum terkirim; kiriman yang sudah dibayar tetap milikmu.
+- Kartu tender: kapal berlayar di atas ombak, bilah kemajuan (terkirim + di jalan), kebutuhan per hari vs kapasitas armada, riwayat. Mode hemat offline tetap mengirim dengan Kirim otomatis (kapasitas armada × 50%).
 
 ### Waktu dan penyimpanan
 
@@ -458,6 +523,7 @@ css/breeding.css    Gaya panel pembiakan ternak dan dialog upgrade mesin
 css/finance.css     Gaya laporan keuangan
 css/logistics.css   Gaya pengiriman truk ke kota, Manajer Logistik, dan riset
 css/orchard.css     Gaya kebun buah dan rumah kaca
+css/v18.css         Gaya v18: lencana kualitas, Buku Rekor, Ensiklopedia, Tender Ekspor, panji peta, gaya kandang
 css/layout.css      Sub-tab, bagian yang bisa dilipat, daftar stok, tata letak layar lebar/mendatar
 js/data.js          Data game: tanaman, produk, mesin, hewan, wilayah, ladang, level, prestasi, BALANCE
 js/engine.js        Mesin game (tanpa DOM): state, waktu, aksi pemain, view, simpan/muat
@@ -470,7 +536,8 @@ js/engine/*         Modul engine: rng, defs, weather, market, fields, tasks, tas
                     stockKeep (stok disisakan), autoFeed, overflow (gudang penuh), offline (mode hemat),
                     report (Laporan Pagi), calendar (Kalender Panen + booster),
                     mandor (Mandor Ladang), saturation (pasar jenuh), kabar* (Kabar Desa + Bencana Besar),
-                    projects + projectsView (Proyek Warisan)
+                    projects + projectsView (Proyek Warisan), quality (Kualitas & Rekor),
+                    encyclopedia (Ensiklopedia Tani + kosmetik), tenders (Tender Ekspor)
 js/ui/*             Komponen antarmuka per tab
 js/main.js          Titik masuk: memuat/membuat game, game loop, autosave, navigasi tab
 tests/              Tes engine (node:test)

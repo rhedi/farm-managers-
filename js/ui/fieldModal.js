@@ -7,6 +7,7 @@ import { FIELD_REFUND } from '../engine/economy.js';
 import { openTaskModal } from './taskModal.js';
 import { fieldStatusText, fieldSignature } from './fieldStatus.js';
 import { yieldBreakdown, yieldFactorsSig } from './yieldBreakdown.js';
+import { qualitySection, qualitySig } from './quality.js'; // v18 ⭐ Kualitas panen
 import { planSection, planDraft, nextStepText } from './planEditor.js';
 import { seasonChip, forecastStrip, forecastHint } from './forecast.js';
 import { plotEl, updatePlot } from './plot.js';
@@ -199,6 +200,7 @@ function renderOwned(body, footer, f, m, live, draft) {
     planSection(app.game, f, draft, () => m.rerender()),
     f.crop ? fold('fm-yield', '📈 Faktor hasil', { meta: `${f.dryDays ?? 0} hari kering` },
       kv([['Hari kering / basah', `${f.dryDays ?? 0} / ${f.wetDays ?? 0}`]]), yieldBreakdown(f)) : null,
+    qualitySection(f),
     greenhouseSection(app.game, f),
     worldSection(app.game, f, true),
     fold('fm-land', '📍 Lahan', { meta: `${SOIL_LABEL[f.soil] ?? f.soil} · pH ${fmtPh(f.ph)}` }, kv(landInfo(f))));
@@ -212,7 +214,7 @@ function renderOwned(body, footer, f, m, live, draft) {
 export function openFieldModal(fieldId) {
   const game = app.game;
   const worldSig = (f) => `:${game.day}:${f.pest}:${f.growthMult}:${f.ph}:${f.soilState?.nutrients}:${game.state.level}:${Math.round(game.state.money / 1000)}`;
-  const modalSig = (f) => fieldSignature(f) + worldSig(f) + (f.owned ? `:${yieldFactorsSig(f)}` : `:${f.price <= game.state.money}:${f.locked}`);
+  const modalSig = (f) => fieldSignature(f) + worldSig(f) + (f.owned ? `:${yieldFactorsSig(f)}:${qualitySig(f)}` : `:${f.price <= game.state.money}:${f.locked}`);
   let sig = '';
   let draft = null; // plan editor draft, kept across re-renders
   const live = {};

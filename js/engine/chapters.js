@@ -5,6 +5,7 @@
 // `notice` = how many, for one summary toast in the UI.
 import { fmtMoney } from './defs.js';
 import { scaledCash, grantResearchPoints } from './rewards.js';
+import { chapterWaived } from './legacyPerks.js';
 
 const n = (x) => x || 0;
 const plans = (s) => Object.values(s.fields).filter((f) => f.plan).length;
@@ -41,7 +42,8 @@ const STEP_PCT = 0.15; // Hadiah Berskala: 15% of a recent day's income per step
 export const STEPS = CHAPTERS.flatMap((c) => c.steps.map((st, i) => ({ ...st, chapterId: c.id, last: i === c.steps.length - 1 })));
 
 const C = (game) => game.state.chapters;
-const met = (game, st) => st.value(game.state) >= st.target;
+// 🌳 A step the generation's challenge makes impossible (e.g. "Tanpa Manajer": hire a manager) counts as met.
+const met = (game, st) => st.value(game.state) >= st.target || chapterWaived(game, st.id);
 
 /** Shown after the tutorial's first sale (old saves: always). */
 export const chaptersStarted = (game) => n(game.state.stats.salesValue) > 0 || n(game.state.stats.productsSold) > 0;

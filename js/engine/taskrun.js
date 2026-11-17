@@ -8,6 +8,7 @@ import { storeHarvest } from './stockKeep.js';
 import { onTaskDone } from './workers.js';
 import { wearMachines, conditionOf, repairCost, repairMachine } from './wear.js';
 import { isTree, plantOrchard, afterOrchardHarvest, clearOrchard } from './orchard.js';
+import { noteHarvest } from './quality.js';
 
 /** Advance all running tasks by dt game hours. Returns the number of tasks completed. */
 export function stepTasks(game, dt) {
@@ -101,13 +102,16 @@ export function completeTask(game, fieldId) {
       extra.cropId = f.cropId;
       extra.tons = tons;
       if (tons > 0) {
+        // ⭐ v18: grade + records from the factors before the soil changes; mixes the grade into the stock price.
+        const q = noteHarvest(game, fieldId, f.cropId, tons);
+        if (q) Object.assign(extra, { grade: q.grade, tph: q.tph, record: q.record });
         // Plan option `sell`: sold at market before storing; keeps feed, contract and Manajer Pabrik stock (stockKeep.js).
         ({ stored, sold, soldValue } = storeHarvest(game, f.cropId, tons, { sell: !!f.plan?.sell }));
         state.stats.harvests++;
         state.stats.tonsHarvested = round2(state.stats.tonsHarvested + tons);
         const base = idx.products.get(f.cropId)?.basePrice ?? 0;
         game.addXp(Math.round(xpForValue(game, tons * base)));
-        msg = `Panen ${crop.emoji} ${crop.name} di ${fname}: ${fmtNum(stored)} t masuk silo.`;
+        msg = `Panen ${crop.emoji} ${crop.name} di ${fname}: ${fmtNum(stored)} t masuk silo${q ? ` · kualitas ${q.label}` : ''}.`;
       } else msg = `Panen di ${fname} gagal: tanaman sudah layu habis.`;
       onHarvest(game, fieldId, f.cropId);
       msg += payHarvest(game, f.cropId, job.cost ?? 0, job.costSplit);

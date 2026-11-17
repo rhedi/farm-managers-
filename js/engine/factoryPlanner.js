@@ -20,10 +20,12 @@ export function controlledIds(game, tier, settings) {
   return tier.factories == null ? ids : ids.slice(0, tier.factories);
 }
 
-/** Remaining quantity of active contracts per product. */
+/** Remaining quantity of active contracts per product (+ what the active 🚢 Tender Ekspor still has to send). */
 export function contractNeed(game) {
   const need = {};
   for (const c of game.state.contracts || []) if (c.status === 'active') add(need, c.productId, Math.max(0, c.qty - c.delivered));
+  const t = game.state.tenders?.active;
+  if (t) add(need, t.productId, Math.max(0, t.qty - t.delivered - (t.inTransit || 0)));
   return need;
 }
 

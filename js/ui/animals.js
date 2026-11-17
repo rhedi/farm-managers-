@@ -130,7 +130,9 @@ function herdPen(a, prod) {
     el.style.setProperty('--period', `${period}s`);
     return el;
   };
-  return h(`div.herd-pen.pen-${style}`, { 'aria-hidden': 'true' }, kids,
+  const barn = app.game.activeCosmetic?.('barn'); // v18 🎁 gaya kandang (Ensiklopedia / Tender cosmetic)
+  return h(`div.herd-pen.pen-${style}${barn ? `.${barn.id}` : ''}`, { 'aria-hidden': 'true' }, kids,
+    barn ? h('span.barn-sign', barn.emoji) : null,
     pop('herd-say', SAYS[a.id] ?? '♪', 0, 11), n > 2 ? pop('herd-say', SAYS[a.id] ?? '♪', 2, 13) : null,
     prod ? pop('herd-pop', prod.emoji, 1, 7) : null, prod && n > 3 ? pop('herd-pop', prod.emoji, 3, 9) : null);
 }
@@ -201,7 +203,7 @@ function computeSig(game) {
   const head = `${sub}|${game.state.level}|`;
   if (sub === 'fish') return head + fishSig(game); // daily numbers + badge are patched in place (fishLiveSig)
   const cold = game.storageInfo('cold');
-  return `${head}${fishAlerts(game)}|${game.day}|${Math.floor(game.state.money / 500)}|${reserveSig(game)}|${cold.used}:${cold.capacity}|`
+  return `${head}${fishAlerts(game)}|${game.day}|${Math.floor(game.state.money / 500)}|${reserveSig(game)}|${cold.used}:${cold.capacity}|${game.state.encyclopedia?.barn ?? ''}|`
     + game.animalsView().map((a) => `${a.count}:${a.barns}:${a.feedStock}:${a.quality}:${breedingSig(a)}:`
       + [3, 7].map((d) => game.feedQuote(a.id, d)?.affordable).join(':')).join(',');
 }

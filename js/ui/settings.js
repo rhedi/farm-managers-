@@ -44,7 +44,7 @@ function themePicker() {
 async function resetFlow() {
   const ok = await confirmModal({
     title: 'Mulai ulang permainan?',
-    message: 'Semua kemajuan (uang, ladang, mesin, ternak) akan dihapus permanen. Lanjutkan?',
+    message: 'Semua kemajuan (uang, ladang, mesin, ternak) akan dihapus permanen. ⭐ Bintang Warisan, perk, rak piala, dan Museum tetap. Lanjutkan?',
     confirmLabel: 'Hapus & mulai baru', danger: true,
   });
   if (ok) app.resetGame();

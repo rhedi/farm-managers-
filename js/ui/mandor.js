@@ -38,9 +38,10 @@ function candidateItem(c) {
       h('div.card-title', `${c.name} `, h('span.ops-stars', stars(c.stars))),
       h('div.card-sub', h('b', c.title), ` · ${tierLine(c)}`),
       h('div.card-sub', `Gaji ${fmtMoney(c.wage)}/hari`, c.reason ? h('span.disp-why', ` · ${c.reason}`) : null)),
-    h('button.btn.btn-small.btn-primary', { type: 'button', disabled: !!c.reason, 'aria-label': `Rekrut ${c.name} ${fmtMoney(c.hireCost)}`,
+    h('button.btn.btn-small.btn-primary', { type: 'button', disabled: !!c.reason, 'aria-label': `Rekrut ${c.name} ${fmtMoney(c.price)}`,
       onclick: () => act(app.game.hireMandor(c.id), hireMsg(c)) },
-    c.locked ? `🔒 Lv ${c.unlockLevel}` : 'Rekrut', h('span.disp-cost', fmtMoney(c.hireCost))));
+    c.locked ? `🔒 Lv ${c.unlockLevel}` : 'Rekrut', h('span.disp-cost', fmtMoney(c.price)), // price: 🌳 Mandor Keluarga discount
+    c.price < c.hireCost ? h('s.small.muted', fmtMoney(c.hireCost)) : null));
 }
 
 async function swapFlow(v, c) {

@@ -11,6 +11,7 @@ import { perk } from './research.js';
 import { boostMult } from './calendar.js';
 import { projectPerk } from './projects.js';
 import { mandorSpeed } from './mandor.js';
+import { challengeBlock } from './legacyPerks.js';
 
 export const RENT_HA_PER_HOUR = 1.0;
 // Orchard tasks (orchard.js): prune on growing trees, clear (tebang) on any orchard; orchardAllows refines them.
@@ -59,7 +60,7 @@ export function availableMachinesFor(game, task) {
     upgrades: upgradesOf(m), upgradeLevel: upgradeLevel(m), paint: m.paint ?? null });
   const all = game.state.machines.filter((m) => defOf(game, m));
   if (task === 'harvest') {
-    return { harvesters: all.filter((m) => defOf(game, m).type === 'harvester').map(view), canRent: true,
+    return { harvesters: all.filter((m) => defOf(game, m).type === 'harvester').map(view), canRent: !challengeBlock(game, 'rent'),
       rentPerHa: game.data.STARTING.harvesterRentPerHa, rentHaPerHour: RENT_HA_PER_HOUR };
   }
   return {
@@ -110,11 +111,11 @@ function pickHarvester(game, opts) {
   if (opts.rent) return { ok: true, uids: [], rate: RENT_HA_PER_HOUR, fuelPerHour: 0, rented: true };
   let hs = ms.filter((m) => defOf(game, m)?.type === 'harvester');
   if (opts.harvesterId) hs = hs.filter((m) => m.uid === opts.harvesterId);
-  if (!hs.length) return fail(opts.harvesterId ? 'Pemanen tidak ditemukan.' : 'Kamu tidak punya pemanen. Sewa pemanen?', { canRent: true });
+  if (!hs.length) return fail(opts.harvesterId ? 'Pemanen tidak ditemukan.' : 'Kamu tidak punya pemanen. Sewa pemanen?', { canRent: !challengeBlock(game, 'rent') });
   const free = hs.filter((m) => !m.busy).sort((a, b) => (opts.avoidWorn
     ? (conditionOf(a) < BREAKDOWN_BELOW) - (conditionOf(b) < BREAKDOWN_BELOW) : 0)
     || effOf(game, b).haPerHour - effOf(game, a).haPerHour);
-  if (!free.length) return fail('Pemanen sedang dipakai. Sewa pemanen?', { canRent: true });
+  if (!free.length) return fail('Pemanen sedang dipakai. Sewa pemanen?', { canRent: !challengeBlock(game, 'rent') });
   const d = effOf(game, free[0]);
   return { ok: true, uids: [free[0].uid], rate: d.haPerHour, fuelPerHour: d.fuelPerHour };
 }
@@ -132,6 +133,8 @@ export function planTask(game, fieldId, task, opts = {}) {
   if (!def) return fail('Ladang tidak ditemukan.');
   if (!f) return fail('Kamu belum memiliki ladang ini.');
   if (f.busy) return fail('Ladang sedang dikerjakan.');
+  const rule = opts.rent ? challengeBlock(game, 'rent') : ''; // 🌳 challenge "Tanpa sewa panen" (harvester + pickers)
+  if (rule) return fail(rule);
   if (!stateAllows(game, f, task)) return fail(`Tidak bisa ${TASK_NAMES[task].toLowerCase()} ladang dalam kondisi ini.`);
   if (task === 'fertilize' && f.fertilized) return fail('Ladang sudah dipupuk.');
   if (task === 'irrigate' && f.irrigated) return fail('Ladang sudah diairi.');

@@ -12,6 +12,7 @@ import { orchardFactors, stepOrchardHour, orchardView } from './orchard.js';
 import { greenhouseFactors, greenhouseView, hasGreenhouse } from './greenhouse.js';
 import { perk } from './research.js';
 import { boostMult } from './calendar.js';
+import { fieldQuality } from './quality.js';
 
 export const WITHER_AFTER_HOURS = 72;
 export const WITHER_PER_DAY = 0.1;
@@ -194,6 +195,7 @@ export function getFieldView(game, fieldId) {
     wetDays: f.wetDays,
     predictedYield: crop ? expectedYield(game, fieldId, crop.id) : 0,
     yieldFactors,
+    quality: fieldQuality(game, fieldId, fac), // ⭐ v18 {last: {grade, label, tph, best, fresh…} | null, preview: {grade, label, score, parts} | null}
     plan: f.plan ? { ...f.plan } : null,
     nextStep: nextStepFor(game, fieldId),
     actions: availableActions(game, fieldId),
