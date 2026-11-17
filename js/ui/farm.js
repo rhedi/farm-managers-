@@ -1,6 +1,6 @@
 // Ladang tab: 🌾 Ladangku (fields that need a step first, then running ones, fields for sale) | 🗺️ Peta.
 // Wide screens (≥1000 px) show both panes side by side.
-import { h, patch, liveNode, setText, fmtMoney, fmtPh, progressBar, STATE_LABEL, STATE_EMOJI } from './dom.js';
+import { h, patch, liveNode, setText, releaseHeights, fmtMoney, fmtPh, progressBar, STATE_LABEL, STATE_EMOJI } from './dom.js';
 import { app } from './app.js';
 import { openFieldModal, actionButton } from './fieldModal.js';
 import { fieldStatusText, fieldSignature } from './fieldStatus.js';
@@ -105,10 +105,29 @@ function forSaleFold(fields) {
       `🗺️ Lihat semua di peta (${sale.length})`));
 }
 
+// At 2×/5× a field hopped between "⚡ Perlu tindakan" and "⏳ Sedang berjalan" many times a minute (a plan waiting an
+// hour for a free harvester, …) and cards changed shape with every step, jumping every card below. There sections are
+// re-sorted, and the grow-only card heights (main.js holdView) released, at most once per game day and on a fresh
+// render (tab / sub-tab switch); at 1× both follow the fields at once.
+let placed = null; // { day, todo: Map<fieldId, boolean> }
+
 function fieldsPane(fields) {
   const owned = fields.filter((f) => f.owned);
-  const todo = owned.filter(needsAction);
-  const running = owned.filter((f) => !needsAction(f));
+  const game = app.game;
+  const fresh = !document.querySelector('#view .pane-fields');
+  const want = () => new Map(owned.map((f) => [f.id, needsAction(f)]));
+  if (fresh || game.state.speed < 2) {
+    placed = { day: game.day, todo: want() };
+    if (!fresh) releaseHeights(document.getElementById('view'));
+  } else if (placed?.day !== game.day) { // new game day: re-sort (and let cards shrink) only if a field changes section
+    const next = want();
+    const moved = !placed || [...next].some(([id, t]) => placed.todo.get(id) !== t);
+    placed = { day: game.day, todo: moved ? next : placed.todo };
+    if (moved) releaseHeights(document.getElementById('view'));
+  }
+  for (const f of owned) if (!placed.todo.has(f.id)) placed.todo.set(f.id, needsAction(f));
+  const todo = owned.filter((f) => placed.todo.get(f.id));
+  const running = owned.filter((f) => !placed.todo.get(f.id));
   banner = eventsBanner(app.game);
   return h('div.pane.pane-fields',
     banner,

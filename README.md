@@ -512,7 +512,7 @@ Tampilan diperbarui di tempat. Setiap render membangun pohon baru, lalu `patch()
 
 - Notifikasi yang digabung (×N) tetap di tempatnya; tumpukannya digeser dengan `translate`, jadi notifikasi baru tidak membuat yang lain melompat. Pada 2×/5× kiriman Manajer Logistik, resep Manajer Pabrik, muatan terjual, kiriman tender, dan panen kolam otomatis digabung dalam satu notifikasi 🤖.
 - Angka uang/XP yang melayang digabung per 0,25 dtk (1×), 0,5 dtk (2×), atau 1 dtk (5×).
-- Baris status kartu ladang menyimpan tinggi tertingginya selama satu langkah, jadi hitung mundur yang berganti satu/dua baris tidak menggeser kartu di bawahnya.
+- Kartu, barisnya, dan daftar di tab yang terbuka hanya bisa membesar (`holdHeights` di `js/ui/dom.js`): angka yang berganti satu/dua baris atau truk yang datang dan pergi tidak menggeser isi di bawahnya. Ketukan atau membuka/menutup lipatan melepas tahanan itu; ganti tab/sub-tab mulai dari awal. Angka di tampilan memakai digit sama lebar. Pasar › 🚚 Kirim punya slot tetap untuk truk di jalan (maks. 3, sisanya "+N truk lainnya di jalan"). Di Ladang pada 2×/5×, ladang pindah antara "⚡ Perlu tindakan" dan "⏳ Sedang berjalan" paling banyak sekali per hari game (1×: langsung); baris status menyimpan tinggi tertingginya selama satu langkah.
 - Ikan, awan peta, dan kapal tender bergerak dengan `translate` (satuan `cqw`), tanpa layout ulang.
 
 Diukur dengan simpanan Lv 35, hari 1.070, 30 ladang berencana, pada 5×: rata-rata 21 sub-tab turun dari ±1,8 bangun ulang isi per detik menjadi 0, dan animasi yang mulai ulang dari puluhan per detik menjadi ±0.

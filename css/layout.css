@@ -224,3 +224,8 @@
   .chips { gap: 4px; }
   .chip { flex: 1 1 auto; min-width: 0; padding: 6px 6px; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* Steady numbers at 5× (main.js holdView): equal-width digits, and a list held at its tallest height keeps its rows at
+   their own size with the spare room below instead of stretching them. */
+#view { font-variant-numeric: tabular-nums; }
+#view [style*="min-height"] { align-content: start; }

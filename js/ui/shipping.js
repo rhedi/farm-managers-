@@ -7,15 +7,6 @@ import { iconOf } from './fishArt.js';
 
 const pick = { truck: null, city: null };
 const cargo = new Map(); // productId → typed qty (survives re-render)
-// At 5× trucks leave and come back several times a second: while trips run, the in-transit list keeps its tallest
-// height, so the form below it doesn't jump with every departure/return.
-let tripsMinH = 0;
-function holdTripsHeight() {
-  const el = document.querySelector('#view .ship-trips');
-  if (!el || el.offsetHeight <= tripsMinH) return;
-  tripsMinH = el.offsetHeight;
-  el.style.minHeight = `${tripsMinH}px`;
-}
 
 const pctTxt = (m) => `${m >= 1 ? '+' : '−'}${fmtNum(Math.abs(m - 1) * 100)}%`;
 
@@ -118,12 +109,22 @@ function tripCard(t) {
       : `Perkiraan ${fmtMoney(t.estValue)} · tiba di kota ${fmtHours(Math.max(0, t.hours / 2 - t.done))} lagi`));
 }
 
+// Trucks leave and come back many times a minute at 5×: the in-transit list has fixed slots (one per truck, at most
+// TRIP_SLOTS, empty ones kept as blank space) plus a "+N lainnya" line, so the form below never moves.
+const TRIP_SLOTS = 3;
+function tripSlots(trucks, trips) {
+  const slots = Math.min(TRIP_SLOTS, trucks.length);
+  const shown = trips.slice(0, slots);
+  return h('div.cards.ship-trips',
+    shown.map(tripCard),
+    Array.from({ length: slots - shown.length }, () => h('div.ship-slot', { 'aria-hidden': 'true' })),
+    trucks.length > TRIP_SLOTS ? h('div.small.muted.ship-trips-more', trips.length > slots ? `+${trips.length - slots} truk lainnya di jalan` : ' ') : null);
+}
+
 export function shippingPanel() {
   const game = app.game;
   if (!game.trucksView) return null;
   const trucks = game.trucksView(), cities = game.citiesView(), trips = game.shipmentsView();
-  if (!trips.length) tripsMinH = 0;
-  else requestAnimationFrame(holdTripsHeight);
   chooseDefaults(trucks, cities);
   const truck = trucks.find((t) => t.uid === pick.truck);
   const title = h('div.section-title', '🚚 Pengiriman', h('span.spacer'), h('span.small.muted', `${trips.length} di jalan`));
@@ -134,7 +135,7 @@ export function shippingPanel() {
   const rows = cargoRows(game, pick.city);
   const open = cities.filter((c) => c.unlocked && c.reachable), closed = cities.filter((c) => !(c.unlocked && c.reachable));
   return h('section.section.ship', title,
-    trips.length ? h('div.cards.ship-trips', { style: tripsMinH ? { minHeight: `${tripsMinH}px` } : null }, trips.map(tripCard)) : null,
+    tripSlots(trucks, trips),
     h('div.card.ship-form',
       h('div.small.muted', '1. Truk'), h('div.choice-list', trucks.map(truckChoice)),
       h('div.small.muted.eco-subtitle', '2. Kota tujuan'),

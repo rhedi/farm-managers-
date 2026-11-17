@@ -2,7 +2,7 @@
 import { createGame, loadFrom, loadLegacy } from './engine.js';
 import { SAVE_KEY } from './engine/persist.js';
 import { app } from './ui/app.js';
-import { fmtHours } from './ui/dom.js';
+import { fmtHours, holdHeights, releaseHeights } from './ui/dom.js';
 import { toast, isModalOpen, refreshModal, closeModal } from './ui/modal.js';
 import { initTopbar, updateTopbar } from './ui/topbar.js';
 import { renderFarm, updateFarm } from './ui/farm.js';
@@ -73,8 +73,21 @@ for (const t of ['pointerup', 'pointercancel']) window.addEventListener(t, () =>
 function renderView(fresh = false) {
   if (fresh) viewEl.replaceChildren();
   VIEWS[currentTab].render(viewEl);
+  holdView();
   lastViewUpdate = performance.now();
 }
+
+// Cards, their lines and lists only grow while the tab stays open (dom.js holdHeights): at 5× numbers wrap and
+// unwrap and trucks come and go many times a second, and the content below would jump each time. A tap or an
+// opened/closed fold in the view releases the holds (the player's own change may shrink the page); Ladang also
+// releases them once per game day at 2×/5× and on every re-render at 1× (farm.js).
+const HOLD = ['.card', '.card > *', '.list-item', '.stock-row', '.section > *', '.fold-body > *']
+  .map((s) => `#view ${s}:not(details)`).join(', ');
+function holdView() {
+  holdHeights([...viewEl.querySelectorAll(HOLD)]);
+}
+viewEl.addEventListener('click', () => releaseHeights(viewEl));
+viewEl.addEventListener('toggle', () => releaseHeights(viewEl), true);
 
 function updateView(now) {
   lastViewUpdate = now;
@@ -85,6 +98,7 @@ function updateView(now) {
     return;
   }
   VIEWS[currentTab].update(viewEl);
+  holdView();
 }
 
 function onGameEvent(ev) {

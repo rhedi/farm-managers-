@@ -139,6 +139,8 @@ function syncNode(o, n) {
   for (const name of o.getAttributeNames()) if (!n.hasAttribute(name)) o.removeAttribute(name);
   const fx = fxOn.get(o);
   if (fx) for (const c of fx) o.classList.add(c);
+  const hold = held.get(o);
+  if (hold) o.style.minHeight = `${hold}px`;
   if (n.__on) for (const t in n.__on) if (!o.__on?.[t]) o.addEventListener(t, onEvent);
   o.__on = n.__on;
   patchChildren(o, [...n.childNodes]);
@@ -148,6 +150,28 @@ function syncNode(o, n) {
   } else if (/^(INPUT|SELECT|TEXTAREA)$/.test(o.tagName) && o !== document.activeElement) {
     if (o.value !== n.value) o.value = n.value;
     if (o.checked !== n.checked) o.checked = n.checked;
+  }
+}
+
+const held = new WeakMap(); // live node → held height (px), re-applied by patch() as min-height
+
+/** Grow-only heights: each element keeps the tallest height it had since it was rendered, so a number that wraps to
+ *  a second line and back (or a list that loses a row at 5×) never pulls the content below up and down. Fresh renders
+ *  (tab / sub-tab switch) start over. Reads all heights first (one layout), then writes. */
+export function holdHeights(els) {
+  const hs = els.map((el) => Math.ceil(el.getBoundingClientRect().height));
+  els.forEach((el, i) => {
+    if (!hs[i] || hs[i] <= (held.get(el) ?? 0)) return;
+    held.set(el, hs[i]);
+    el.style.minHeight = `${hs[i]}px`;
+  });
+}
+
+/** Drop the held heights inside `root` (the player changed something: the page may shrink now). */
+export function releaseHeights(root) {
+  for (const el of root.querySelectorAll('[style*="min-height"]')) {
+    if (!held.delete(el)) continue;
+    el.style.minHeight = '';
   }
 }
 

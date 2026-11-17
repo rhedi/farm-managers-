@@ -14,7 +14,7 @@
 .ship-estimate .progress { margin-bottom: 8px; }
 .ship-send { min-width: 8em; }
 .ship-trip .progress { margin: 8px 0 4px; }
-.ship-trips { align-content: start; } /* held min-height (shipping.js) leaves room below instead of stretching cards */
+.ship-trips > .ship-trip, .ship-slot { min-height: 108px; } /* fixed slots (shipping.js tripSlots): the form below stays put */
 
 /* ---- research ---- */
 .level-tap { cursor: pointer; position: relative; }
