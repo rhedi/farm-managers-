@@ -2,7 +2,7 @@
 // the plot while busy, sway when ready, grey when withering, 🐛 on pests.
 // Built once per card render; updatePlot() only touches CSS vars/text so running
 // CSS animations never restart.
-import { h } from './dom.js';
+import { h, setText } from './dom.js';
 
 const SPRITES = 14;
 
@@ -66,6 +66,6 @@ export function updatePlot(el, f) {
   const stage = stageEmoji(f);
   if (el.dataset.stage !== stage) {
     el.dataset.stage = stage;
-    for (const s of el.querySelectorAll('.sp')) s.textContent = stage;
+    for (const s of el.querySelectorAll('.sp')) setText(s, stage);
   }
 }

@@ -1,6 +1,6 @@
 // Visual feedback: floating "+$1.234" texts, confetti bursts, money counter tween.
 // All motion is CSS-driven; elements remove themselves when their animation ends.
-import { fmtMoney, fmtNum, fmtCompact } from './dom.js';
+import { fmtMoney, fmtNum, fmtCompact, setText } from './dom.js';
 
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 let layer = null;
@@ -115,6 +115,9 @@ let lastXp = null;
 let pendingMoney = 0;
 let pendingXp = 0;
 let flushAt = 0;
+/** Deltas merge into one float per window: at 2×/5× money moves almost every frame, so one pill (and one bump) per
+ *  0.5 s / 1 s instead of a new one every 250 ms. */
+const mergeMs = (speed) => (speed >= 5 ? 1000 : speed >= 2 ? 500 : 250);
 
 /** Animate #money toward the real value and float merged money/XP deltas near the top bar. */
 export function tickMoneyFx(game, now = performance.now()) {
@@ -122,17 +125,18 @@ export function tickMoneyFx(game, now = performance.now()) {
   const xp = game.state.xp;
   const moneyEl = document.getElementById('money');
   if (lastMoney === null || lastXp === null) { lastMoney = money; lastXp = xp; return; }
+  const wait = mergeMs(game.state.speed);
   if (money !== lastMoney) {
     const shown = tween.active ? currentTween(now) : lastMoney;
     Object.assign(tween, { from: shown, to: money, t0: now, active: !reduced() });
     pendingMoney += money - lastMoney;
     lastMoney = money;
-    flushAt = flushAt || now + 250;
+    flushAt = flushAt || now + wait;
   }
-  if (xp !== lastXp) { pendingXp += xp - lastXp; lastXp = xp; flushAt = flushAt || now + 250; }
+  if (xp !== lastXp) { pendingXp += xp - lastXp; lastXp = xp; flushAt = flushAt || now + wait; }
   if (tween.active && moneyEl) {
     const done = now - tween.t0 >= tween.dur;
-    moneyEl.textContent = fmtMoney(done ? tween.to : currentTween(now));
+    setText(moneyEl, fmtMoney(done ? tween.to : currentTween(now)));
     if (done) tween.active = false;
   }
   if (flushAt && now >= flushAt) {

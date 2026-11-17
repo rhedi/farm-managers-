@@ -1,7 +1,7 @@
 // 📰 Kabar Desa UI: the newspaper card on top of Ladang › Ladangku (open dilemma / Bencana Besar), the detail sheet
 // with options (concrete cost/odds, the default marked, live countdown), the outcome "stamp", the disaster forecast
 // sheet (opened once by itself), and the history list for Prestasi. Engine: game.kabarView/chooseDilemma/prepareDisaster.
-import { h, mount, fmtMoney, fmtHours } from './dom.js';
+import { h, mount, setText, fmtMoney, fmtHours } from './dom.js';
 import { app } from './app.js';
 import { openModal, isModalOpen, toast } from './modal.js';
 
@@ -60,7 +60,7 @@ export function updateKabarCard(root, game) {
   for (const el of els) {
     const t = el.dataset.kabarCd === 'open' ? (v?.open ? countdown(game, v.open.hoursLeft) : '')
       : (v?.disaster ? disasterLine(game, v.disaster) : '');
-    if (el.textContent !== t) el.textContent = t;
+    setText(el, t);
   }
 }
 

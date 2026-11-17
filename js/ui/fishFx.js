@@ -1,7 +1,8 @@
 // Peternakan ikan visuals: animated pond (waves, ripples, swimming fish, aerator bubbles) and the harvest splash.
 // Motion is CSS (css/fish.css); reduced-motion users get static ponds via the global rule in style.css.
-// Scenes are patched in place (updateScene) so the swim/wave animations never restart on a data change.
-import { h } from './dom.js';
+// Scenes are rebuilt by each render and merged into the one on screen (dom.js patch), so the swim/wave animations
+// never restart on a data change.
+import { h, playFx } from './dom.js';
 import { iconOf } from './fishArt.js';
 
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -17,11 +18,11 @@ function fishSprite(i, def) {
 }
 
 /**
- * Bring a scene up to date without re-creating it: water tint / ready / empty classes, 1–6 fish sprites by fill
- * (existing sprites keep swimming; only extra ones are added or removed), sprite size by growth, swim speed by
- * water, aerator bubbles. Speed changes go through `animation-duration`, which keeps the current progress.
+ * Fill a scene: water tint / ready / empty classes, 1–6 fish sprites by fill, sprite size by growth, swim speed by
+ * water, aerator bubbles. Speed changes go through `animation-duration`, which keeps the current progress when the
+ * view patch carries it over to the scene on screen.
  */
-export function updateScene(el, p) {
+function updateScene(el, p) {
   const water = waterClass(p.water);
   for (const c of WATER) el.classList.toggle(c, c === water);
   el.classList.toggle('pond-ready', !!p.ready);
@@ -70,13 +71,10 @@ export function harvestSplash(el, def) {
   setTimeout(() => box.remove(), 1300);
 }
 
-/** Fresh-water wash over a pond after "Ganti air". */
+/** Fresh-water wash over a pond after "Ganti air" (kept through view patches until it ends). */
 export function waterWash(el) {
   if (!el || reduced()) return;
-  el.classList.remove('pond-wash');
-  void el.offsetWidth;
-  el.classList.add('pond-wash');
-  el.addEventListener('animationend', (e) => { if (e.animationName === 'pond-wash') el.classList.remove('pond-wash'); });
+  playFx(el, 'pond-wash');
 }
 
 export const sceneOf = (uid) => document.querySelector(`.pond-scene[data-uid="${uid}"]`);

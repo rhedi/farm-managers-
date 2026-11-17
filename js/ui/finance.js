@@ -1,5 +1,5 @@
 // 📊 Laporan Keuangan: income vs operating cost per period (game.financeReport), opened from the topbar money
-// and Prestasi › Keuangan. Full-height modal; re-renders only when the numbers change.
+// and Prestasi › Keuangan. Full-height modal; re-renders in place (modal.update) only when the numbers change.
 import { h, mount, fmtMoney, fmtPct } from './dom.js';
 import { openModal } from './modal.js';
 import { app } from './app.js';
@@ -58,7 +58,7 @@ function spanText(r, game) {
   return `Hari ${first}–${last} · ${r.days} hari (termasuk hari ini)`;
 }
 
-function renderReport(body, game) {
+function renderReport(body, game, modal) {
   const r = game.financeReport(period);
   const v = verdict(r);
   const daily = r.daily.length >= 2 ? r.daily : game.financeReport('7d').daily;
@@ -66,7 +66,7 @@ function renderReport(body, game) {
   const tone = (x) => (v.cls === 'flat' ? '' : x >= 0 ? 'pos' : 'neg');
   mount(body,
     h('div.fin-tabs', { role: 'tablist' }, PERIODS.map(([id, name]) => h(`button.fin-tab${id === period ? '.active' : ''}`,
-      { role: 'tab', 'aria-selected': String(id === period), onclick: () => { period = id; rerender(body); } }, name))),
+      { role: 'tab', 'aria-selected': String(id === period), onclick: () => { period = id; modal.update(); } }, name))),
     h('p.small.muted.fin-span', spanText(r, game)),
     h(`div.fin-verdict.${v.cls}`, v.text),
     h('div.fin-tiles',
@@ -96,20 +96,12 @@ const sigOf = (game) => {
 };
 let shownSig = '';
 
-function rerender(body) {
-  const scroller = body.closest('.modal');
-  const top = scroller?.scrollTop ?? 0;
-  renderReport(body, app.game);
-  shownSig = sigOf(app.game);
-  if (scroller) scroller.scrollTop = top;
-}
-
 export function openFinanceReport(initial) {
   if (initial) period = initial;
   openModal({
     title: '📊 Laporan Keuangan',
-    render: (body, modal) => { modal.el.querySelector('.modal')?.classList.add('fin-modal'); renderReport(body, app.game); shownSig = sigOf(app.game); },
-    refresh: (modal) => { if (sigOf(app.game) !== shownSig) rerender(modal.body); },
+    render: (body, modal) => { modal.el.querySelector('.modal')?.classList.add('fin-modal'); renderReport(body, app.game, modal); shownSig = sigOf(app.game); },
+    refresh: (modal) => { if (sigOf(app.game) !== shownSig) modal.update(); },
   });
 }
 

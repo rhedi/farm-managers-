@@ -1,6 +1,6 @@
 // Top bar: money (tap → Laporan Keuangan), level/XP (tap → 🔬 Riset), clock, season + weather (tap → forecast).
-// Research points are announced by the Prestasi tab badge. Cheap: textContent / style only.
-import { fmtMoney, fmtClock, weatherEmoji, fmtNum, fmtCompact } from './dom.js';
+// Research points are announced by the Prestasi tab badge. Cheap: text node / style only, written when changed.
+import { fmtMoney, fmtClock, weatherEmoji, fmtNum, fmtCompact, setText as writeText } from './dom.js';
 import { openForecastModal } from './forecast.js';
 import { openFinanceReport } from './finance.js';
 import { openResearchModal } from './research.js';
@@ -12,21 +12,22 @@ let xpObserver = null;
 
 /** XP text: "98/115jt" (shared unit once) when it fits, else only "85%"; "MAX" at max level. Width is measured only
  *  when the full text changes or the level stat resizes (ResizeObserver: money growth, fonts, rotation); not cached
- *  before layout. */
+ *  before layout. A big balance can squeeze the text to 0 px: that still counts as laid out (else the full text was
+ *  rewritten and measured on every frame). */
 function updateXpText(el, li) {
   const a = fmtCompact(li.xp).replace(/ /g, ''), b = fmtCompact(li.next).replace(/ /g, '');
   const unit = /[a-z]+$/.exec(b)?.[0];
   const full = li.maxed ? 'MAX' : `${unit && a.endsWith(unit) ? a.slice(0, -unit.length) : a}/${b}`;
   if (last.xpFull !== full) {
-    el.textContent = full; last.xpText = full;
+    writeText(el, full); last.xpText = full;
     last.xpFits = el.scrollWidth <= el.clientWidth;
-    if (el.clientWidth > 0) last.xpFull = full;
+    if (el.getClientRects().length) last.xpFull = full;
   }
   setText(el, 'xpText', last.xpFits ? full : `${Math.floor(li.progress * 100)}%`);
 }
 
 function setText(el, key, text) {
-  if (last[key] !== text) { last[key] = text; el.textContent = text; }
+  if (last[key] !== text) { last[key] = text; writeText(el, text); }
 }
 
 export function initTopbar(game, onSpeed) {

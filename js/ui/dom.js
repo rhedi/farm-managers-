@@ -8,6 +8,8 @@ export function escapeHtml(s) {
 /**
  * Hyperscript: h('div.card.x', { onclick, dataset, style, disabled }, ...children)
  * Children may be strings, numbers, nodes, arrays, null/false (skipped).
+ * `on*` handlers go through one shared listener that calls `el.__on[type]`, so patch() can give a kept node the
+ * handlers of its freshly rendered twin (closures over the current data) without stacking listeners.
  */
 export function h(tag, attrs, ...children) {
   if (attrs == null || typeof attrs !== 'object' || attrs instanceof Node || Array.isArray(attrs)) {
@@ -19,7 +21,7 @@ export function h(tag, attrs, ...children) {
   if (classes.length) el.className = classes.join(' ');
   for (const [k, v] of Object.entries(attrs)) {
     if (v == null || v === false) continue;
-    if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    if (k.startsWith('on') && typeof v === 'function') { const t = k.slice(2); (el.__on ??= {})[t] = v; el.addEventListener(t, onEvent); }
     else if (k === 'class') el.className = [el.className, v].filter(Boolean).join(' ');
     else if (k === 'dataset') Object.assign(el.dataset, v);
     else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
@@ -30,6 +32,8 @@ export function h(tag, attrs, ...children) {
   appendAll(el, children);
   return el;
 }
+
+function onEvent(e) { return this.__on?.[e.type]?.call(this, e); }
 
 function appendAll(el, children) {
   for (const c of children) {
@@ -44,6 +48,107 @@ export function mount(el, ...children) {
   el.replaceChildren();
   appendAll(el, children);
   return el;
+}
+
+/** Set an element's text, rewriting its one text node in place (no node swap) and only when it changed. */
+export function setText(el, text) {
+  if (!el) return;
+  const t = el.firstChild;
+  if (t && t === el.lastChild && t.nodeType === 3) {
+    if (t.nodeValue !== text) t.nodeValue = text;
+  } else if (el.textContent !== text) el.textContent = text;
+}
+
+// ---------- in-place patch ----------
+// Periodic re-renders build a fresh tree and patch() merges it into the nodes already on screen: an equal node is
+// kept and only its changed attributes, text and children are written, so running CSS animations, transitions,
+// focus and scroll stay put. Only nodes that really appear or disappear are inserted or removed.
+
+/** Attributes that identify a list item among its siblings (else: tag + first class, in order). */
+const KEY_ATTRS = ['data-key', 'data-field-id', 'data-uid', 'data-pond', 'data-product-id', 'data-region', 'data-sub', 'data-chip', 'data-perk', 'data-tab'];
+const twins = new WeakMap(); // freshly rendered node → the kept node it was merged into
+const fxOn = new WeakMap(); // live node → one-shot effect classes still playing (playFx); patch() keeps them
+
+/** The on-screen node for a node built by the last render (patch() may have kept an older equal node instead). */
+export const liveNode = (n) => (n && twins.get(n)) || n;
+
+function keyOf(n) {
+  if (n.nodeType !== 1) return `#${n.nodeType}`;
+  const cls = n.getAttribute('class');
+  const k = cls ? `${n.nodeName}.${cls.trim().split(/\s/, 1)[0]}` : n.nodeName;
+  for (const a of KEY_ATTRS) {
+    const v = n.getAttribute(a);
+    if (v !== null) return `${k}[${a}=${v}]`;
+  }
+  return k;
+}
+
+/** Play a one-shot CSS animation class (keyframes named like the class) on a live node: restarts it if it is already
+ *  playing, removes it when it ends, and keeps it through in-place patches meanwhile. */
+export function playFx(el, cls) {
+  if (!el) return;
+  el.classList.remove(cls);
+  void el.offsetWidth; // commit the removal so a repeat starts over
+  el.classList.add(cls);
+  let on = fxOn.get(el);
+  if (!on) fxOn.set(el, on = new Set());
+  on.add(cls);
+  const end = (e) => {
+    if (e.target !== el || e.animationName !== cls) return;
+    el.removeEventListener('animationend', end);
+    on.delete(cls);
+    el.classList.remove(cls);
+  };
+  el.addEventListener('animationend', end);
+}
+
+/** Make el's children equal to `children` (same arguments as mount), keeping and updating equal nodes in place. */
+export function patch(el, ...children) {
+  const fresh = document.createDocumentFragment();
+  appendAll(fresh, children);
+  patchChildren(el, [...fresh.childNodes]);
+  return el;
+}
+
+function patchChildren(parent, next) {
+  const pool = new Map();
+  for (const o of parent.childNodes) {
+    const k = keyOf(o);
+    if (pool.has(k)) pool.get(k).push(o); else pool.set(k, [o]);
+  }
+  const kept = next.map((n) => pool.get(keyOf(n))?.shift() ?? null);
+  // Drop leftovers first, so kept nodes never have to be moved past them (a move restarts their animations).
+  for (const list of pool.values()) for (const o of list) o.remove();
+  let at = parent.firstChild;
+  next.forEach((n, i) => {
+    const o = kept[i];
+    if (o) syncNode(o, n);
+    const node = o ?? n;
+    if (node === at) at = at.nextSibling;
+    else parent.insertBefore(node, at);
+  });
+}
+
+function syncNode(o, n) {
+  twins.set(n, o);
+  if (o.nodeType !== 1) {
+    if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue;
+    return;
+  }
+  for (const { name, value } of n.attributes) if (o.getAttribute(name) !== value) o.setAttribute(name, value);
+  for (const name of o.getAttributeNames()) if (!n.hasAttribute(name)) o.removeAttribute(name);
+  const fx = fxOn.get(o);
+  if (fx) for (const c of fx) o.classList.add(c);
+  if (n.__on) for (const t in n.__on) if (!o.__on?.[t]) o.addEventListener(t, onEvent);
+  o.__on = n.__on;
+  patchChildren(o, [...n.childNodes]);
+  // Form state lives in properties, not attributes; never overwrite what the player is typing.
+  if (o.tagName === 'OPTION') {
+    if (o.selected !== n.selected) o.selected = n.selected;
+  } else if (/^(INPUT|SELECT|TEXTAREA)$/.test(o.tagName) && o !== document.activeElement) {
+    if (o.value !== n.value) o.value = n.value;
+    if (o.checked !== n.checked) o.checked = n.checked;
+  }
 }
 
 // ---------- formatting (id-ID) ----------

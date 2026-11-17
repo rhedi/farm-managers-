@@ -74,6 +74,27 @@ export function dedupToast(key, msg, kind = '', merged = null, amount = 0, now =
   return text;
 }
 
+// At 2×/5× the managers fire several times per game hour. Their streams share one "🤖" toast with a count per stream,
+// instead of 3–4 merged toasts pushing each other out of the 2-toast stack (a new slide-in several times a second).
+const DIGEST = {
+  auto_dispatch: (n) => `🧑‍💼 ${n} truk berangkat`,
+  factory_manager_run: (n) => `🏭 ${n} resep dijalankan`,
+  delivery_done: (n) => `🚚 ${n} muatan terjual`,
+  tender_delivery: (n) => `🚢 ${n} kiriman tender`,
+  fish_harvest: (n) => `🎣 ${n} kolam dipanen otomatis`,
+};
+const digest = new Map(); // type → {n, at}
+
+function digestToast(ev, now = Date.now()) {
+  let r = digest.get(ev.type);
+  if (!r || now - r.at > DEDUP_MS) { r = { n: 0 }; digest.set(ev.type, r); }
+  r.n += 1; r.at = now;
+  const live = [...digest].filter(([, x]) => now - x.at <= DEDUP_MS);
+  const text = live.length === 1 && r.n === 1 ? ev.msg : `🤖 ${live.map(([type, x]) => DIGEST[type](x.n)).join(' · ')}`;
+  toast(text, 'success', { key: 'digest', merged: () => text });
+}
+const digested = (ev) => !!DIGEST[ev.type] && (app.game?.state.speed ?? 1) >= 2;
+
 /** Season changes only matter for regions where the player owns a field. */
 function ownsRegion(regionId) {
   const g = app.game;
@@ -100,10 +121,16 @@ export function notifyEvent(ev) {
   if (ev.type === 'disaster_forecast') setTimeout(() => maybeShowDisaster(app.game), 0); // big disaster: the one blocking sheet
   // Types with a `merged` summary ("3 ladang siap panen", one feed warning, "N prestasi baru") merge by type; all
   // others merge only identical messages, so a different message never shows under the first one's text.
-  if (t && !skip) dedupToast(t.merged ? ev.type : `${ev.type}|${ev.msg}`, ev.msg, t.kind, t.merged ?? null, ev.reward || 0);
+  if (t && !skip) {
+    if (digested(ev)) digestToast(ev);
+    else dedupToast(t.merged ? ev.type : `${ev.type}|${ev.msg}`, ev.msg, t.kind, t.merged ?? null, ev.reward || 0);
+  }
   if (ev.type === 'animals_born') bornToast(ev);
   onboardingEvent(ev);
-  if (ev.type === 'fish_harvest' && ev.auto) dedupToast('fish_harvest', ev.msg, 'success', (n) => `🎣 ${n} kolam dipanen otomatis.`);
+  if (ev.type === 'fish_harvest' && ev.auto) {
+    if (digested(ev)) digestToast(ev);
+    else dedupToast('fish_harvest', ev.msg, 'success', (n) => `🎣 ${n} kolam dipanen otomatis.`);
+  }
   if (ev.type === 'level_up') queueLevelUp(ev);
   if (ev.type === 'quality_record' || ev.type === 'cosmetic_unlocked' || ev.type === 'tender_done') celebrateV18(ev);
   return ev.type === 'level_up' || ev.type === 'achievement' || ev.type === 'chapter_step';

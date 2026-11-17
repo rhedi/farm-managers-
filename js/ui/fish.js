@@ -1,11 +1,11 @@
 // Ternak › 🐟 Ikan: pond cards (animated scene, growth / kualitas air / survival, panen, tebar, ganti air, aerator,
-// auto toggles) + pelet / build / locked (fishShop.js). Numbers that change daily are patched in place
-// (patchFish) so pond animations keep running; only structural changes (fishSig) rebuild the pane.
+// auto toggles) + pelet / build / locked (fishShop.js). The Ternak view patches the pane in place (dom.js patch), so
+// pond animations keep running while the numbers change.
 import { h, fmtMoney, fmtNum, fmtPct, progressBar } from './dom.js';
 import { app, act } from './app.js';
 import { floatText, vibrate } from './fx.js';
 import { sfx } from './sfx.js';
-import { pondScene, updateScene, harvestSplash, waterWash, sceneOf } from './fishFx.js';
+import { pondScene, harvestSplash, waterWash, sceneOf } from './fishFx.js';
 import { iconOf } from './fishArt.js';
 import { pelletPanel, buildFolds } from './fishShop.js';
 
@@ -26,7 +26,7 @@ function toggle(p, key, label) {
     onchange: (e) => act(app.game.setPondAuto(p.uid, { [key]: e.target.checked })) }), h('span', label));
 }
 
-// Live parts of a card (rebuilt by the patch; none of them animate).
+// Parts of a card that change with the daily numbers.
 const subText = (p) => (p.count === 0 ? `Kapasitas ${fmtNum(p.def.capacity)} ekor · benih ${fmtMoney(p.def.capacity * p.def.fryPrice)}`
   : `${fmtNum(p.count)} ekor · ${p.ready ? 'panen sekarang' : `±${p.daysLeft} hari lagi`} · ≈ ${fmtNum(p.expectedKg)} kg`);
 const status = (p) => (p.count === 0 ? h('span.badge.pond-status', 'Kosong') : p.ready ? h('span.badge.badge-green.pond-ready-badge.pond-status', '✅ Siap panen')
@@ -67,19 +67,19 @@ export function fishAlerts(game, v = game.fishView()) {
   return v.ponds.filter((p) => p.count > 0 && (p.ready || p.water < 50 || noPellet)).length;
 }
 
-/** Structural signature: a change rebuilds the pane (which ponds/defs exist, filled/ready/aerator, toggles, build affordability). */
+/** Which ponds/defs exist, filled/ready/aerator, toggles, build affordability (part of the Ternak view signature). */
 export function fishSig(game) {
   const v = game.fishView(), m = game.state.money;
   return v.ponds.map((p) => `${p.uid}:${p.count > 0}:${p.ready}:${p.aerator}:${p.autoWater}:${p.autoRestock}`).join(',')
     + '|' + v.defs.map((d) => `${d.unlocked}:${d.owned}:${m >= d.buildCost ? 1 : 0}`).join('');
 }
 
-/** Pond button enabled states (patched in place). */
+/** Pond button disabled states. */
 function buttonStates(p, money) {
   return { stock: money < p.def.capacity * p.def.fryPrice, water: p.water >= 99.5 || money < p.def.waterCost, aerator: money < p.aeratorCost };
 }
 
-/** Everything else the pane shows (patched in place). */
+/** Everything else the pane shows: pelet, pond numbers, button states (part of the Ternak view signature). */
 export function fishLiveSig(game) {
   const v = game.fishView(), m = game.state.money;
   return `${v.pellet.stock}:${v.pellet.needPerDay}:${[3, 7].map((d) => game.pelletQuote(d)?.affordable).join(':')}|`
@@ -96,29 +96,4 @@ export function fishPane() {
         : `Peternakan ikan terbuka di level ${Math.min(...v.defs.map((d) => d.unlockLevel))}.`),
     buildFolds(v),
     h('p.hint', 'Ikan makan pelet tiap hari. Air kotor (<40%) memperlambat tumbuh & membunuh ikan — ganti air atau pasang aerator. Hasil panen masuk Gudang dingin.'));
-}
-
-/** Update numbers, meters and scenes of the rendered pane without touching the animated nodes. */
-export function patchFish(root) {
-  const v = app.game.fishView();
-  root.querySelector('.pond-pellet')?.replaceWith(pelletPanel(v));
-  for (const p of v.ponds) {
-    const card = root.querySelector(`.pond-card[data-pond="${p.uid}"]`);
-    if (!card) continue;
-    card.classList.toggle('pond-alert', p.waterBad);
-    for (const [role, off] of Object.entries(buttonStates(p, app.game.state.money))) {
-      const b = card.querySelector(`button[data-role="${role}"]`);
-      if (b && b.disabled !== off) b.disabled = off;
-    }
-    const sub = card.querySelector('.pond-sub');
-    if (sub.textContent !== subText(p)) sub.textContent = subText(p);
-    card.querySelector('.pond-status').replaceWith(status(p));
-    card.querySelector('.pond-meters').replaceWith(meters(p));
-    card.querySelector('.pond-info').replaceWith(info(p));
-    const hb = card.querySelector('.pond-harvest');
-    if (hb) hb.textContent = harvestLabel(p);
-    updateScene(card.querySelector('.pond-scene'), p);
-    const st = status(p), old = card.querySelector('.pond-status');
-    if (old.textContent !== st.textContent) old.replaceWith(st);
-  }
 }

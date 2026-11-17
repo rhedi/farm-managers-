@@ -1,6 +1,6 @@
 // Ladang tab: 🌾 Ladangku (fields that need a step first, then running ones, fields for sale) | 🗺️ Peta.
 // Wide screens (≥1000 px) show both panes side by side.
-import { h, mount, fmtMoney, fmtPh, progressBar, STATE_LABEL, STATE_EMOJI } from './dom.js';
+import { h, patch, liveNode, setText, fmtMoney, fmtPh, progressBar, STATE_LABEL, STATE_EMOJI } from './dom.js';
 import { app } from './app.js';
 import { openFieldModal, actionButton } from './fieldModal.js';
 import { fieldStatusText, fieldSignature } from './fieldStatus.js';
@@ -22,6 +22,11 @@ let sig = '';
 let live = new Map(); // fieldId → { bar, status, plot }
 let map = null; // { el, regions }
 let banner = null;
+
+// A countdown that wraps to two lines and back ("±18 jam" ↔ "±16 jam 48 mnt") bounced every card below it several
+// times a second at 5×: a status line keeps the tallest height it had during the field's current step.
+const statusMinH = new Map(); // `${fieldId}:${state}:${task}` → px
+const stepKey = (f) => `${f.id}:${f.state}:${f.task ?? ''}`;
 
 /** A field the player should look at now: ready/idle/plowed without a running plan, pests, withering. */
 export function needsAction(f) {
@@ -66,7 +71,8 @@ function renderMap(fields, continent) {
 function fieldCard(f) {
   const st = f.state;
   const bar = progressBar(f.progress, st === 'busy' ? 'thin.blue' : st === 'ready' ? 'thin.gold' : 'thin');
-  const status = h('div.fc-status-text', fieldStatusText(f));
+  const minH = statusMinH.get(stepKey(f));
+  const status = h('div.fc-status-text', { style: minH ? { minHeight: `${minH}px` } : null }, fieldStatusText(f));
   const plot = plotEl(f);
   live.set(f.id, { bar, status, plot });
   const acts = (f.actions || []).filter((a) => a !== 'sell');
@@ -165,26 +171,37 @@ export function renderFarm(root) {
     if (news) panes[0].prepend(news);
   }
   const pv = app.game.projectsView?.();
-  mount(root,
+  patch(root,
     subTabBar('farm', [
       { id: 'fields', icon: '🌾', label: 'Ladangku', badge: todo || null },
       { id: 'map', icon: '🗺️', label: 'Peta' },
       { id: 'projects', icon: '🏛️', label: 'Proyek', badge: pv?.building || null },
     ], sub),
     panes);
+  // patch() keeps the cards, plots and map already on screen: point the live refs at those.
+  for (const l of live.values()) { l.bar = liveNode(l.bar); l.status = liveNode(l.status); l.plot = liveNode(l.plot); }
+  if (map) map.el = liveNode(map.el);
+  banner = liveNode(banner);
 }
 
-/** Cheap periodic update: rebuild only when states/actions change. */
+/** Cheap periodic update: patch the view when states/actions change, else only bars, texts and plots. */
 export function updateFarm(root) {
   const fields = app.game.fieldsView();
   if (computeSig(fields) !== sig) { renderFarm(root); return; }
   for (const f of fields) {
     const l = live.get(f.id);
     if (!l) continue;
-    l.bar.firstChild.style.width = `${Math.round(f.progress * 100)}%`;
-    const t = fieldStatusText(f);
-    if (l.status.textContent !== t) l.status.textContent = t;
+    const w = `${Math.round(f.progress * 100)}%`;
+    if (l.bar.firstChild.style.width !== w) l.bar.firstChild.style.width = w;
+    setText(l.status, fieldStatusText(f));
     updatePlot(l.plot, f);
+  }
+  for (const f of fields) { // heights read after all writes: one layout
+    const l = live.get(f.id);
+    const hgt = l?.status.offsetHeight;
+    if (!hgt || hgt <= (statusMinH.get(stepKey(f)) ?? 0)) continue;
+    statusMinH.set(stepKey(f), hgt);
+    l.status.style.minHeight = `${hgt}px`;
   }
   if (map) updateMapFx(map.el, app.game, map.regions);
   updateEventsBanner(banner, app.game);

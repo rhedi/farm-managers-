@@ -1,5 +1,5 @@
 // Pasar tab: 💰 Jual (stock by category, price trend, partial sell) | 📋 Kontrak | 🚚 Kirim (Manajer Logistik + manual) | 📊 Harga.
-import { h, mount, fmtMoney, fmtPrice } from './dom.js';
+import { h, patch, fmtMoney, fmtPrice } from './dom.js';
 import { fmtAmt } from './ecoFmt.js';
 import { app, act } from './app.js';
 import { contractsPanel, contractsSig, deliverableCount } from './contracts.js';
@@ -101,7 +101,8 @@ function buyRow(p) {
 
 /** Jual row: the stock row (one-tap "Jual $value"), tap elsewhere to expand trend + partial sell. */
 function sellRow(it, p) {
-  return h('details.stock-detail', { open: openRows.has(it.id), ontoggle: (e) => (e.target.open ? openRows.add(it.id) : openRows.delete(it.id)) },
+  return h('details.stock-detail', { dataset: { key: it.id }, open: openRows.has(it.id),
+    ontoggle: (e) => (e.target.open ? openRows.add(it.id) : openRows.delete(it.id)) },
     h('summary', stockRow(it, trendChip(p.change))),
     h('div.stock-detail-body', priceDetail(p), partialSell(p, it)));
 }
@@ -124,7 +125,7 @@ function sellPane(game, byId) {
 
 /** Harga row: name + price; expands to the price detail, the stock line and (crops) buying. */
 function priceRow(p) {
-  return h('details.eco-prow',
+  return h('details.eco-prow', { dataset: { key: p.id } },
     h('summary',
       h('span.mkt-pname', h('span.mkt-pname-text', iconOf(p), ' ', p.name), eventBadge(p, true)),
       h('span.mkt-pprice', h('span.num', `${fmtPrice(p.price)}/${p.unit}`), trendChip(p.change))),
@@ -157,7 +158,7 @@ export function renderMarket(root) {
   const items = game.marketView();
   const byId = new Map(items.map((p) => [p.id, p]));
   const deliver = deliverableCount(game);
-  mount(root,
+  patch(root,
     subTabBar('market', [
       { id: 'sell', icon: '💰', label: 'Jual' },
       { id: 'contracts', icon: '📋', label: 'Kontrak', badge: deliver || null },

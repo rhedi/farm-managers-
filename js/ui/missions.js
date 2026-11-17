@@ -1,5 +1,5 @@
 // Prestasi tab: 📖 Bab Petani chapter card, game-day missions card and rival leaderboard card (stream C).
-import { h, fmtMoney, fmtNum, fmtHours, progressBar } from './dom.js';
+import { h, setText, fmtMoney, fmtNum, fmtHours, progressBar } from './dom.js';
 import { app, act } from './app.js';
 import { sfx } from './sfx.js';
 import { confetti } from './fx.js';
@@ -56,8 +56,7 @@ export function missionsCard(game) {
 
 /** In-place countdown refresh (avoids re-rendering the tab every game hour). */
 export function updateMissionsCountdown(root, game) {
-  const el = root.querySelector('.ms-reset');
-  if (el) el.textContent = resetText(game.missionsView());
+  setText(root.querySelector('.ms-reset'), resetText(game.missionsView()));
 }
 
 /** '🏆 Papan peringkat' card. */

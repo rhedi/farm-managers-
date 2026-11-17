@@ -2,7 +2,7 @@
 // indicator that slides to the active sub-tab), swipe left/right on the content to change sub-tab, and
 // collapsible sections. The chosen sub-tab per tab and each section's open state survive re-renders and
 // reloads (localStorage 'farm-manager-ui', separate from the game save).
-import { h } from './dom.js';
+import { h, liveNode, playFx } from './dom.js';
 import { app } from './app.js';
 import { toast } from './modal.js';
 
@@ -25,20 +25,18 @@ export function setSub(tab, id) {
 
 const touchUi = () => !!window.matchMedia?.('(pointer: coarse)').matches;
 
-/** Switch sub-tab: re-render, back to the top, slide the new content in from the side it came from (dir ±1). */
+/** Switch sub-tab: render the new content fresh, back to the top, slide it in from the side it came from (dir ±1). */
 function switchSub(tab, id, dir) {
   setSub(tab, id);
-  app.requestRender();
+  app.requestRender({ fresh: true });
   window.scrollTo(0, 0);
-  const cls = dir > 0 ? 'sub-in-next' : 'sub-in-prev';
-  for (const el of document.querySelectorAll('#view > :not(.subtabs)')) {
-    el.classList.add(cls);
-    el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
-  }
+  for (const el of document.querySelectorAll('#view > :not(.subtabs)')) playFx(el, dir > 0 ? 'sub-in-next' : 'sub-in-prev');
 }
 
-/** Last indicator position and bar scroll per tab, so a re-rendered bar slides on from where it was. */
+/** Last indicator position and bar scroll per tab, so a re-rendered bar slides on from where it was; a bar patched in
+ *  place is rendered with that position so the indicator never blinks to 0 for a frame. */
 const barPos = {};
+const indStyle = (p) => ({ transform: `translateX(${p.x}px)`, width: `${p.w}px`, top: `${p.top}px`, height: `${p.h}px` });
 
 function placeIndicator(nav, animate = true) {
   const btn = nav.querySelector('.subtab.active');
@@ -53,14 +51,14 @@ function placeIndicator(nav, animate = true) {
     void ind.offsetWidth; // commit the old position before animating to the new one
     ind.style.transition = animate ? '' : 'none';
   }
-  const x = btn.offsetLeft, w = btn.offsetWidth;
-  Object.assign(ind.style, { transform: `translateX(${x}px)`, width: `${w}px`, top: `${btn.offsetTop}px`, height: `${btn.offsetHeight}px` });
+  const x = btn.offsetLeft, w = btn.offsetWidth, top = btn.offsetTop, hgt = btn.offsetHeight;
+  Object.assign(ind.style, indStyle({ x, w, top, h: hgt }));
   nav.classList.add('has-ind');
   // Keep the active sub-tab in view when the bar scrolls.
   const max = nav.scrollWidth - nav.clientWidth;
   const scroll = max > 0 ? Math.max(0, Math.min(max, x - (nav.clientWidth - w) / 2)) : 0;
   if (Math.abs(scroll - nav.scrollLeft) > 1) nav.scrollTo({ left: scroll, behavior: prev && animate ? 'smooth' : 'auto' });
-  barPos[tab] = { x, w, scroll };
+  barPos[tab] = { x, w, scroll, top, h: hgt };
 }
 
 window.addEventListener('resize', () => {
@@ -73,8 +71,9 @@ window.addEventListener('resize', () => {
  */
 export function subTabBar(tab, items, active) {
   const at = items.findIndex((it) => it.id === active);
-  const nav = h('nav.subtabs', { role: 'tablist', 'aria-label': 'Bagian', dataset: { tab } },
-    h('span.subtab-ind', { 'aria-hidden': 'true' }),
+  const pos = barPos[tab];
+  const nav = h(`nav.subtabs${pos ? '.has-ind' : ''}`, { role: 'tablist', 'aria-label': 'Bagian', dataset: { tab } },
+    h('span.subtab-ind', { 'aria-hidden': 'true', style: pos ? indStyle(pos) : null }),
     items.map((it, i) => h(
       `button.subtab${it.id === active ? '.active' : ''}`,
       { type: 'button', role: 'tab', 'aria-selected': String(it.id === active), dataset: { sub: it.id },
@@ -90,7 +89,7 @@ export function subTabBar(tab, items, active) {
       h('span.subtab-icon', { 'aria-hidden': 'true' }, it.icon),
       h('span.subtab-label', it.label),
       it.badge ? h(`span.subtab-badge${it.warn ? '.warn' : ''}`, String(it.badge)) : null)));
-  requestAnimationFrame(() => placeIndicator(nav));
+  requestAnimationFrame(() => placeIndicator(liveNode(nav)));
   return nav;
 }
 

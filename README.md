@@ -506,6 +506,17 @@ v16: angka uang yang melayang (+$1,2 jt) naik dari angka saldo itu sendiri, dan 
 
 Di layar lebar (≥ 1000 px), tab **Ladang** menampilkan Ladangku dan Peta berdampingan: kartu ladang di kiri, peta di kanan (tetap terlihat saat menggulir). Di ponsel mendatar, bar atas menjadi satu baris.
 
+### Layar tanpa kedip
+
+Tampilan diperbarui di tempat. Setiap render membangun pohon baru, lalu `patch()` (`js/ui/dom.js`) hanya menulis atribut, teks, dan anak yang berubah ke node yang sudah tampil (baris daftar dikenali lewat `data-key` / `data-field-id` / `data-product-id` …). Animasi (tanaman bergoyang, traktor, ikan berenang, ternak berjalan, awan peta) tidak mengulang dari awal, bilah kemajuan bergeser halus, dan posisi gulir serta fokus tetap. Halaman dibangun ulang penuh hanya saat ganti tab atau sub-tab (isi masuk dengan animasinya). Jendela Detail ladang dan Laporan Keuangan juga diperbarui di tempat (`modal.update()`).
+
+- Notifikasi yang digabung (×N) tetap di tempatnya; tumpukannya digeser dengan `translate`, jadi notifikasi baru tidak membuat yang lain melompat. Pada 2×/5× kiriman Manajer Logistik, resep Manajer Pabrik, muatan terjual, kiriman tender, dan panen kolam otomatis digabung dalam satu notifikasi 🤖.
+- Angka uang/XP yang melayang digabung per 0,25 dtk (1×), 0,5 dtk (2×), atau 1 dtk (5×).
+- Baris status kartu ladang menyimpan tinggi tertingginya selama satu langkah, jadi hitung mundur yang berganti satu/dua baris tidak menggeser kartu di bawahnya.
+- Ikan, awan peta, dan kapal tender bergerak dengan `translate` (satuan `cqw`), tanpa layout ulang.
+
+Diukur dengan simpanan Lv 35, hari 1.070, 30 ladang berencana, pada 5×: rata-rata 21 sub-tab turun dari ±1,8 bangun ulang isi per detik menjadi 0, dan animasi yang mulai ulang dari puluhan per detik menjadi ±0.
+
 ## Struktur proyek
 
 ```

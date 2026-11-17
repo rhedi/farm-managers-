@@ -577,26 +577,28 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
 @keyframes slide-up { from { transform: translateY(40px); opacity: 0; } }
 
 /* ---------- Toasts ---------- */
+/* The stack is placed with `translate` (modal.js layoutToasts) instead of flex flow: a toast arriving or leaving slides
+   the others to their new place and never shifts layout. */
 #toast-root {
   position: fixed;
   left: 0;
   right: 0;
   bottom: calc(var(--nav-h) + var(--safe-b) + 46px); /* above the bottom tabs and the truck lane (fx.js truckDepart) */
   z-index: 60;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
   pointer-events: none;
-  padding: 0 12px;
 }
 .toast {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  margin: 0 auto;
+  width: fit-content;
   pointer-events: none;
   display: flex;
   align-items: center;
   gap: 8px;
   max-width: min(420px, calc(100vw - 24px));
-  width: auto;
   background: var(--toast-bg);
   color: #f4f2e2;
   padding: 5px 5px 5px 12px;
@@ -607,11 +609,12 @@ label { font-size: .85rem; color: var(--ink-soft); font-weight: 600; }
   overflow-wrap: anywhere;
   font-weight: 500;
   animation: toast-in .2s ease;
+  transition: translate .25s ease;
 }
 /* Toasts stack upward just above the bottom tabs, away from card headers, switches and sub-tabs at the top.
    With a modal open (sheet covers the bottom), they sit over the dimmed topbar so they never cover the sheet header/✕. */
 body.modal-open #toast-root { top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; }
-body.modal-open .toast { animation-name: toast-in-top; }
+body.modal-open .toast { top: 0; bottom: auto; animation-name: toast-in-top; }
 .toast-msg { flex: 1; min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .toast .btn { pointer-events: auto; flex: none; }
 .pwa-install { margin: 6px 0; }
@@ -631,7 +634,7 @@ body.modal-open .toast { animation-name: toast-in-top; }
 .toast.success { background: rgba(60, 109, 33, .95); }
 .toast.error { background: rgba(155, 51, 34, .95); }
 .toast.warn { background: rgba(138, 106, 18, .95); }
-.toast.leaving { opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; }
+.toast.leaving { opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s, translate .25s ease; }
 body.modal-open .toast.leaving { transform: translateY(-8px); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
 @keyframes toast-in-top { from { opacity: 0; transform: translateY(-10px); } }

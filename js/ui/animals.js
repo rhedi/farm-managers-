@@ -1,6 +1,6 @@
 // Ternak tab, two sub-tabs: 🐄 Hewan (own herds: production, feed, quality first; "Kelola" and breeding folded; herds to
 // start; locked herds; feed reserves) and 🐟 Ikan (js/ui/fish.js). Both show the Gudang Dingin card on top.
-import { h, mount, fmtMoney, fmtNum, fmtPct, progressBar } from './dom.js';
+import { h, patch, fmtMoney, fmtNum, fmtPct, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
 import { app, act } from './app.js';
 import { fmtAmt } from './ecoFmt.js';
@@ -8,14 +8,13 @@ import { econRow, reservePanel, reserveSig } from './animalEcon.js';
 import { breedingPanel, breedingSig, starRating, fmtGene } from './breeding.js';
 import { fold, goTo, subTabBar, getSub } from './subtabs.js';
 import { stockByCategory, groupValue } from './stock.js';
-import { fishPane, fishSig, fishLiveSig, fishAlerts, patchFish } from './fish.js';
+import { fishPane, fishSig, fishLiveSig, fishAlerts } from './fish.js';
 import { iconOf } from './fishArt.js';
 import { autoFeedToggle } from './autoFeedToggle.js';
 
 const qty = new Map(); // animalId → typed count (survives re-render)
 const manageOpen = new Set(); // herds whose "Kelola kawanan" panel is open
 let sig = '';
-let liveSig = ''; // Ikan sub-tab: numbers patched in place
 
 function productOf(a) {
   return app.game.data.PRODUCTS.find((p) => p.id === a.product);
@@ -200,10 +199,10 @@ const SUBS = ['animals', 'fish'];
 
 function computeSig(game) {
   const sub = getSub('animals', SUBS);
-  const head = `${sub}|${game.state.level}|`;
-  if (sub === 'fish') return head + fishSig(game); // daily numbers + badge are patched in place (fishLiveSig)
   const cold = game.storageInfo('cold');
-  return `${head}${fishAlerts(game)}|${game.day}|${Math.floor(game.state.money / 500)}|${reserveSig(game)}|${cold.used}:${cold.capacity}|${game.state.encyclopedia?.barn ?? ''}|`
+  const head = `${sub}|${game.state.level}|${cold.used}:${cold.capacity}|`;
+  if (sub === 'fish') return `${head}${fishSig(game)}|${fishLiveSig(game)}`;
+  return `${head}${fishAlerts(game)}|${game.day}|${Math.floor(game.state.money / 500)}|${reserveSig(game)}|${game.state.encyclopedia?.barn ?? ''}|`
     + game.animalsView().map((a) => `${a.count}:${a.barns}:${a.feedStock}:${a.quality}:${breedingSig(a)}:`
       + [3, 7].map((d) => game.feedQuote(a.id, d)?.affordable).join(':')).join(',');
 }
@@ -232,37 +231,20 @@ function animalsPane(game) {
   ];
 }
 
-/** Ikan pane already on screen with the same structure: patch numbers in place (pond animations keep running). */
-function patchFishPane(root) {
-  root.querySelector(':scope > .link-card')?.replaceWith(storageLink(app.game));
-  patchFish(root);
-  const btn = root.querySelector('.subtab[data-sub="fish"]');
-  const n = fishAlerts(app.game);
-  let badge = btn?.querySelector('.subtab-badge');
-  if (btn && n && !badge) btn.appendChild(badge = h('span.subtab-badge.warn'));
-  if (badge) { if (n) badge.textContent = String(n); else badge.remove(); }
-  liveSig = fishLiveSig(app.game);
-}
-
 export function renderAnimals(root) {
   const game = app.game;
-  const next = computeSig(game);
+  sig = computeSig(game);
   const sub = getSub('animals', SUBS);
-  if (sub === 'fish' && next === sig && root.querySelector(':scope > .fish-section')) return patchFishPane(root);
-  sig = next;
   const alerts = fishAlerts(game);
-  mount(root,
+  patch(root,
     subTabBar('animals', [
       { id: 'animals', icon: '🐄', label: 'Hewan' },
       { id: 'fish', icon: '🐟', label: 'Ikan', badge: alerts || null, warn: true },
     ], sub),
     storageLink(game),
     sub === 'fish' ? fishPane() : animalsPane(game));
-  liveSig = sub === 'fish' ? fishLiveSig(game) : '';
 }
 
 export function updateAnimals(root) {
-  const game = app.game;
-  if (computeSig(game) !== sig) renderAnimals(root);
-  else if (getSub('animals', SUBS) === 'fish' && fishLiveSig(game) !== liveSig) patchFishPane(root);
+  if (computeSig(app.game) !== sig) renderAnimals(root);
 }

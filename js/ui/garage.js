@@ -1,5 +1,5 @@
 // Garasi tab: 🚜 Mesin (owned: condition, upgrade, repair, sell) | 👷 Pekerja | 🛒 Toko (type chips, locked folded).
-import { h, mount, fmtMoney, fmtNum, fmtPct, progressBar, MACHINE_TYPE_LABEL, TASK_LABEL } from './dom.js';
+import { h, patch, fmtMoney, fmtNum, fmtPct, progressBar, MACHINE_TYPE_LABEL, TASK_LABEL } from './dom.js';
 import { subTabBar, getSub, chipBar, fold } from './subtabs.js';
 import { confirmModal } from './modal.js';
 import { app, act } from './app.js';
@@ -169,7 +169,7 @@ export function renderGarage(root) {
   const owned = game.machinesView();
   const sub = getSub('garage', SUBS);
   const worn = owned.filter((m) => (m.condition ?? 1) < WORN).length;
-  mount(root,
+  patch(root,
     subTabBar('garage', [
       { id: 'machines', icon: '🚜', label: 'Mesin', badge: worn || null, warn: true },
       { id: 'workers', icon: '👷', label: 'Pekerja' },

@@ -143,17 +143,17 @@
 /* ---------- 🚢 Tender Ekspor ---------- */
 .tender-card { position: relative; display: grid; gap: 6px; overflow: hidden; }
 .tender-card.urgent { border-color: var(--red-line); }
-.td-sea { position: relative; height: 46px; margin: -4px -4px 2px; border-radius: var(--radius-s); overflow: hidden;
+.td-sea { position: relative; height: 46px; margin: -4px -4px 2px; border-radius: var(--radius-s); overflow: hidden; container-type: inline-size;
   background: linear-gradient(180deg, var(--sea-a), var(--sea-b)); }
 .td-wave { position: absolute; left: -50%; width: 200%; height: 14px; bottom: 0; opacity: .8;
   background: radial-gradient(circle at 10px -4px, transparent 9px, var(--sea-foam) 10px, transparent 11px) 0 0 / 20px 14px repeat-x;
   animation: td-wave 6s linear infinite; }
 .td-wave.w2 { bottom: 6px; opacity: .45; animation-duration: 9s; animation-direction: reverse; }
-.td-ship { position: absolute; bottom: 6px; left: 6%; font-size: 1.6rem; animation: td-sail 14s ease-in-out infinite, td-bob 2.2s ease-in-out infinite; }
+.td-ship { position: absolute; bottom: 6px; left: 0; translate: 6cqw 0; font-size: 1.6rem; animation: td-sail 14s ease-in-out infinite, td-bob 2.2s ease-in-out infinite; }
 .td-dest { position: absolute; right: 10px; top: 6px; font-size: 1.4rem; animation: trophy-bob 3s ease-in-out infinite; }
 .tender-card.locked .td-ship, .tender-card.idle .td-ship { animation: td-bob 2.2s ease-in-out infinite; }
 @keyframes td-wave { to { transform: translateX(20%); } }
-@keyframes td-sail { 0% { left: 6%; } 50% { left: 62%; } 100% { left: 6%; } }
+@keyframes td-sail { 0% { translate: 6cqw 0; } 50% { translate: 62cqw 0; } 100% { translate: 6cqw 0; } } /* cqw = sea width */
 @keyframes td-bob { 50% { transform: translateY(-3px) rotate(-3deg); } }
 .td-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 900; }
 .td-title .badge { margin-left: auto; }

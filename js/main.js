@@ -60,15 +60,18 @@ function inputFocusedInView() {
   return !!a && viewEl.contains(a) && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName);
 }
 
-// A re-render between pointerdown and pointerup replaces the pressed button, so the browser fires
-// no click (a held press on the silo "+200 t" button at 5× was lost). Hold view re-renders until
+// A re-render between pointerdown and pointerup can replace the pressed button (when its card changes shape), so the
+// browser fires no click (a held press on the silo "+200 t" button at 5× was lost). Hold view re-renders until
 // release; event-driven renders wait for the next loop update.
 let pressedInView = false;
 let renderPending = false;
 viewEl.addEventListener('pointerdown', () => { pressedInView = true; });
 for (const t of ['pointerup', 'pointercancel']) window.addEventListener(t, () => { pressedInView = false; });
 
-function renderView() {
+/** Render the active tab. Loop and action renders patch the view in place (dom.js patch: running animations, scroll
+ *  and focus stay); `fresh` (tab / sub-tab switch, new game) builds it anew so the content plays its entrance. */
+function renderView(fresh = false) {
+  if (fresh) viewEl.replaceChildren();
   VIEWS[currentTab].render(viewEl);
   lastViewUpdate = performance.now();
 }
@@ -101,7 +104,7 @@ function start(game) {
   announceMandorNotice(game); // old save with > 2 planned fields: "👷 Mandor otomatis dipekerjakan untuk save lama"
   setTimeout(() => maybeShowDisaster(game), 1200); // ⚠️ a Bencana Besar forecast (e.g. from offline catch-up) not seen yet
   updateTopbar(game);
-  renderView();
+  renderView(true);
 }
 
 function loadOrCreate() {
@@ -133,7 +136,7 @@ function setTab(tab) {
   viewEl.dataset.tab = tab;
   saveTab(storage, tab);
   for (const b of document.querySelectorAll('#tabs .tab')) b.classList.toggle('active', b.dataset.tab === tab);
-  renderView();
+  renderView(true);
   viewEl.scrollTop = 0;
   window.scrollTo(0, 0);
 }
@@ -157,9 +160,9 @@ function frame(now) {
 }
 
 // ---- wiring ----
-app.requestRender = () => {
+app.requestRender = ({ fresh = false } = {}) => {
   updateTopbar(app.game);
-  renderView();
+  renderView(fresh);
 };
 app.saveNow = save;
 app.setTab = setTab;

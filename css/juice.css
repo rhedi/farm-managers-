@@ -102,9 +102,9 @@
   animation-duration: 3s;
 }
 .map-rain-cloud { position: absolute; left: 50%; top: 2px; transform: translateX(-50%); font-size: 20px; opacity: .9; }
-.map-clouds { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.map-clouds { position: absolute; inset: 0; pointer-events: none; overflow: hidden; container-type: inline-size; }
 .map-clouds span {
-  position: absolute; left: -40%; width: 110px; height: 34px; border-radius: 50%; opacity: .45;
+  position: absolute; left: 0; translate: -40cqw 0; width: 110px; height: 34px; border-radius: 50%; opacity: .45;
   background: radial-gradient(closest-side, #fff, rgba(255, 255, 255, 0));
   animation: drift 70s linear infinite;
 }
@@ -115,7 +115,7 @@
 .map-pin.pest::after { content: "🐛"; position: absolute; top: -9px; right: -9px; font-size: 13px; }
 
 @keyframes rain { to { background-position: 0 44px, 7px 71px; } }
-@keyframes drift { from { left: -40%; } to { left: 110%; } }
+@keyframes drift { from { translate: -40cqw 0; } to { translate: 110cqw 0; } } /* cqw = map width; translate never relayouts */
 @keyframes pin-bob { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -58%); } }
 
 /* ---------- Events banner (Ladangku) ---------- */

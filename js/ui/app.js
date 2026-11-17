@@ -3,7 +3,7 @@ import { toast, rerenderModal } from './modal.js';
 
 export const app = {
   game: null,
-  /** Re-render the active view immediately (main.js wires this). */
+  /** Re-render the active view now, patched in place; `{ fresh: true }` rebuilds it (main.js wires this). */
   requestRender: () => {},
   /** Start a fresh game (main.js wires this). */
   resetGame: () => {},

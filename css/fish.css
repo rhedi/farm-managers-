@@ -10,8 +10,9 @@
 .pond-pellet.neg { border-color: var(--red, #c0442f); }
 .pond-ready-badge { animation: pond-pulse 1.4s ease-in-out infinite; }
 
+/* container-type: the swim travel below is in cqw (pond width) on `translate`, so it never relayouts or shifts. */
 .pond-scene { position: relative; height: 84px; margin-top: 8px; border-radius: 14px; overflow: hidden; isolation: isolate;
-  border: 1px solid rgba(0, 0, 0, .12); transition: background .6s; }
+  container-type: inline-size; border: 1px solid rgba(0, 0, 0, .12); transition: background .6s; }
 .pond-clear { background: linear-gradient(180deg, #7cc4e8 0%, #3d8dbf 60%, #2b6b93 100%); }
 .pond-green { background: linear-gradient(180deg, #8cc49a 0%, #4f9a6e 60%, #356f4d 100%); }
 .pond-murky { background: linear-gradient(180deg, #a7a070 0%, #7a6f40 60%, #564c2a 100%); }
@@ -27,7 +28,7 @@
 .pond-ripple { position: absolute; left: 22%; top: 55%; width: 10px; height: 5px; border: 2px solid rgba(255, 255, 255, .7);
   border-radius: 50%; opacity: 0; animation: pond-ripple 3.6s ease-out infinite; }
 .pond-ripple.r2 { left: 70%; top: 30%; animation-delay: 1.8s; }
-.pond-fish { position: absolute; left: 4%; line-height: 0; z-index: 2; animation: pond-swim 9s ease-in-out infinite; }
+.pond-fish { position: absolute; left: 0; translate: 4cqw 0; line-height: 0; z-index: 2; animation: pond-swim 9s ease-in-out infinite; }
 .pond-fish-in { display: inline-block; animation: pond-wag .6s ease-in-out infinite alternate; }
 .pond-fish .fish-art { width: 2em; }
 .pond-bubble { position: absolute; bottom: -8px; width: 7px; height: 7px; border-radius: 50%; z-index: 1;
@@ -58,13 +59,13 @@
 @keyframes pond-wave { to { transform: translateX(24px); } }
 @keyframes pond-ripple { 0% { transform: scale(.4); opacity: .9; } 100% { transform: scale(5); opacity: 0; } }
 @keyframes pond-swim {
-  0% { left: 4%; transform: scaleX(1) translateY(0); }
+  0% { translate: 4cqw 0; transform: scaleX(1) translateY(0); }
   24% { transform: scaleX(1) translateY(-6px); }
-  47% { left: 84%; transform: scaleX(1) translateY(2px); }
-  50% { left: 84%; transform: scaleX(-1) translateY(0); }
+  47% { translate: 84cqw 0; transform: scaleX(1) translateY(2px); }
+  50% { translate: 84cqw 0; transform: scaleX(-1) translateY(0); }
   74% { transform: scaleX(-1) translateY(5px); }
-  97% { left: 4%; transform: scaleX(-1) translateY(0); }
-  100% { left: 4%; transform: scaleX(1); }
+  97% { translate: 4cqw 0; transform: scaleX(-1) translateY(0); }
+  100% { translate: 4cqw 0; transform: scaleX(1); }
 }
 @keyframes pond-wag { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
 @keyframes pond-bubble { 0% { transform: translateY(0) scale(.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-90px) scale(1.2); opacity: 0; } }

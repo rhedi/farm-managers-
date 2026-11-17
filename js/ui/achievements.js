@@ -1,7 +1,7 @@
 // Prestasi tab: 🎯 Misi (daily missions + leaderboard) | 🔬 Riset | 🏆 Prestasi (achievements, stats, log)
 // | 📖 Ensiklopedia (v18 stamp book, cosmetics, Buku Rekor) | 💰 Keuangan (report summary, loans, net worth).
 // Settings live in the top-bar ⚙️ dialog.
-import { h, mount, fmtMoney, fmtNum, progressBar } from './dom.js';
+import { h, patch, fmtMoney, fmtNum, progressBar } from './dom.js';
 import { app } from './app.js';
 import { netWorthCard } from './netWorthChart.js';
 import { financeCard } from './finance.js';
@@ -120,7 +120,7 @@ export function renderAchievements(root) {
   const sub = getSub('achievements', SUBS);
   const claimable = (game.missionsView?.().claimable ?? 0) + (game.chaptersView?.().ready ? 1 : 0);
   const points = game.researchPoints?.().available ?? 0;
-  mount(root,
+  patch(root,
     subTabBar('achievements', [
       { id: 'missions', icon: '🎯', label: 'Misi', badge: claimable || null },
       { id: 'research', icon: '🔬', label: 'Riset', badge: points || null },

@@ -1,6 +1,6 @@
 // Gudang tab: 🌾 Pertanian (silo + crop/fruit stock) | 🐄 Peternakan (❄️ Gudang Dingin + animal products)
 // | 🏭 Olahan (factory goods + 🏭 Pabrik). Groups follow PRODUCTS[].category; feed reserves are never sold.
-import { h, mount, fmtMoney, fmtNum, progressBar } from './dom.js';
+import { h, patch, liveNode, setText, fmtMoney, fmtNum, progressBar } from './dom.js';
 import { confirmModal } from './modal.js';
 import { app, act } from './app.js';
 import { factoriesSection, factoriesSig } from './factories.js';
@@ -115,7 +115,7 @@ export function renderSilo(root) {
   const cat = CATEGORIES.find((c) => c.sub === sub);
   const full = { crop: nearlyFull(game.storageInfo('silo')), animal: nearlyFull(game.storageInfo('cold')) };
   const blocked = (game.factoriesView?.() ?? []).filter((f) => f.owned && f.blocked).length;
-  mount(root,
+  patch(root,
     subTabBar('silo', CATEGORIES.map((c) => ({
       id: c.sub, icon: c.icon, label: c.label,
       badge: full[c.id] ? '!' : c.id === 'processed' && blocked ? blocked : null,
@@ -126,10 +126,11 @@ export function renderSilo(root) {
     stockGroup(cat, groups[cat.id]),
     cat.id === 'animal' ? h('button.btn.btn-secondary.btn-block', { type: 'button', onclick: () => goTo('animals') }, '🐄 Kelola ternak & pakan') : null,
     cat.id === 'processed' ? factoriesSection(game) : null);
+  if (need) need.el = liveNode(need.el);
 }
 
 export function updateSilo(root) {
   if (computeSig(app.game) !== sig) return renderSilo(root);
   // Money changes every tick; only affordability is in the sig, so refresh the shortfall text in place.
-  if (need) need.el.textContent = needText(app.game.storageInfo(need.kind).nextUpgradeCost, app.game.state.money);
+  if (need) setText(need.el, needText(app.game.storageInfo(need.kind).nextUpgradeCost, app.game.state.money));
 }

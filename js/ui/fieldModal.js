@@ -1,5 +1,5 @@
 // Field detail modal (owned and for-sale fields).
-import { h, mount, fmtMoney, fmtTons, fmtPct, fmtPh, fmtWeather, fmtHours, fmtNum, progressBar,
+import { h, mount, liveNode, setText, fmtMoney, fmtTons, fmtPct, fmtPh, fmtWeather, fmtHours, fmtNum, progressBar,
   STATE_LABEL, TASK_LABEL, TASK_ICON, SOIL_LABEL, CONTAM_LABEL } from './dom.js';
 import { openModal, closeModal, confirmModal } from './modal.js';
 import { app, act } from './app.js';
@@ -213,8 +213,11 @@ function renderOwned(body, footer, f, m, live, draft) {
 
 export function openFieldModal(fieldId) {
   const game = app.game;
-  const worldSig = (f) => `:${game.day}:${f.pest}:${f.growthMult}:${f.ph}:${f.soilState?.nutrients}:${game.state.level}:${Math.round(game.state.money / 1000)}`;
-  const modalSig = (f) => fieldSignature(f) + worldSig(f) + (f.owned ? `:${yieldFactorsSig(f)}:${qualitySig(f)}` : `:${f.price <= game.state.money}:${f.locked}`);
+  const worldSig = (f) => `:${game.day}:${f.pest}:${f.growthMult}:${f.ph}:${f.soilState?.nutrients}:${game.state.level}`;
+  // Money only matters for affordability: 🏠 Bangun (owned) or Beli + the shortfall line (for sale).
+  const moneySig = (f) => (f.owned ? `${game.greenhouseQuote?.(f.id)?.ok}`
+    : f.price > game.state.money ? fmtMoney(f.price - game.state.money) : 'ok');
+  const modalSig = (f) => fieldSignature(f) + worldSig(f) + `:${moneySig(f)}` + (f.owned ? `:${yieldFactorsSig(f)}:${qualitySig(f)}` : `:${f.locked}`);
   let sig = '';
   let draft = null; // plan editor draft, kept across re-renders
   const live = {};
@@ -232,11 +235,16 @@ export function openFieldModal(fieldId) {
     },
     refresh: (m) => {
       const f = game.getFieldView(fieldId);
-      if (modalSig(f) !== sig) { m.rerender(); return; }
+      if (modalSig(f) !== sig) {
+        m.update(); // patched in place: the plot keeps animating
+        for (const k of Object.keys(live)) live[k] = liveNode(live[k]);
+        return;
+      }
       if (!f.owned) return;
-      live.bar.firstChild.style.width = `${Math.round(f.progress * 100)}%`;
-      live.status.textContent = fieldStatusText(f);
-      live.yield.textContent = yieldText(f);
+      const w = `${Math.round(f.progress * 100)}%`;
+      if (live.bar.firstChild.style.width !== w) live.bar.firstChild.style.width = w;
+      setText(live.status, fieldStatusText(f));
+      setText(live.yield, yieldText(f));
       updatePlot(live.plot, f);
     },
   });

@@ -35,7 +35,7 @@ function activeCard(c) {
   const game = app.game;
   const urgent = c.daysLeft <= 1;
   const sendQty = Math.min(c.remaining, c.available);
-  return h(`div.card.eco-contract${urgent ? '.eco-urgent' : ''}`,
+  return h(`div.card.eco-contract${urgent ? '.eco-urgent' : ''}`, { dataset: { key: c.id } },
     head(c, h(`span.badge${urgent ? '.badge-red' : '.badge-blue'}`, dueText(c))),
     h('div.small', `Terkirim ${fmtAmt(c.delivered, c.unit)} / ${fmtAmt(c.qty, c.unit)} · di gudang ${fmtAmt(c.available, c.unit)}`
       + (c.stock > c.available ? ` (+${fmtAmt(c.stock - c.available, c.unit)} dicadangkan)` : '')),
@@ -54,7 +54,7 @@ function activeCard(c) {
 }
 
 function offerCard(c, full) {
-  return h('div.card.eco-offer',
+  return h('div.card.eco-offer', { dataset: { key: c.id } },
     head(c, h('span.badge', `${c.days} hari`)),
     h('div.card-actions',
       h('span.small.muted', `${dueText(c)} · stok ${fmtAmt(c.available, c.unit)}`),
