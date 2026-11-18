@@ -8,6 +8,7 @@ import { dispatcherCard, dispatcherSig } from './dispatcher.js';
 import { subTabBar, getSub, fold } from './subtabs.js';
 import { CATEGORIES, stockByCategory, groupValue, sellGroup, stockRow, trendChip, sellableQty } from './stock.js';
 import { iconOf } from './fishArt.js';
+import { shippedCard, shippedSig } from './shippedCard.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SUBS = ['sell', 'contracts', 'ship', 'prices'];
@@ -110,15 +111,21 @@ function sellRow(it, p) {
 function sellPane(game, byId) {
   const groups = stockByCategory(game);
   const all = Object.values(groups).flat();
-  if (!all.length) return h('div.empty', h('span.big', '🧺'), 'Gudang kosong. Panen dulu, lalu jual di sini.');
+  const shipped = CATEGORIES.map((c) => [c.id, shippedCard(game, c.id)]).filter(([, card]) => card);
+  if (!all.length) {
+    return [h('div.empty', h('span.big', '🧺'), shipped.length ? 'Gudang kosong: stok terakhir dikirim Manajer Logistik.' : 'Gudang kosong. Panen dulu, lalu jual di sini.'),
+      shipped.map(([, card]) => card)];
+  }
   const total = groupValue(all);
+  const shippedOf = new Map(shipped);
   return [
     h('div.stock-summary',
       h('div.stock-summary-main', h('div.small.muted', `Nilai semua stok · hari ${game.day}`), h('div.stock-summary-value', fmtMoney(total))),
       h('button.btn.btn-secondary', { type: 'button', onclick: () => sellGroup(all, 'Semua stok') }, 'Jual semua…')),
-    CATEGORIES.filter((c) => groups[c.id].length).map((c) => h('section.section',
+    CATEGORIES.filter((c) => groups[c.id].length || shippedOf.has(c.id)).map((c) => h('section.section',
       h('div.section-title', `${c.icon} ${c.label}`, h('span.small.muted', fmtMoney(groupValue(groups[c.id])))),
-      h('div.stock-list', groups[c.id].map((it) => sellRow(it, byId.get(it.id)))))),
+      groups[c.id].length ? h('div.stock-list', groups[c.id].map((it) => sellRow(it, byId.get(it.id)))) : null,
+      shippedOf.get(c.id) ?? null)),
     h('p.hint', 'Ketuk baris untuk tren harga dan jual sebagian. Cadangan pakan (🔒) tidak ikut terjual.'),
   ];
 }
@@ -147,7 +154,7 @@ function pricesPane(items) {
 }
 
 function computeSig(game) {
-  return `${getSub('market', SUBS)}|${game.day}|${contractsSig(game)}|${shippingSig(game)}|${dispatcherSig(game)}|`
+  return `${getSub('market', SUBS)}|${game.day}|${contractsSig(game)}|${shippingSig(game)}|${dispatcherSig(game)}|${shippedSig(game)}|`
     + game.marketView().map((p) => `${p.price}:${p.stock}:${p.reserve ?? 0}`).join(',');
 }
 

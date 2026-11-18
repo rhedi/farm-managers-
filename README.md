@@ -323,6 +323,8 @@ Tombol **Promosikan** (naik) atau **Ganti** (turun) membuka konfirmasi yang mena
 
 Setelah direkrut, kartu menampilkan sakelar **Aktif/Jeda**, trip hari ini, total trip, **untung ekstra** (perkiraan untung semua kiriman otomatis dibanding jual lokal), alasan bila manajer sedang menunggu (misalnya "Menunggu sopir" atau "Belum ada kiriman yang memenuhi untung minimum"), dan empat kiriman terakhir (kota, muatan, truk, jam, perkiraan untung). Kalau ada rencana ladang dengan **💰 Jual otomatis**, kartu mengingatkan bahwa hasil panen itu langsung terjual dan tidak sempat dikirim.
 
+**🚚 Dikirim Manajer Logistik.** Produk ternak dibuat tengah malam, dan manajer bisa memuatnya ke truk pada jam yang sama, jadi stoknya tidak pernah terlihat di gudang (misalnya 🪹 sarang walet dan 🥩 daging wagyu yang dijual ke Jakarta / TP Ho Chi Minh). Karena itu Gudang (tiap sub-tab) dan Pasar › 💰 Jual menampilkan kartu **🚚 Dikirim Manajer Logistik** untuk produk yang dimuat manajer dalam 48 jam game terakhir: jumlah hari itu, kota tujuan, perkiraan nilai di kota, dan jamnya. Tombol **📦 Simpan di gudang** di setiap baris berarti "jangan dikirim otomatis" (sama dengan 🚫 Tidak di pengaturan): produksi berikutnya tetap di Gudang dingin dan bisa dijual dengan **Jual $…**. **🚚 Kirim lagi** membatalkannya. Daftar produk di ⚙️ Pengaturan manajer juga memuat produk yang dikirim dalam 10 hari terakhir walau stoknya 0.
+
 **⚙️ Pengaturan manajer** (bisa dilipat, tersimpan di simpanan game):
 
 - **Kelompok produk**: 🌾 Pertanian, 🐄 Peternakan, 🏭 Olahan (semua aktif secara bawaan).

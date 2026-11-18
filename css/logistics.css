@@ -143,3 +143,15 @@
 @keyframes fx-puff { from { transform: translateY(0) scale(.8); opacity: .9; } to { transform: translate(6px, -3px) scale(1.15); opacity: .5; } }
 @keyframes fx-goal { 0% { opacity: 0; transform: scale(.6); } 15% { opacity: 1; transform: scale(1); } 80% { opacity: 1; transform: scale(1); } 88% { transform: scale(1.35); } 100% { opacity: 0; transform: scale(1); } }
 @keyframes fx-road { 10% { opacity: .7; } 85% { opacity: .7; } 100% { opacity: 0; } }
+/* 🚚 Dikirim Manajer Logistik (js/ui/shippedCard.js): Gudang sub-tabs and Pasar › Jual, per product group. */
+.shipped-card { display: grid; gap: 8px; border-left: 4px solid var(--green); margin-top: 10px; }
+.shipped-head { display: flex; align-items: center; gap: 10px; }
+.shipped-truck { flex: none; font-size: 1.5rem; display: inline-block; transform: scaleX(-1); }
+.shipped-list { display: grid; }
+.shipped-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+.shipped-row:first-child { border-top: 0; }
+.shipped-main { flex: 1; min-width: 0; }
+.shipped-name { font-weight: 700; }
+.shipped-row .disp-chip { flex: none; min-height: 44px; max-width: 9.5em; white-space: normal; overflow: visible; text-align: center; }
+.shipped-kept { color: var(--green-d); font-weight: 600; }
+.shipped-off { flex: none; max-width: 8em; text-align: right; }

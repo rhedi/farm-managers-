@@ -3,7 +3,7 @@
 // (skipWaiting + clients.claim); js/ui/pwa.js then saves and reloads open pages once. After changing
 // any file, regenerate VERSION (here and in index.html) and PRECACHE with the command in README →
 // "Pasang di HP (PWA)".
-const VERSION = "64c0103c92";
+const VERSION = "4efbb18775";
 const PREFIX = 'farm-manager-';
 const CACHE = PREFIX + VERSION;
 const PRECACHE = [
@@ -159,6 +159,7 @@ const PRECACHE = [
   "./js/ui/settings.js",
   "./js/ui/sfx.js",
   "./js/ui/shell.js",
+  "./js/ui/shippedCard.js",
   "./js/ui/shipping.js",
   "./js/ui/silo.js",
   "./js/ui/stock.js",

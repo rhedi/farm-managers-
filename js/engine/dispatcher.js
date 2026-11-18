@@ -2,8 +2,11 @@
 // that pays the most over selling locally. Runs every game hour and after tasks/trips finish (Game.advance),
 // deterministic (no RNG), and only through the normal shipToCity path (fuel, driver, wear, sale on arrival).
 // state.dispatcher = { hired: null | {tierId, hiredDay}, on, settings, held:{productId: qty}, seen:{productId: qty},
-//   stats:{trips, extraProfit, value}, today:{day, trips, profit}, recent:[≤ RECENT], note }
+//   stats:{trips, extraProfit, value}, today:{day, trips, profit}, recent:[≤ RECENT], note,
+//   shipped:{productId: {time, day, hour, cityId, qty, value}} }
 // `held`/`seen`: the "sisakan X%" ledger: X% of every stock increase the manager sees stays in the silo.
+// `shipped`: the manager's latest load per product (qty/value summed over that game day), so the Gudang and Pasar › Jual
+// can say where stock went that left the hour it was produced (animal goods at midnight); see autoShippedView.
 import { round2 } from './rng.js';
 import { fmtMoney, fmtNum } from './defs.js';
 import { keptStock, freeStock } from './stockKeep.js';
@@ -52,6 +55,28 @@ export function ensureDispatcher(game) {
   d.held ||= {}; d.seen ||= {};
   for (const k of ['held', 'seen']) for (const id of Object.keys(d[k])) if (!d.settings.keepPct[id]) delete d[k][id];
   d.recent = (d.recent || []).slice(0, RECENT);
+  const backfill = !d.shipped; // saves before `shipped`: rebuilt from the recent loads (oldest first, newest wins)
+  const shipped = {};
+  for (const [id, x] of Object.entries(d.shipped || {})) {
+    if (game.idx.products.has(id) && x && Number.isFinite(x.time) && x.qty > 0) shipped[id] = { time: x.time, day: x.day, hour: x.hour,
+      cityId: game.idx.cities.has(x.cityId) ? x.cityId : null, qty: round2(x.qty), value: round2(x.value || 0) };
+  }
+  d.shipped = shipped;
+  if (backfill) for (const r of [...d.recent].reverse()) noteShipped(game, r.cargo, r.cityId, (r.day - 1) * 24 + (r.hour ?? 0), null);
+}
+
+/** Add one manager load to `shipped` (`items`: planShipment items with values, or null → market × city price). */
+function noteShipped(game, cargo, cityId, time, items) {
+  const d = st(game), city = game.idx.cities.get(cityId);
+  const day = Math.floor(time / 24) + 1, hour = Math.floor(time - (day - 1) * 24);
+  for (const [id, qty] of Object.entries(cargo || {})) {
+    if (!game.idx.products.has(id) || !(qty > 0)) continue;
+    const it = items?.find((i) => i.productId === id);
+    const value = it ? it.value : city ? qty * (game.state.market[id] ?? 0) * cityMult(game, city, id) : 0;
+    const prev = d.shipped[id], same = prev?.day === day;
+    d.shipped[id] = { time, day, hour, cityId: city ? cityId : null,
+      qty: round2((same ? prev.qty : 0) + qty), value: round2((same ? prev.value : 0) + value) };
+  }
 }
 
 function sanitize(game, x) {
@@ -236,6 +261,7 @@ function record(game, m, best, shipmentId) {
   d.recent.unshift({ day: game.day, hour: game.hour, shipmentId, truckUid: m.uid, truckName, cityId: city.id, cargo,
     tons: plan.tons, value: plan.value, estProfit: plan.profit });
   d.recent.length = Math.min(d.recent.length, RECENT);
+  noteShipped(game, cargo, city.id, game.state.time, plan.items);
   game.emit('auto_dispatch', `🧑‍💼 ${tier.name} mengirim ${truckName} ke ${city.name}: ${cargoText(game, cargo)} · perkiraan untung ${fmtMoney(plan.profit)}.`,
     { truck: m.uid, truckName, city: city.id, cityName: city.name, cargo, estProfit: plan.profit, shipmentId });
 }
@@ -260,7 +286,10 @@ export function dispatcherView(game) {
     const km = routeOf(game, c).km;
     return { id: c.id, name: c.name, emoji: c.emoji, km, allowed: !set.blockedCities.includes(c.id), inRange: km <= radius };
   });
-  const ids = new Set([...Object.keys(s.silo).filter((id) => s.silo[id] > 0), ...set.exclude, ...Object.keys(set.keepPct)]);
+  // Products the manager shipped in the last 10 game days stay listed (✓ Kirim / 🚫 Tidak) even at 0 stock: animal
+  // goods leave the hour they are produced, so a stock-only list never showed them.
+  const shippedIds = Object.keys(d.shipped).filter((id) => s.time - d.shipped[id].time <= 240);
+  const ids = new Set([...Object.keys(s.silo).filter((id) => s.silo[id] > 0), ...set.exclude, ...Object.keys(set.keepPct), ...shippedIds]);
   const products = [...ids].map((id) => game.idx.products.get(id)).filter(Boolean).map((p) => ({
     id: p.id, name: p.name, emoji: p.emoji, unit: p.unit, category: p.category ?? 'crop', qty: s.silo[p.id] || 0,
     excluded: set.exclude.includes(p.id), keepPct: set.keepPct[p.id] || 0, held: d.held[p.id] || 0,
@@ -279,4 +308,24 @@ export function dispatcherView(game) {
     }),
     trucks: s.machines.filter((m) => truckStats(game, m)).length, workers: s.workers.length, cities, products, sellPlans,
   };
+}
+
+/** How long a manager load stays listed in the Gudang / Pasar › Jual (game hours). */
+export const SHIPPED_HOURS = 48;
+
+/**
+ * Products the hired Manajer Logistik loaded in the last `hours`, newest first: where the stock went (city, qty and city
+ * value summed over that game day) and whether new stock is now kept (`excluded`, or its group switched off).
+ */
+export function autoShippedView(game, { hours = SHIPPED_HOURS } = {}) {
+  const s = game.state, d = st(game);
+  if (!d?.hired) return [];
+  return Object.entries(d.shipped).filter(([, x]) => s.time - x.time <= hours).sort(([a, x], [b, y]) => y.time - x.time || (a < b ? -1 : 1))
+    .map(([id, x]) => {
+      const p = game.idx.products.get(id), c = game.idx.cities.get(x.cityId), category = p.category ?? 'crop';
+      const excluded = d.settings.exclude.includes(id), groupOn = d.settings.groups[category];
+      return { id, name: p.name, emoji: p.emoji, unit: p.unit, category, qty: x.qty, value: x.value, day: x.day, hour: x.hour,
+        hoursAgo: Math.max(0, Math.floor(s.time - x.time)), cityId: x.cityId, cityName: c?.name ?? '', cityEmoji: c?.emoji ?? '🏙️',
+        stock: s.silo[id] || 0, excluded, groupOn, kept: excluded || !groupOn, on: d.on };
+    });
 }

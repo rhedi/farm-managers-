@@ -371,6 +371,8 @@ export class Game {
   shipToCity(truckUid, cityId, cargo) { return logistics.shipToCity(this, truckUid, cityId, cargo); }
   // ---- Manajer Logistik: automatic deliveries (js/engine/dispatcher.js) ----
   dispatcherView() { return dispatcher.dispatcherView(this); }
+  /** Products the manager loaded in the last 48 game hours (Gudang / Pasar › Jual "🚚 Dikirim Manajer Logistik"). */
+  autoShippedView(opts) { return dispatcher.autoShippedView(this, opts); }
   /** Hire a tier from BALANCE.dispatcher.tiers → {ok, cost}; hire cost and the daily wage book to 'gaji'. */
   hireDispatcher(tierId) { return dispatcher.hireDispatcher(this, tierId); }
   /** Switch the hired manager to another tier → {ok, cost, credit, from, to}; cost = hireCost − tradeIn × current hireCost. */
