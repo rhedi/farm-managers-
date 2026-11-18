@@ -53,7 +53,7 @@ import * as tenders from './engine/tenders.js'; // v18 🚢 Tender Ekspor
 import * as legacyMod from './engine/legacy.js'; // v18 🌳 Generasi Baru (legacy block outside the run state)
 import * as league from './engine/league.js'; // v18 🏆 Liga Musiman
 import { SAVE_VERSION, MAX_CATCHUP_HOURS, HISTORY_SIZE, newStats, normalizeState, serializeState, parseSave,
-  writeStorage, readStorage, writeLegacy, readLegacy } from './engine/persist.js';
+  writeStorage, readStorage, liftXp, writeLegacy, readLegacy } from './engine/persist.js';
 
 export const SPEEDS = [0, 1, 2, 5];
 export const LOG_SIZE = 50;
@@ -483,7 +483,7 @@ export class Game {
   takeLeagueResults() { return league.takeLeagueResults(this); }
 
   // ---- persistence ----
-  serialize() { return serializeState(this.state, this.legacy); }
+  serialize() { liftXp(this.state, this.data.LEVELS || []); return serializeState(this.state, this.legacy); }
   /** Writes the save and mirrors the 🌳 legacy block to its own key (survives ⚙️ Reset game). */
   save(storage) { writeStorage(storage, this.serialize()); writeLegacy(storage, this.legacy); return { ok: true }; }
 }

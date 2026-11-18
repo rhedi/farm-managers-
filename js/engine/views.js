@@ -61,7 +61,7 @@ export function levelInfo(game) {
   const L = game.data.LEVELS, lvl = game.state.level, xp = game.state.xp;
   const cur = L[lvl - 1] ?? 0, next = L[lvl] ?? null;
   return { level: lvl, xp, current: cur, next, maxed: next == null,
-    progress: next == null ? 1 : round2((xp - cur) / (next - cur)) };
+    progress: next == null ? 1 : Math.min(1, Math.max(0, round2((xp - cur) / (next - cur)))) };
 }
 
 export function loanInfo(game) {

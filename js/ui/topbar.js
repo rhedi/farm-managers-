@@ -23,7 +23,7 @@ function updateXpText(el, li) {
     last.xpFits = el.scrollWidth <= el.clientWidth;
     if (el.getClientRects().length) last.xpFull = full;
   }
-  setText(el, 'xpText', last.xpFits ? full : `${Math.floor(li.progress * 100)}%`);
+  setText(el, 'xpText', last.xpFits ? full : `${Math.floor(Math.min(1, Math.max(0, li.progress)) * 100)}%`);
 }
 
 function setText(el, key, text) {
@@ -96,7 +96,7 @@ export function updateTopbar(game) {
   els.money.parentElement.classList.toggle('neg', s.money < 0);
   const li = game.levelInfo();
   setText(els.level, 'level', String(li.level));
-  const w = `${Math.round((li.maxed ? 1 : li.progress) * 100)}%`;
+  const w = `${Math.round((li.maxed ? 1 : Math.min(1, Math.max(0, li.progress))) * 100)}%`;
   if (last.xp !== w) { last.xp = w; els.xpbar.style.width = w; }
   const xpTitle = li.maxed ? `XP ${fmtNum(li.xp)} (maks)` : `XP ${fmtNum(li.xp)} / ${fmtNum(li.next)}`;
   const pts = game.researchPoints?.().available ?? 0;

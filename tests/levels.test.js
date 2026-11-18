@@ -128,3 +128,16 @@ test('late achievements exist; region achievement tracks regionsOwned', () => {
   const roundTripLoss = 0.3 * land.slice(1).reduce((s, p) => s + p, 0);
   assert.ok(roundTripLoss > ACHIEVEMENTS.find((a) => a.id === 'regions_7').reward, 'not farmable by buy/sell');
 });
+
+test('XP below the level threshold: load lifts it, levelInfo progress stays 0–1', async () => {
+  const { DATA, newGame } = await import('./helpers.js');
+  const { loadGame } = await import('../js/engine.js');
+  const g = newGame(4);
+  g.state.level = 44; g.state.xp = 10;
+  const p = g.levelInfo().progress;
+  assert.ok(p >= 0 && p <= 1, `progress ${p}`);
+  const g2 = loadGame(g.serialize(), { data: DATA });
+  assert.equal(g2.state.level, 44);
+  assert.equal(g2.state.xp, DATA.LEVELS[43]);
+  assert.equal(g2.levelInfo().progress, 0);
+});

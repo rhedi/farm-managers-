@@ -36,6 +36,12 @@ export function serializeState(state, legacy) {
   return JSON.stringify({ ...rest, ...(modalPause > 0 ? { speed: modalPause } : {}), ...(legacy ? { legacy } : {}), version: SAVE_VERSION, savedAt: Date.now() });
 }
 
+/** XP below the current level's threshold (old migrations, edits, legacy inherit) showed a negative XP bar: lift it.
+ *  Run on load (normalizeState) and before every save, so a saved game always round-trips unchanged. */
+export function liftXp(s, L) {
+  if (s.xp < (L[s.level - 1] ?? 0)) s.xp = L[s.level - 1];
+}
+
 /** Parse + validate a save. Returns the state object or throws Error on corrupt input. */
 export function parseSave(json) {
   const obj = typeof json === 'string' ? JSON.parse(json) : json;
@@ -59,6 +65,7 @@ export function normalizeState(s, data, idx) {
   // Banked XP is cut to the next level's threshold, so the next XP gain levels up exactly once (with its modal).
   const L = data.LEVELS || [];
   if (s.level < L.length && s.xp >= (L[s.level + 1] ?? Infinity)) s.xp = L[s.level];
+  liftXp(s, L);
   s.weather ||= {}; s.priceHistory ||= {}; s.animals ||= {};
   s.achievements ||= []; s.log ||= []; s.history ||= [];
   s.contracts ||= []; s.feedReserve ||= {}; s.autoRepair ??= false;
