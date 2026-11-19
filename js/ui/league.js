@@ -78,7 +78,11 @@ export function leagueCard(game) {
           h('div.small.muted', m.desc))),
       h('ol.lg-list', v.standings.map((r, i) => standingRow(r, m.id, i))),
       h('div.lg-zones.small.muted',
-        v.division.index < v.divisions.length - 1 ? h('span.zone-up', `▲ ${v.promote} teratas naik divisi`) : h('span', '💎 Divisi tertinggi'),
+        v.division.index < v.divisions.length - 1
+          ? (v.divisions[v.division.index + 1].locked
+            ? h('span', `🔒 ${v.divisions[v.division.index + 1].emoji} ${v.divisions[v.division.index + 1].name} terbuka di Lv ${v.divisions[v.division.index + 1].minLevel}`)
+            : h('span.zone-up', `▲ ${v.promote} teratas naik divisi`))
+          : h('span', `${v.division.emoji} Divisi tertinggi`),
         v.division.index > 0 ? h('span.zone-down', `▼ ${v.relegate} terbawah turun`) : null),
       h('div.lg-rewards', v.rewards.map((rw) => h('div.lg-reward', h('span.lg-reward-cup', CUP[rw.cup]),
         h('span.small', `#${rw.rank}${rw.rp ? ` · +${rw.rp} 🔬` : ''}`), h('span.small.muted', rw.booster.text)))),

@@ -4,7 +4,7 @@ import { loadGame } from '../js/engine.js';
 import { DATA, newGame } from './helpers.js';
 import { cityMult } from '../js/engine/logistics.js';
 import { totalWages } from '../js/engine/workers.js';
-import { stageCost } from '../js/engine/projects.js';
+import { stageCost, stageLevel } from '../js/engine/projects.js';
 
 const P = DATA.BALANCE.projects;
 const START_REGION = DATA.FIELDS.find((f) => f.id === DATA.STARTING.fieldIds[0]).regionId; // jabar
@@ -18,15 +18,18 @@ const slot = (g, r, t) => g.projectsView().regions.find((x) => x.id === r).proje
 /** Finish whatever is building (whole days). */
 const finish = (g) => { for (let i = 0; i < 40 && g.projectsView().building; i++) g.advance(24); };
 
-test('every region offers 3–4 types, 3 stages; costs grow ~$1M → $50M → $1B and with the region level', () => {
+test('every region offers 3–4 types, 5 stages; costs grow ~$1M → $50M → $1B → $20B → $150B and with the region level', () => {
   const g = rich();
   for (const r of g.projectsView().regions) {
     assert.ok(r.projects.length >= 3 && r.projects.length <= 4, r.id);
-    assert.ok(r.projects.every((p) => p.maxStage === 3 && p.stage === 0));
+    assert.ok(r.projects.every((p) => p.maxStage === 5 && p.stage === 0));
   }
-  const c = [1, 2, 3].map((k) => stageCost(g, 'alberta', k));
+  const c = [1, 2, 3, 4, 5].map((k) => stageCost(g, 'alberta', k));
   assert.ok(c[0] >= 5e5 && c[0] <= 3e6 && c[1] >= 2e7 && c[1] <= 1.5e8 && c[2] >= 5e8 && c[2] <= 3e9, c.join());
+  assert.ok(c[3] >= 1e10 && c[3] <= 6e10 && c[4] >= 1e11 && c[4] <= 4e11, c.join());
   assert.ok(stageCost(g, 'alberta', 1) > stageCost(g, 'jabar', 1));
+  assert.equal(stageLevel(g, 'jabar', 4), 65);
+  assert.equal(stageLevel(g, 'jabar', 5), 85);
 });
 
 test('gating: unlock level, owned field in the region, stage level, max concurrent builds', () => {
@@ -130,5 +133,5 @@ test('save/load roundtrip; old saves migrate (missing or broken state)', () => {
   assert.deepEqual(loadGame(JSON.stringify(s), { data: DATA }).state.projects, { regions: {}, monuments: {}, spent: 0, value: 0 });
   s.projects = { regions: { atlantis: { riset: { stage: 2 } }, jabar: { nope: { stage: 1 }, pasar: { stage: 9, build: { stage: 3 } } } } };
   const p = loadGame(JSON.stringify(s), { data: DATA }).state.projects;
-  assert.deepEqual(p.regions, { jabar: { pasar: { stage: 3, build: null } } });
+  assert.deepEqual(p.regions, { jabar: { pasar: { stage: 5, build: null } } }); // clamped to the 5 stages
 });

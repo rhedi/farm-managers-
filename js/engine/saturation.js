@@ -16,9 +16,15 @@ export function saturates(game, productId) {
   return !!(cfgOf(game) && p && p.category !== 'crop' && !p.buyable && !game.idx.crops.has(productId));
 }
 
-/** Market depth in $/day at base price for the current level (log-interpolated keypoints). */
-export function depthValue(game, level = game.state.level) {
-  const pts = cfgOf(game)?.depth ?? [];
+/**
+ * Market depth in $/day at base price for the current level (log-interpolated keypoints). v20: `animalDepth` keypoints
+ * (Lv 50+) replace `depth` for animal and fish goods (category 'animal') above their first level, so the herd/pond
+ * market grows slower than the processed one in Lv 51–100 (growth brake; Lv ≤ 50 unchanged).
+ */
+export function depthValue(game, level = game.state.level, productId = null) {
+  const cfg = cfgOf(game), late = cfg?.animalDepth;
+  const animal = productId && late?.length && level > late[0][0] && game.idx.products.get(productId)?.category === 'animal';
+  const pts = (animal ? late : cfg?.depth) ?? [];
   if (!pts.length) return Infinity;
   if (level <= pts[0][0]) return pts[0][1];
   for (let i = 1; i < pts.length; i++) {
@@ -31,7 +37,7 @@ export function depthValue(game, level = game.state.level) {
   return pts[pts.length - 1][1];
 }
 
-const depthUnits = (game, productId) => depthValue(game) / (game.idx.products.get(productId)?.basePrice || 1);
+const depthUnits = (game, productId) => depthValue(game, game.state.level, productId) / (game.idx.products.get(productId)?.basePrice || 1);
 const pressureOf = (game, productId) => game.state.saturation?.[productId]?.p ?? 0;
 
 /** Average dip over selling `q` units starting at pressure `p0` (linear up to maxDip, flat after). */

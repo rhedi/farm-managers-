@@ -10,6 +10,9 @@ import { chapterWaived } from './legacyPerks.js';
 const n = (x) => x || 0;
 const plans = (s) => Object.values(s.fields).filter((f) => f.plan).length;
 const greenhouses = (s) => Object.values(s.fields).filter((f) => f.greenhouse).length;
+const PUNJAB = ['pj1', 'pj2', 'pj3', 'pj4', 'pj5'];
+const topStage = (s) => Math.max(0, ...Object.values(s.projects?.regions || {}).flatMap((rp) => Object.values(rp || {}).map((x) => x?.stage || 0)));
+const bigTender = (s) => ((s.tenders?.history || []).some((x) => x.status === 'done' && x.tier) ? 1 : 0);
 
 // value(state) → progress toward target; go = where "Tunjukkan" navigates ({tab, sub}); reward = fixed floor,
 // pct = share of recent daily income; level = level the goal needs (shown as locked until then).
@@ -36,6 +39,14 @@ export const CHAPTERS = [
     { id: 'fields25', goal: 'Miliki 25 ladang', icon: '🗺️', target: 25, value: (s) => Object.keys(s.fields).length, go: { tab: 'farm', sub: 'map' }, reward: 60000, xp: 2500 },
     { id: 'contracts50', goal: 'Selesaikan 50 kontrak', icon: '📜', target: 50, value: (s) => n(s.stats.contractsDone), go: { tab: 'market', sub: 'contracts' }, reward: 80000, xp: 4000 },
     { id: 'regions13', goal: 'Miliki ladang di ke-13 wilayah', icon: '👑', level: 43, target: 13, value: (s) => n(s.stats.regionsOwned), go: { tab: 'farm', sub: 'map' }, reward: 200000, xp: 10000 },
+  ] },
+  // v20 Lv 51–100: the new region, the ★4 staff, Proyek Warisan stage 4, a Tender Raksasa and all 16 regions.
+  { id: 'bab5', name: 'Bab 5 · Dinasti Dunia', emoji: '👑', steps: [
+    { id: 'punjab', goal: 'Beli ladang di Punjab', icon: '🛕', level: 52, target: 1, value: (s) => (PUNJAB.some((id) => s.fields[id]) ? 1 : 0), go: { tab: 'farm', sub: 'map' }, reward: 300000, xp: 20000 },
+    { id: 'dispatcherGlobal', goal: 'Rekrut Direktur Logistik Global', icon: '🌐', level: 53, target: 1, value: (s) => (s.dispatcher?.hired?.tierId === 'global' ? 1 : 0), go: { tab: 'market', sub: 'ship' }, reward: 400000, xp: 25000 },
+    { id: 'tenderBig', goal: 'Selesaikan 1 Tender Raksasa', icon: '🛳️', level: 60, target: 1, value: bigTender, go: { tab: 'market', sub: 'contracts' }, reward: 600000, xp: 40000 },
+    { id: 'project4', goal: 'Selesaikan Proyek Warisan tahap 4', icon: '🏛️', level: 65, target: 4, value: topStage, go: { tab: 'farm', sub: 'projects' }, reward: 800000, xp: 60000 },
+    { id: 'regions16', goal: 'Miliki ladang di ke-16 wilayah', icon: '🌐', level: 76, target: 16, value: (s) => n(s.stats.regionsOwned), go: { tab: 'farm', sub: 'map' }, reward: 1500000, xp: 120000 },
   ] },
 ];
 const STEP_PCT = 0.15; // Hadiah Berskala: 15% of a recent day's income per step (cash saturates; chapters end in research)

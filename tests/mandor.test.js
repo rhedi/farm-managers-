@@ -23,10 +23,11 @@ const ha = (id) => DATA.FIELDS.find((f) => f.id === id).sizeHa;
 const planAll = (g, ids = owned(g)) => ids.map((id) => g.setFieldPlan(id, { cropId: crop }));
 const paused = (g) => owned(g).filter((id) => g.state.fields[id].plan?.paused);
 
-test('BALANCE.mandor: 2 free fields, tiers Lv 4 / 12 / 20 cover 12 / 30 / all, Kepala +5% speed', () => {
+test('BALANCE.mandor: 2 free fields, tiers Lv 4 / 12 / 20 / 77 cover 12 / 30 / all / all, Kepala +5%, Agronom +10% speed', () => {
   assert.equal(M.freeFields, 2);
-  assert.deepEqual(M.tiers.map((t) => [t.unlockLevel, t.fields]), [[4, 12], [12, 30], [20, null]]);
+  assert.deepEqual(M.tiers.map((t) => [t.unlockLevel, t.fields]), [[4, 12], [12, 30], [20, null], [77, null]]);
   assert.equal(tier('kepala').speed, 0.05);
+  assert.equal(tier('agronom').speed, 0.1);
   assert.ok(M.tiers.every((t, i) => !i || (t.hireCost > M.tiers[i - 1].hireCost && t.wage > M.tiers[i - 1].wage)));
 });
 

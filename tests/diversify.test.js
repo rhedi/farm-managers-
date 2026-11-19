@@ -60,7 +60,10 @@ test('city demand: new goods listed; non-crop city bonus grows with level, crops
   g.state.level = 20;
   assert.equal(lateNonCropBonus(g, 'wagyu_beef'), 0);
   g.state.level = 50;
-  assert.equal(lateNonCropBonus(g, 'wagyu_beef'), DATA.BALANCE.diversify.city.max);
+  assert.equal(lateNonCropBonus(g, 'wagyu_beef'), 0.15);
+  g.state.level = 70;
+  assert.equal(lateNonCropBonus(g, 'wagyu_beef'), DATA.BALANCE.diversify.city.max, 'v20 cap 0.2 from Lv 60');
+  g.state.level = 50;
   assert.equal(lateNonCropBonus(g, 'wheat'), 0);
   assert.equal(lateNonCropBonus(g, 'pelet_ikan'), 0, 'buyable: buy-and-ship never profits');
   assert.equal(cityMult(g, van, 'wagyu_beef'), Math.round(1.25 * 1.15 * 1e4) / 1e4);

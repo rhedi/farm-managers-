@@ -13,9 +13,13 @@ function at(level, nodes = [], seed = 4) {
   return g;
 }
 
-test('data: 4 branches, 7 nodes each (tier 5 = 2 per branch), prerequisites exist, some cost > 1', () => {
+test('data: 4 branches, 11 nodes each (tier 5 = 2, tier 6 = 2, tier 7 = 2 per branch), prerequisites exist, some cost > 1', () => {
   assert.deepEqual(DATA.RESEARCH_BRANCHES.map((b) => b.id), ['tani', 'ternak', 'bisnis', 'mesin']);
-  for (const b of DATA.RESEARCH_BRANCHES) assert.equal(DATA.RESEARCH.filter((n) => n.branch === b.id).length, 7);
+  for (const b of DATA.RESEARCH_BRANCHES) {
+    const nodes = DATA.RESEARCH.filter((n) => n.branch === b.id);
+    assert.equal(nodes.length, 11);
+    for (const t of [6, 7]) assert.equal(nodes.filter((n) => n.tier === t).length, 2, `${b.id} tier ${t}`);
+  }
   const ids = new Set(DATA.RESEARCH.map((n) => n.id));
   for (const n of DATA.RESEARCH) for (const r of n.requires) assert.ok(ids.has(r), `${n.id} → ${r}`);
   assert.ok(DATA.RESEARCH.some((n) => n.cost > 1));

@@ -25,7 +25,7 @@ test('data: every tree is perennial with a product (unit t) and sane timings', (
   for (const t of DATA.TREES) {
     assert.ok(t.perennial, t.id);
     assert.equal(P.get(t.id)?.unit, 't', `${t.id} product`);
-    assert.ok(t.maturityDays >= 30 && t.maturityDays <= 80, `${t.id} maturity`);
+    assert.ok(t.maturityDays >= 30 && t.maturityDays <= 130, `${t.id} maturity`);
     assert.ok(t.lifespanDays > t.maturityDays && t.plantCostPerHa > 0 && t.harvestEveryDays > 0);
   }
 });

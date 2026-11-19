@@ -37,6 +37,12 @@ export const LEAGUE_DEFAULTS = {
     fuelT: { kind: 'taskSpeed', mult: 1.15 }, animalIdx: { kind: 'animalProd', mult: 1.1 } },
 };
 export const leagueCfg = (game) => ({ ...LEAGUE_DEFAULTS, ...(game.data.BALANCE.league || {}) });
+/** Highest division index the player may be promoted into: v20 divisions may carry `minLevel` (💠 Master: Lv 70). */
+export function reachableTop(game, cfg = leagueCfg(game)) {
+  let top = 0;
+  cfg.divisions.forEach((d, i) => { if (game.state.level >= (d.minLevel ?? 0)) top = i; });
+  return Math.max(top, st(game)?.division ?? 0);
+}
 
 /** kind 'ratio' = a rate comparable at any point of the season; 'count' = grows through the season. */
 export const METRICS = {
@@ -225,7 +231,7 @@ export function standings(game, se = st(game)?.season, final = false) {
   rows.push({ id: 'player', name: 'Pertanianmu', emoji: game.legacy?.emblem?.icon ?? '🧑‍🌾', personality: null, value: me.value, detail: me.detail, isPlayer: true });
   const key = (x) => (x.value == null ? Infinity : M.better === 'low' ? x.value : -x.value);
   rows.sort((a, b) => key(a) - key(b) || Number(b.isPlayer) - Number(a.isPlayer));
-  const cfg = leagueCfg(game), top = cfg.divisions.length - 1, div = st(game).division;
+  const cfg = leagueCfg(game), top = reachableTop(game, cfg), div = st(game).division;
   rows.forEach((x, i) => {
     x.rank = i + 1;
     x.zone = div < top && x.rank <= cfg.promote ? 'up' : div > 0 && x.rank > rows.length - cfg.relegate ? 'down' : null;
@@ -326,7 +332,7 @@ export function leagueView(game) {
   const endH = (se.startDay - 1 + Y) * 24, dayIn = Math.min(Y, Math.floor(s.time / 24) - (se.startDay - 1) + 1);
   const rows = standings(game, se);
   const me = rows.find((x) => x.isPlayer);
-  const div = (i) => ({ index: i, ...cfg.divisions[i] });
+  const div = (i) => ({ index: i, ...cfg.divisions[i], locked: s.level < (cfg.divisions[i].minLevel ?? 0) });
   const shelf = [...(game.legacy?.shelf || [])].reverse();
   const counts = { emas: 0, perak: 0, perunggu: 0 };
   for (const c of shelf) counts[c.cup]++;

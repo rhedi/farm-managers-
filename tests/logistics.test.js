@@ -18,11 +18,17 @@ function setup(seed = 3, silo = { rice: 10, wheat: 10, milk: 3000 }) {
   return { g, uid };
 }
 
-test('data: 6 truck tiers, 19 cities, crop multipliers stay below the buy markup', () => {
+test('data: truck tiers, every city reachable, crop multipliers stay below the buy markup', () => {
   const trucks = DATA.MACHINES.filter((m) => m.type === 'truck');
-  assert.ok(trucks.length >= 3 && trucks.length <= 6);
+  assert.ok(trucks.length >= 6, `${trucks.length} trucks`);
   for (const t of trucks) for (const k of ['capacity', 'speedKmh', 'fuelPerKm', 'price', 'unlockLevel']) assert.ok(t[k] > 0, `${t.id}.${k}`);
-  assert.ok(DATA.CITIES.length >= 8 && DATA.CITIES.length <= 24);
+  const regionIds = new Set(DATA.REGIONS.map((r) => r.id));
+  assert.ok(DATA.CITIES.length >= 8);
+  for (const c of DATA.CITIES) {
+    assert.ok((c.unlockLevel ?? 1) <= DATA.LEVELS.length, `${c.id} unlock`);
+    const routes = Object.entries(c.km);
+    assert.ok(routes.length > 0 && routes.every(([r, km]) => regionIds.has(r) && km > 0), `${c.id} reachable`);
+  }
   const g = newGame();
   g.state.level = DATA.LEVELS.length;
   for (const c of DATA.CITIES) for (const p of DATA.PRODUCTS) {

@@ -46,7 +46,7 @@ test('data: walet + wagyu goods are cold-stored animal products weighed per kg, 
 test('city demand: sarang walet and wagyu have premium buyers (and sell at base everywhere else)', () => {
   const buyers = (id) => DATA.CITIES.filter((c) => c.demand[id] > c.base).map((c) => c.id).sort();
   assert.deepEqual(buyers('sarang_walet'), ['hcmc', 'jakarta', 'vancouver']);
-  assert.deepEqual(buyers('wagyu_beef'), ['buenosaires', 'paris', 'vancouver']);
+  assert.deepEqual(buyers('wagyu_beef'), ['buenosaires', 'paris', 'sanfrancisco', 'vancouver']);
   const jkt = DATA.CITIES.find((c) => c.id === 'jakarta');
   const g = farm();
   const r = g.cityPrices('sarang_walet').find((c) => c.cityId === 'jakarta');

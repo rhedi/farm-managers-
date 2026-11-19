@@ -24,7 +24,7 @@ const cargoOf = (g) => Object.fromEntries(autoTrips(g).flatMap((t) => t.cargo.ma
 test('data: tiers unlock at/after trucks, cost more with skill; new game has no manager', () => {
   const tiers = DATA.BALANCE.dispatcher.tiers;
   const truckLevel = Math.min(...DATA.MACHINES.filter((m) => m.type === 'truck').map((m) => m.unlockLevel));
-  assert.ok(tiers.length >= 2 && tiers.length <= 3);
+  assert.ok(tiers.length >= 2 && tiers.length <= 4); // v20: ★4 Direktur Logistik Global (Lv 53)
   for (let i = 0; i < tiers.length; i++) {
     const t = tiers[i];
     assert.ok(t.unlockLevel >= truckLevel && t.hireCost > 0 && t.wage > 0 && t.trucks >= 1 && t.radiusKm > 0, t.id);

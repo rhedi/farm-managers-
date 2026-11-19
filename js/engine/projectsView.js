@@ -1,6 +1,6 @@
 // 🏛️ Proyek Warisan view for the UI (Ladang › 🏛️ Proyek, map landmarks). Read-only.
 import { round2 } from './rng.js';
-import { MAX_STAGE, regionTypes, stageCost, stageLevel, ownsRegion, blockReason, effectText, buildingCount,
+import { MONUMENT_STAGE, maxStage, regionTypes, stageCost, stageLevel, ownsRegion, blockReason, effectText, buildingCount,
   monumentInfo, monumentReason, projectsValue, ensureProjects } from './projects.js';
 
 const cfgOf = (game) => game.data.BALANCE.projects || null;
@@ -26,9 +26,9 @@ export function projectsView(game) {
   const regions = game.data.REGIONS.map((r) => {
     const projects = regionTypes(game, r.id).map((t) => {
       const x = p.regions[r.id]?.[t.id] ?? { stage: 0, build: null };
-      const k = x.stage + 1, more = x.stage < MAX_STAGE;
+      const top = maxStage(game), k = x.stage + 1, more = x.stage < top;
       if (x.stage > 0 || x.build) landmarks.push({ regionId: r.id, typeId: t.id, emoji: t.emoji, stage: x.stage, building: !!x.build });
-      return { typeId: t.id, name: t.name, emoji: t.emoji, effect: t.effect, stage: x.stage, maxStage: MAX_STAGE, done: !more,
+      return { typeId: t.id, name: t.name, emoji: t.emoji, effect: t.effect, stage: x.stage, maxStage: top, done: !more,
         effectNow: x.stage ? effectText(game, t, r.id, x.stage) : '', effectNext: more ? effectText(game, t, r.id, k) : '',
         next: more ? { stage: k, cost: stageCost(game, r.id, k), days: C.stages[k - 1].days, level: stageLevel(game, r.id, k) } : null,
         reason: blockReason(game, r.id, t.id), build: buildView(game, x.build) };
@@ -38,7 +38,7 @@ export function projectsView(game) {
   const monuments = (game.data.CONTINENTS || []).map((c) => {
     const m = p.monuments[c.id], info = monumentInfo(game, c.id);
     const regs = game.data.REGIONS.filter((r) => r.continent === c.id);
-    const regionsDone = regs.filter((r) => Object.values(p.regions[r.id] || {}).some((x) => x.stage >= MAX_STAGE)).length;
+    const regionsDone = regs.filter((r) => Object.values(p.regions[r.id] || {}).some((x) => x.stage >= MONUMENT_STAGE)).length;
     return { continentId: c.id, continentName: c.name, ...info, done: !!m?.done, build: buildView(game, m?.build),
       reason: monumentReason(game, c.id), regionsDone, regionsTotal: regs.length };
   });

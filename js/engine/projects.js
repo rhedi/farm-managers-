@@ -1,15 +1,20 @@
 // 🏛️ Proyek Warisan: regional megaprojects (money sink + long goals). Each region offers BALANCE.projects.types minus
-// skip[region]; every project has 3 stages (cost × regionScale, built over whole game days, finished at the daily
-// rollover). A Monumen per continent opens once every region there has a project at stage 3.
-// state.projects = { regions: { [regionId]: { [typeId]: { stage 0–3, build: null | { stage, start, end, cost } } } },
+// skip[region]; every project has BALANCE.projects.stages.length stages (5 since v20: stages 4–5 open at Lv 65/85; cost
+// × regionScale, built over whole game days, finished at the daily rollover). A Monumen per continent opens once every
+// region there has a project at stage MONUMENT_STAGE (3).
+// state.projects = { regions: { [regionId]: { [typeId]: { stage 0–5, build: null | { stage, start, end, cost } } } },
 //   monuments: { [continentId]: { done, build } }, spent, value /* finished stage spend */ }.
 // Other systems read the effects through projectPerk(game, key, scope) (like research.perk).
 import { round2 } from './rng.js';
 import { fmtMoney } from './defs.js';
 import { grantResearchPoints } from './rewards.js';
 
-export const MAX_STAGE = 3;
+/** Stage a region needs for its continent's Monumen (and the "Warisan Abadi" achievement): the v17 top stage. */
+export const MONUMENT_STAGE = 3;
 const cfg = (game) => game.data.BALANCE.projects || null;
+/** Number of stages per project (data-driven; 3 before v20). */
+export const maxStageOf = (data) => data?.BALANCE?.projects?.stages?.length || MONUMENT_STAGE;
+export const maxStage = (game) => maxStageOf(game.data);
 const ok = (extra = {}) => ({ ok: true, ...extra });
 const fail = (reason) => ({ ok: false, reason });
 const pct = (v) => `${Math.round(v * 1000) / 10}%`;
@@ -26,7 +31,7 @@ export function ensureProjects(s, data) {
     if (!(data?.REGIONS || []).some((r) => r.id === rid)) continue;
     for (const [tid, x] of Object.entries(obj(rp))) {
       if (!types.has(tid) || !x || typeof x !== 'object') continue;
-      const stage = Math.max(0, Math.min(MAX_STAGE, x.stage | 0));
+      const stage = Math.max(0, Math.min(maxStageOf(data), x.stage | 0));
       const b = build(x.build);
       (regions[rid] ||= {})[tid] = { stage, build: b && b.stage === stage + 1 ? b : null };
     }
@@ -84,7 +89,7 @@ export function blockReason(game, regionId, typeId) {
   if (!regionTypes(game, regionId).some((t) => t.id === typeId)) return 'Proyek ini tidak ada di wilayah ini.';
   if (game.state.level < C.unlockLevel) return `Proyek Warisan terbuka di level ${C.unlockLevel}.`;
   if (x.build) return 'Sedang dibangun.';
-  if (x.stage >= MAX_STAGE) return 'Sudah selesai.';
+  if (x.stage >= maxStage(game)) return 'Sudah selesai.';
   if (!ownsRegion(game, regionId)) return 'Butuh minimal 1 ladang di wilayah ini.';
   const lvl = stageLevel(game, regionId, x.stage + 1);
   if (game.state.level < lvl) return `Tahap ${x.stage + 1} butuh level ${lvl}.`;
@@ -110,7 +115,7 @@ export function startProject(game, regionId, typeId) {
 
 // ---- Monumen (one per continent) ----
 const continentRegions = (game, cid) => game.data.REGIONS.filter((r) => r.continent === cid);
-const regionDone = (game, regionId) => Object.values(st(game).regions[regionId] || {}).some((x) => x.stage >= MAX_STAGE);
+const regionDone = (game, regionId) => Object.values(st(game).regions[regionId] || {}).some((x) => x.stage >= MONUMENT_STAGE);
 export const monumentInfo = (game, cid) => {
   const M = cfg(game).monument, [name, emoji] = M.names?.[cid] ?? ['Monumen', '🗿'];
   return { name: `Monumen ${name}`, emoji, cost: M.cost, days: M.days, level: M.level, rp: M.rp };
@@ -162,7 +167,7 @@ export function stepProjectsDay(game) {
     b.x.stage = b.build.stage; b.x.build = null;
     if (t.effect === 'rp') grantResearchPoints(game, t.values[b.x.stage - 1] ?? 1);
     game.emit('project_done', `🎉 ${t.emoji} ${t.name} ${r.name} tahap ${b.x.stage} selesai! ${effectText(game, t, b.regionId, b.x.stage)}.`,
-      { regionId: b.regionId, typeId: b.typeId, stage: b.x.stage, done: b.x.stage >= MAX_STAGE });
+      { regionId: b.regionId, typeId: b.typeId, stage: b.x.stage, done: b.x.stage >= maxStage(game) });
   }
   if (finished) game.checkAchievements();
 }
@@ -226,7 +231,7 @@ export function projectStat(game, key) {
   if (!p?.regions) return 0;
   const slots = Object.values(p.regions).flatMap((rp) => Object.values(rp));
   if (key === 'projectStages') return slots.reduce((a, x) => a + (x.stage || 0), 0);
-  if (key === 'projectsDone') return slots.filter((x) => x.stage >= MAX_STAGE).length;
+  if (key === 'projectsDone') return slots.filter((x) => x.stage >= MONUMENT_STAGE).length;
   if (key === 'monuments') return Object.values(p.monuments || {}).filter((m) => m.done).length;
   return 0;
 }

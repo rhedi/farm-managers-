@@ -9,14 +9,15 @@ import { routeOf } from '../js/engine/logistics.js';
 const { REGIONS, FIELDS, CITIES, CROPS, PRODUCTS, CONTINENTS, LEVELS } = DATA;
 const NEW = ['kalimantan', 'ukraina', 'mekong', 'pampas', 'kenya', 'alberta'];
 
-test('data: 13 regions, unique ids, each on a known continent with fields', () => {
+test('data: every region has a unique id, a known continent, fields and a reachable unlock level', () => {
   const ids = REGIONS.map((r) => r.id);
   assert.equal(new Set(ids).size, ids.length);
+  assert.ok(ids.length >= 16, `${ids.length} regions`);
   for (const id of NEW) assert.ok(ids.includes(id), id);
   const conts = new Set(CONTINENTS.map((c) => c.id));
   for (const r of REGIONS) {
     assert.ok(conts.has(r.continent), `${r.id} continent`);
-    assert.ok((r.unlockLevel ?? 1) >= 1 && (r.unlockLevel ?? 1) <= 50, `${r.id} unlock`);
+    assert.ok((r.unlockLevel ?? 1) >= 1 && (r.unlockLevel ?? 1) <= LEVELS.length, `${r.id} unlock`);
     assert.ok(FIELDS.filter((f) => f.regionId === r.id).length >= 4, `${r.id} fields`);
   }
 });

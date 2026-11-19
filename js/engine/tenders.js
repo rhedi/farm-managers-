@@ -19,6 +19,19 @@ const DEFAULTS = { unlockLevel: 35, everyDays: 40, firstDelayDays: 2, offerDays:
   truckShare: 0.5, minQty: 2000, priceRate: 1.1, premium: 0.25, rp: 3, penaltyRate: 0.03, xpPerValue: 0.004,
   portLoadPerStage: 0.005, portPremiumPerStage: 0.05, reserveWorkers: 1, ports: [], destinations: [] };
 export const tcfg = (game) => ({ ...DEFAULTS, ...(game.data.BALANCE.tenders || {}) });
+/**
+ * v20 tender tiers (`BALANCE.tenders.tiers` [{id, level, name, emoji, farmShare?, truckShare?, premium?, rp?, durationDays?}]):
+ * config of tier `id` (an offer keeps the tier it was offered at), or of the best tier open at the current level when
+ * `id` is undefined. `null` = the base tier (Lv 35 "Tender Ekspor"). → {...tcfg, tier: def | null}.
+ */
+export function tierCfg(game, id) {
+  const c = tcfg(game), tiers = c.tiers || [];
+  const def = id !== undefined ? tiers.find((x) => x.id === id) ?? null
+    : tiers.filter((x) => game.state.level >= x.level).sort((a, b) => b.level - a.level)[0] ?? null;
+  const { id: _i, level: _l, name: _n, emoji: _e, ...over } = def || {};
+  return { ...c, ...over, tier: def };
+}
+const tierLabel = (def) => (def ? `${def.emoji ?? '🚢'} ${def.name}` : '🚢 Tender Ekspor');
 const fail = (reason) => ({ ok: false, reason });
 const EPS = 1e-6;
 /** 2 significant digits (47.300 → 47.000). */
@@ -81,7 +94,7 @@ function farmPerDay(game, crop) {
 }
 
 function makeOffer(game, day) {
-  const s = game.state, c = tcfg(game), t = st(game);
+  const s = game.state, c = tierCfg(game), t = st(game);
   const ports = c.ports.map((id) => game.idx.cities.get(id)).filter((city) => city && city.unlockLevel <= s.level && routeOf(game, city));
   if (!ports.length || !trucks(game).length) return null;
   t.seq += 1;
@@ -99,7 +112,7 @@ function makeOffer(game, day) {
   const p = game.idx.products.get(crop.id);
   const price = round2(Math.max(s.market[p.id] ?? p.basePrice, 0.9 * p.basePrice) * c.priceRate);
   return { id: `t${t.seq}`, productId: crop.id, destId: dest?.id ?? 'rotterdam', cityId: city.id, qty, price,
-    days: c.durationDays, offeredDay: day, expiresDay: day + c.offerDays };
+    days: c.durationDays, offeredDay: day, expiresDay: day + c.offerDays, tier: c.tier?.id ?? null };
 }
 
 /** Pay a delivered chunk; finishes the tender when complete. */
@@ -116,7 +129,7 @@ function deliverChunk(game, a, qty, how) {
 }
 
 function complete(game) {
-  const t = st(game), a = t.active, c = tcfg(game), dest = destOf(game, a.destId);
+  const t = st(game), a = t.active, c = tierCfg(game, a.tier ?? null), dest = destOf(game, a.destId);
   const value = round2(a.qty * a.price);
   const stage = portStage(game, a.cityId);
   const bonus = round2(value * c.premium * (1 + c.portPremiumPerStage * stage));
@@ -126,7 +139,7 @@ function complete(game) {
   const tr = t.trophies[a.destId] ||= { count: 0, firstDay: game.day };
   tr.count += 1;
   t.done += 1;
-  t.history.push({ id: a.id, productId: a.productId, destId: a.destId, qty: a.qty, delivered: a.delivered, status: 'done', day: game.day, paid: round2(a.paid + bonus), bonus });
+  t.history.push({ id: a.id, productId: a.productId, destId: a.destId, qty: a.qty, delivered: a.delivered, status: 'done', day: game.day, paid: round2(a.paid + bonus), bonus, tier: a.tier ?? null });
   if (t.history.length > 8) t.history.splice(0, t.history.length - 8);
   t.active = null;
   t.next = Math.max(t.next ?? 0, game.day + Math.ceil(c.everyDays / 2));
@@ -278,6 +291,7 @@ export function tenderView(game) {
   const s = game.state, c = tcfg(game), t = st(game);
   const one = (x, active) => {
     if (!x) return null;
+    const tc = tierCfg(game, x.tier ?? null);
     const p = game.idx.products.get(x.productId) || { name: x.productId, emoji: '' };
     const city = game.idx.cities.get(x.cityId), dest = destOf(game, x.destId);
     const route = city && routeOf(game, city), fleet = fleetPerDay(game, city), stage = portStage(game, x.cityId);
@@ -291,7 +305,8 @@ export function tenderView(game) {
       cityEmoji: city?.emoji ?? '⚓', km: route?.km ?? 0, qty: x.qty, delivered, inTransit, remaining: round2(rest),
       toSend: active ? toSend(x) : x.qty, progress: x.qty ? Math.min(1, delivered / x.qty) : 0,
       transitFrac: x.qty ? Math.min(1, (delivered + inTransit) / x.qty) : 0, price: x.price, value,
-      paid: x.paid || 0, bonus: round2(value * c.premium * (1 + c.portPremiumPerStage * stage)), rp: c.rp,
+      paid: x.paid || 0, bonus: round2(value * tc.premium * (1 + c.portPremiumPerStage * stage)), rp: tc.rp,
+      tier: x.tier ?? null, tierName: tierLabel(tc.tier),
       penalty: round2(rest * x.price * c.penaltyRate), days: x.days, daysLeft, dueDay: x.dueDay ?? null,
       stock: sellableStock(game, x.productId), portStage: stage, portLoadPerDay: round2(x.qty * c.portLoadPerStage * stage),
       fleetPerDay: Math.round(fleet.tons), trucks: fleet.trucks, idleTrucks: idle,
@@ -300,7 +315,9 @@ export function tenderView(game) {
     };
   };
   const trophies = c.destinations.map((d) => ({ ...d, count: t.trophies[d.id]?.count || 0, firstDay: t.trophies[d.id]?.firstDay ?? null }));
+  const cur = tierCfg(game).tier, nextTier = (c.tiers || []).filter((x) => x.level > s.level).sort((a, b) => a.level - b.level)[0] ?? null;
   return { unlocked: s.level >= c.unlockLevel, unlockLevel: c.unlockLevel, level: s.level, auto: t.auto,
+    tierName: tierLabel(cur), nextTier: nextTier ? { name: tierLabel(nextTier), level: nextTier.level } : null,
     next: t.next, daysToNext: t.next != null ? Math.max(0, t.next - game.day) : null,
     offer: one(t.offer, false), active: one(t.active, true), done: t.done, failed: t.failed,
     history: [...t.history].reverse().map((h) => ({ ...h, destName: destOf(game, h.destId).name, destEmoji: destOf(game, h.destId).emoji,

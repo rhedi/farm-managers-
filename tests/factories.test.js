@@ -17,12 +17,14 @@ function withMill(seed = 1, wheat = 50) {
   return g;
 }
 
-test('factory data: unlock levels, products exist, value-add 25–60%', () => {
-  assert.deepEqual(DATA.FACTORIES.map((f) => f.unlockLevel), [11, 13, 15, 18, 19, 21, 24, 11, 30, 48]); // + Pabrik Pakan Ikan, v17 Kopi + Cokelat
+test('factory data: unlock levels, products exist, value-add 25–60% (Lv ≤ 50) / 40–75% (Lv 51+)', () => {
+  const maxLevel = DATA.LEVELS.length;
+  for (const f of DATA.FACTORIES) assert.ok(Number.isInteger(f.unlockLevel) && f.unlockLevel >= 1 && f.unlockLevel <= maxLevel, `${f.id} unlock`);
   for (const f of DATA.FACTORIES) for (const r of f.recipes) {
     const val = (m) => Object.entries(m).reduce((s, [id, q]) => { assert.ok(P[id], `${f.id}/${r.id}: ${id}`); return s + q * P[id].basePrice; }, 0);
     const add = val(r.outputs) / val(r.inputs) - 1;
-    assert.ok(add >= 0.25 && add <= 0.6, `${f.id}/${r.id} value-add ${add}`);
+    const [lo, hi] = f.unlockLevel <= 50 ? [0.25, 0.6] : [0.4, 0.75];
+    assert.ok(add >= lo && add <= hi, `${f.id}/${r.id} value-add ${add}`);
   }
 });
 

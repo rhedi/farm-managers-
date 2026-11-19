@@ -209,14 +209,27 @@ export function levelForXp(levels, xp) {
   return lvl;
 }
 
-/** Content whose unlockLevel lies in (from, to]. Fields use their effective level (own or region). */
+/**
+ * Content whose unlockLevel lies in (from, to]. Fields use their effective level (own or region). v20 adds `cities`,
+ * `research` (nodes with minLevel), staff tiers (`dispatchers`, `factoryManagers`, `mandors`) and `systems`:
+ * 'project:<stage>' (BALANCE.projects.stages[].level), 'tender:base' / 'tender:<tierId>', 'league:<divisionId>'
+ * (divisions with minLevel) and 'legacy:<perkId>' (perks with minLevel).
+ */
 export function unlocksBetween(data, from, to) {
   const inRange = (lvl) => lvl > from && lvl <= to;
-  const pick = (arr) => (arr || []).filter((x) => inRange(x.unlockLevel)).map((x) => x.id);
+  const pick = (arr, key = 'unlockLevel') => (arr || []).filter((x) => inRange(x[key])).map((x) => x.id);
+  const B = data.BALANCE || {}, systems = [];
+  (B.projects?.stages || []).forEach((st, i) => { if (inRange(st.level)) systems.push(`project:${i + 1}`); });
+  if (B.tenders && inRange(B.tenders.unlockLevel)) systems.push('tender:base');
+  for (const t of B.tenders?.tiers || []) if (inRange(t.level)) systems.push(`tender:${t.id}`);
+  for (const d of B.league?.divisions || []) if (inRange(d.minLevel)) systems.push(`league:${d.id}`);
+  for (const p of B.legacy?.perks || []) if (inRange(p.minLevel)) systems.push(`legacy:${p.id}`);
   return { crops: [...pick(data.CROPS), ...pick(data.TREES)], machines: pick(data.MACHINES), animals: pick(data.ANIMALS),
     fields: (data.FIELDS || []).filter((f) => inRange(fieldUnlockLevel(data, f))).map((f) => f.id),
-    regions: pick(data.REGIONS), factories: pick(data.FACTORIES ?? []), ponds: pick(data.PONDS),
-    mandors: pick(data.BALANCE?.mandor?.tiers) }; // 👷 Mandor Ladang tiers (js/engine/mandor.js)
+    regions: pick(data.REGIONS), factories: pick(data.FACTORIES ?? []), ponds: pick(data.PONDS), cities: pick(data.CITIES),
+    mandors: pick(B.mandor?.tiers), // 👷 Mandor Ladang tiers (js/engine/mandor.js)
+    dispatchers: pick(B.dispatcher?.tiers), factoryManagers: pick(B.factoryManager?.tiers),
+    research: pick(data.RESEARCH, 'minLevel'), systems };
 }
 
 /** Money paid for reaching `level`: `BALANCE.levelReward` × level. */

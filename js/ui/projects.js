@@ -1,5 +1,5 @@
 // 🏛️ Proyek Warisan pane (Ladang › 🏛️ Proyek): building slots, continent chips, Monumen card, region cards with
-// 3-stage projects (pips, current/next effect, cost/days/level, crane + progress while building, Bangun button).
+// 5-stage projects (pips, current/next effect, cost/days/level, crane + progress while building, Bangun button).
 import { h, fmtMoney, fmtCompact, progressBar } from './dom.js';
 import { app, act } from './app.js';
 import { confirmModal } from './modal.js';
@@ -15,8 +15,8 @@ export function projectsSig(game) {
     + v.monuments.map((m) => `${m.done}${m.build ? 'b' : ''}${m.reason.length}`).join('');
 }
 
-const pips = (stage, building) => h('span.proj-pips', { 'aria-label': `Tahap ${stage} dari 3` },
-  [1, 2, 3].map((k) => h(`i.pip${k <= stage ? '.on' : ''}${building && k === stage + 1 ? '.build' : ''}`)));
+const pips = (stage, building, max = 3) => h('span.proj-pips', { 'aria-label': `Tahap ${stage} dari ${max}` },
+  Array.from({ length: max }, (_, i) => i + 1).map((k) => h(`i.pip${k <= stage ? '.on' : ''}${k > 3 ? '.pip-hi' : ''}${building && k === stage + 1 ? '.build' : ''}`)));
 
 async function build(game, region, p) {
   const ok = await confirmModal({ title: `${p.emoji} ${p.name} · tahap ${p.next.stage}`,
@@ -35,7 +35,7 @@ function projectRow(game, region, p) {
   return h(`div.proj-row${p.build ? '.is-building' : ''}${p.done ? '.is-done' : ''}`,
     h('span.proj-ico', { dataset: { stage: String(p.stage) } }, p.emoji),
     h('div.proj-main',
-      h('div.proj-name', h('b', p.name), pips(p.stage, !!p.build)),
+      h('div.proj-name', h('b', p.name), pips(p.stage, !!p.build, p.maxStage ?? 3)),
       p.effectNow ? h('div.small.proj-eff', `✅ ${p.effectNow}`) : null,
       p.build ? buildRow(p.build, `${region.id}:${p.typeId}`) : null,
       !p.build && p.next ? h('div.small.muted', `Tahap ${p.next.stage}: ${p.effectNext} · ${fmtMoney(p.next.cost)} · ${p.next.days} hari · Lv ${p.next.level}`) : null,

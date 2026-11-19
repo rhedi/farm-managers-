@@ -5,16 +5,17 @@ import { setup, tier, near } from './factoryManager.helpers.js';
 import { loadGame } from '../js/engine.js';
 import { dispatchableStock } from '../js/engine/dispatcher.js';
 
-test('data: Lv 11 (first factory) / 15 / 25 tiers grow with skill; ≤2 / ≤5 / all factories; new game has no factory manager', () => {
+test('data: Lv 11 (first factory) / 15 / 25 / 65 tiers grow with skill; ≤2 / ≤5 / all factories; new game has no factory manager', () => {
   const tiers = DATA.BALANCE.factoryManager.tiers;
   assert.deepEqual(tiers.map((t) => [t.id, t.unlockLevel, t.factories, t.intervalHours]),
-    [['supervisor', 11, 2, 6], ['kepala', 15, 5, 2], ['direktur', 25, null, 1]]);
+    [['supervisor', 11, 2, 6], ['kepala', 15, 5, 2], ['direktur', 25, null, 1], ['ceo', 65, null, 1]]);
   assert.ok(tiers[0].unlockLevel >= Math.min(...DATA.FACTORIES.map((f) => f.unlockLevel))); // never hireable with nothing to run
   for (let i = 1; i < tiers.length; i++) for (const k of ['hireCost', 'wage', 'skill']) assert.ok(tiers[i][k] > tiers[i - 1][k], `${tiers[i].id}.${k}`);
-  assert.deepEqual(tiers.map((t) => t.buyInputs), [false, false, true]);
+  assert.deepEqual(tiers.map((t) => t.buyInputs), [false, false, true, true]);
+  assert.ok(tiers[3].inputMult < tiers[2].inputMult && tiers[3].outputMult > tiers[2].outputMult, 'v20 ★4 CEO beats the Direktur');
   const v = newGame().factoryManagerView();
   assert.equal(v.hired, null);
-  assert.equal(v.candidates.length, 3);
+  assert.equal(v.candidates.length, 4);
   assert.equal(v.unlockLevel, 11);
   assert.ok(v.candidates.every((c) => c.locked && /Terbuka di level/.test(c.reason)));
 });

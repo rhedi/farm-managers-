@@ -199,12 +199,13 @@ const nf1 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 });
 const nf2 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 });
 
 export const fmtNum = (v, digits = 0) => (digits === 0 ? nf0 : digits === 1 ? nf1 : nf2).format(Number(v) || 0);
-/** Short count for tight spots: 950 · 74,5 rb · 1,2 jt · 115 jt (no decimal from 100 jt, keeps Lv 40–50 XP short). */
+/** Short count for tight spots: 950 · 74,5 rb · 1,2 jt · 115 jt · 4,15 M (no decimal from 100 jt; miliar for Lv 76–100 XP). */
 export function fmtCompact(v) {
   const n = Number(v) || 0, a = Math.abs(n);
   if (a < 10000) return nf0.format(n);
   if (a < 1e6) return `${nf1.format(n / 1000)} rb`;
-  return `${(a < 1e8 ? nf1 : nf0).format(n / 1e6)} jt`;
+  if (a < 1e9) return `${(a < 1e8 ? nf1 : nf0).format(n / 1e6)} jt`;
+  return `${(a < 1e10 ? nf2 : a < 1e11 ? nf1 : nf0).format(n / 1e9)} M`;
 }
 export const fmtMoney = (v) => `${(Number(v) || 0) < 0 ? '-' : ''}$${nf0.format(Math.abs(Math.round(Number(v) || 0)))}`;
 /** Unit price: keeps decimals for cheap goods (eggs, milk). */

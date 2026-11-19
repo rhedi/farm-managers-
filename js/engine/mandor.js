@@ -23,7 +23,7 @@ const capOf = (cfg, t) => (t ? (t.fields == null ? Infinity : Math.max(cfg.freeF
 /** Smallest tier that runs `planned` fields (Kepala Mandor for > 30 or at Lv ≥ 20): grandfathering of old saves. */
 export function grandfatherTier(cfg, planned, level) {
   const tiers = [...(cfg.tiers || [])].sort((a, b) => a.skill - b.skill);
-  const top = tiers[tiers.length - 1];
+  const top = tiers.find((t) => t.fields == null) ?? tiers[tiers.length - 1]; // never the v20 ★4 Agronom
   if (!top) return null;
   if (level >= top.unlockLevel) return top;
   return tiers.find((t) => capOf(cfg, t) >= planned) ?? top;

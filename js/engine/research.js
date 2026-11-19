@@ -127,7 +127,7 @@ export function researchView(game) {
     const status = unlocked.has(n.id) ? 'unlocked' : !reason ? 'ready' : prereqOk ? 'open' : 'locked';
     return { id: n.id, name: n.name, emoji: n.emoji, cost: n.cost, effects: { ...n.effects }, desc: effectText(n.effects),
       requires: (n.requires || []).map((id) => ({ id, name: nodeOf(game, id)?.name ?? id, unlocked: unlocked.has(id) })),
-      minLevel, levelOk, unlocked: unlocked.has(n.id), status, reason: status === 'unlocked' ? null : reason };
+      minLevel, levelOk, tier: n.tier ?? null, unlocked: unlocked.has(n.id), status, reason: status === 'unlocked' ? null : reason };
   };
   const branches = (game.data.RESEARCH_BRANCHES ?? []).map((b) => {
     const list = nodes.filter((n) => n.branch === b.id).map(nodeView);

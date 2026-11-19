@@ -16,7 +16,7 @@ function kv(rows) {
 function offerCard(o) {
   return h('div.card.tender-card.offer',
     sea(o.destEmoji),
-    h('div.td-title', `🚢 Tender Ekspor ke ${o.destName}`),
+    h('div.td-title', `${o.tierName ?? '🚢 Tender Ekspor'} ke ${o.destName}`),
     h('div.td-sub', `${o.emoji} ${fmtNum(o.qty)} t ${o.name} · ${o.days} hari · lewat ${o.cityEmoji} ${o.cityName} (${fmtNum(o.km)} km)`),
     kv([
       ['Harga / t (dibayar saat tiba)', fmtPrice(o.price)],
@@ -46,7 +46,7 @@ function activeCard(a, auto) {
   const behind = a.perDayNeeded > a.fleetPerDay + a.portLoadPerDay;
   return h(`div.card.tender-card.active${urgent ? '.urgent' : ''}`,
     sea(a.destEmoji),
-    h('div.td-title', `🚢 ${a.destName}: ${a.emoji} ${a.name}`, h(`span.badge${urgent ? '.badge-red' : '.badge-blue'}`, a.daysLeft >= 0 ? `sisa ${a.daysLeft} hari` : 'batas hari ini')),
+    h('div.td-title', `${a.tier ? `${a.tierName} · ` : '🚢 '}${a.destName}: ${a.emoji} ${a.name}`, h(`span.badge${urgent ? '.badge-red' : '.badge-blue'}`, a.daysLeft >= 0 ? `sisa ${a.daysLeft} hari` : 'batas hari ini')),
     h('div.td-bar', { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(a.progress * 100)) },
       h('i.td-transit', { style: { width: `${a.transitFrac * 100}%` } }), h('i.td-done', { style: { width: `${a.progress * 100}%` } })),
     h('div.small.td-nums', h('b', `${fmtNum(a.delivered)} / ${fmtNum(a.qty)} t`), ` terkirim · 🚚 ${fmtNum(a.inTransit)} t di jalan (${a.onRoad} truk)`),
@@ -88,8 +88,9 @@ export function tenderSection(game) {
   } else if (v.active) body = activeCard(v.active, v.auto);
   else if (v.offer) body = offerCard(v.offer);
   else {
-    body = h('div.card.tender-card.idle', sea('⏳'), h('div.td-title', '🚢 Tender Ekspor'),
-      h('p.small.muted', v.daysToNext != null ? `Tawaran berikutnya ±${v.daysToNext} hari lagi. Siapkan truk dan silo.` : 'Tawaran pertama segera datang.'));
+    body = h('div.card.tender-card.idle', sea('⏳'), h('div.td-title', v.tierName ?? '🚢 Tender Ekspor'),
+      h('p.small.muted', v.daysToNext != null ? `Tawaran berikutnya ±${v.daysToNext} hari lagi. Siapkan truk dan silo.` : 'Tawaran pertama segera datang.'),
+      v.nextTier ? h('p.small.muted', `${v.nextTier.name} terbuka di level ${v.nextTier.level}: tender lebih besar, bonus dan poin riset lebih banyak.`) : null);
   }
   return h('section.section.tender-section',
     h('div.section-title', '🚢 Tender Ekspor', h('span.small.muted', `🏆 ${v.trophies.filter((t) => t.count).length}/${v.trophies.length} piala`)),

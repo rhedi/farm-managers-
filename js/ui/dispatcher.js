@@ -8,7 +8,7 @@ import { app, act } from './app.js';
 import { fold, goTo } from './subtabs.js';
 import { CATEGORIES } from './stock.js';
 
-export const stars = (n) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 3 - n));
+export const stars = (n) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 4 - n)); // v20: 4 staff tiers (★4 from Lv 53/65/77)
 const pct = (v) => `${fmtNum(v * 100)}%`;
 let lastRecent = null; // newest dispatch already shown (the newest row slides in once)
 let lastTier; // hired tier last rendered (a new one pops in once after Ganti / promosikan)

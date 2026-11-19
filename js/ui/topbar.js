@@ -16,14 +16,15 @@ let xpObserver = null;
  *  rewritten and measured on every frame). */
 function updateXpText(el, li) {
   const a = fmtCompact(li.xp).replace(/ /g, ''), b = fmtCompact(li.next).replace(/ /g, '');
-  const unit = /[a-z]+$/.exec(b)?.[0];
+  const unit = /[a-zA-Z]+$/.exec(b)?.[0]; // rb · jt · M (miliar)
   const full = li.maxed ? 'MAX' : `${unit && a.endsWith(unit) ? a.slice(0, -unit.length) : a}/${b}`;
   if (last.xpFull !== full) {
     writeText(el, full); last.xpText = full;
     last.xpFits = el.scrollWidth <= el.clientWidth;
     if (el.getClientRects().length) last.xpFull = full;
   }
-  setText(el, 'xpText', last.xpFits ? full : `${Math.floor(Math.min(1, Math.max(0, li.progress)) * 100)}%`);
+  // At max level the bar itself carries "MAX" (css .lv-max) when the text has no room, never a "100%".
+  setText(el, 'xpText', last.xpFits ? full : li.maxed ? '' : `${Math.floor(Math.min(1, Math.max(0, li.progress)) * 100)}%`);
 }
 
 function setText(el, key, text) {
@@ -98,6 +99,7 @@ export function updateTopbar(game) {
   setText(els.level, 'level', String(li.level));
   const w = `${Math.round((li.maxed ? 1 : Math.min(1, Math.max(0, li.progress))) * 100)}%`;
   if (last.xp !== w) { last.xp = w; els.xpbar.style.width = w; }
+  if (last.maxed !== li.maxed) { last.maxed = li.maxed; els.level.closest('.stat-level')?.classList.toggle('lv-max', li.maxed); } // v20: gold shimmer at Lv 100
   const xpTitle = li.maxed ? `XP ${fmtNum(li.xp)} (maks)` : `XP ${fmtNum(li.xp)} / ${fmtNum(li.next)}`;
   const pts = game.researchPoints?.().available ?? 0;
   const lvlTitle = `${xpTitle}\n${pts > 0 ? `🔬 ${pts} poin riset tersedia — ` : ''}Ketuk untuk riset.`;

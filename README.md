@@ -150,6 +150,8 @@ Tab **Ladang** punya dua sub-tab. **🌾 Ladangku** dibuka lebih dulu: ladang ya
 
 Mulai level 15, sub-tab **Ladang › 🏛️ Proyek**. Tiap wilayah punya 4 dari 5 proyek: 🏞️ Bendungan (peluang hujan minimum, El Niño lebih ringan), ⚓ Pelabuhan Ekspor (harga kota di benua itu naik), 🔭 Pusat Riset (+1 poin riset per tahap), 🤝 Koperasi Petani (benih, pupuk, dan gaji lebih hemat) dan 🏪 Pasar Induk (bonus kontrak selesai). Tiap proyek punya 3 tahap: sekitar $1 jt (4 hari, Lv 15) → $50 jt (10 hari, Lv 25) → $1 M (25 hari, Lv 35); wilayah yang lebih jauh sedikit lebih mahal. Butuh minimal 1 ladang di wilayah itu, maksimal 3 proyek dibangun bersamaan. Bila setiap wilayah satu benua punya proyek tahap 3, **Monumen** benua itu bisa dibangun ($2 M, 30 hari, Lv 40, +3 poin riset). Proyek tampil di 🗺️ Peta dengan derek yang bergoyang selama dibangun dan kilau saat selesai.
 
+**v20 tahap 4–5:** mulai level 65 tiap proyek bisa naik ke tahap 4 (±$20 M × skala wilayah, 40 hari), dan mulai level 85 ke tahap 5 (±$150 M, 60 hari). Efek tahap 4/5: Bendungan 50/55%, Pelabuhan +11/14%, Pusat Riset +1 🔬 per tahap, Koperasi −11/14%, Pasar Induk +7/9% (jumlah semua Pasar Induk maks. 15%). Titik tahap 4–5 berwarna emas, dan ikon proyek di peta bersinar. Monumen tetap hanya butuh tahap 3 di setiap wilayah benua; Monumen yang sudah berdiri tidak hilang walau wilayah baru (Punjab, California, Delta Nil) bergabung ke benuanya.
+
 ### Tanah
 
 - pH ladang bisa diubah: alat **penebar kapur** (Garasi, Lv 2) menggeser pH 0,5 ke arah 6,8 per pengapuran (bahan $90/ha).
@@ -267,6 +269,7 @@ Ternak, ikan, dan pabrik kini jadi pilar yang kuat, tetapi tidak lagi menelan se
 - **📉 Pasar jenuh.** Menjual banyak produk ternak, ikan, atau olahan yang sama dalam waktu singkat menurunkan harganya di pasar lokal. Di Gudang dan Pasar baris produk itu menampilkan **📉 Harga turun 8% karena banyak dijual hari ini** (atau "beberapa hari terakhir"), dan tombol **Jual $…** sudah memakai harga yang turun. Tanaman, buah, dan barang yang bisa dibeli (pelet ikan) tidak pernah jenuh.
   - Setiap pergantian hari 45% "tekanan" penjualan tersisa, jadi harga pulih dalam ±3–5 hari. Penurunan paling banyak 60%.
   - Pasar tumbuh bersama levelmu. Kedalaman pasar per produk (nilai harga dasar per hari): ±$10.000 di Lv 1, $200.000 di Lv 10, $5 jt di Lv 20, $15 jt di Lv 30, $30 jt di Lv 40, dan $60 jt di Lv 50. Menjual 10% dari kedalaman itu dalam sehari membuat harga turun ±10% di akhir penjualan (rata-rata ±5%).
+  - **v20 rem pertumbuhan (Lv 51–100):** pasar olahan terus tumbuh sampai $550 jt per hari di Lv 100, tetapi pasar produk ternak dan ikan hanya tumbuh pelan, dari $60 jt (Lv 50) ke $160 jt (Lv 100). Kenaikan harga kandang dan kolam per unit juga makin tajam di atas Lv 50, sampai ×5 di Lv 100: kandang ke-100 berharga ×1,7 harga dasar di Lv 50 dan ×4,5 di Lv 100. Ternak, kandang, dan kolam yang sudah kamu miliki tidak berubah; hanya kandang/kolam baru yang lebih mahal.
   - Satu kali jual besar sama hasilnya dengan beberapa kali jual kecil di hari yang sama; menyebar penjualan ke beberapa hari lebih untung. Gudang dingin yang meluap (jual paksa 70%) dan muatan truk yang dijual di kota juga ikut menekan harga. **Kontrak** dibayar dengan harga kontrak dan tidak terpengaruh, jadi ⭐ kontrak premium adalah jalan keluar untuk produksi besar.
 - **🏗️ Kandang dan kolam makin mahal.** Kandang pertama setiap hewan tetap seharga dasarnya; setiap kandang hewan yang sama yang sudah kamu punya menambah 0,7% harga dasar (kandang ke-51 ×1,35, ke-151 ×2,05). Kolam ikan juga begitu, dihitung per jenis kolam. Kartu ternak dan daftar kolam selalu menampilkan harga kandang/kolam berikutnya, dan balik modal kolam memakai harga itu.
 - **Data ternak disetel ulang**: pakan sekitar 15% dari nilai produk, dan satu kandang penuh balik modal ±33–43 hari pada harga dasar (termasuk kandang). Dengan kandang yang makin mahal dan pasar jenuh, kawanan yang terus diperbesar balik modal ±45–70 hari.
@@ -352,7 +355,7 @@ Manajer membayar dirinya sekitar 1,5–3× bila truknya cukup besar (keuntungan 
 
 ### Riset
 
-Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya; 49 poin di level 50). Buka **Prestasi › 🔬 Riset** (angkanya menunjukkan poin yang tersedia) atau ketuk level di bar atas. Cabang yang masih punya riset siap diteliti terbuka otomatis. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 7 riset dengan prasyarat; beberapa butuh 2–3 poin. Tingkat 5 (2 riset per cabang, label "Lv N") terbuka di level 32–47: Pertanian Presisi (Lv 32), Genetika Unggul (33), Jalur Ekspor (35), Autopilot GPS (37), Benih Unggul IV (40), Peternakan Pintar (42), Korporasi Agribisnis (45), Armada Modern (47). Seluruh pohon butuh 52 poin, jadi satu riset tetap harus dipilih. Tiap efek dibatasi maksimal 50%. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo, gudang dingin, dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
+Setiap naik level memberi 1 poin riset (simpanan lama langsung mendapat poin sesuai levelnya; 49 poin di level 50, 99 poin di level 100). Buka **Prestasi › 🔬 Riset** (angkanya menunjukkan poin yang tersedia) atau ketuk level di bar atas. Cabang yang masih punya riset siap diteliti terbuka otomatis. Empat cabang (🌾 Pertanian, 🐄 Peternakan, 💼 Bisnis, 🚜 Mekanik), masing-masing 11 riset dengan prasyarat; beberapa butuh 2–5 poin. Tingkat 5 (2 riset per cabang, label "Lv N") terbuka di level 32–47: Pertanian Presisi (Lv 32), Genetika Unggul (33), Jalur Ekspor (35), Autopilot GPS (37), Benih Unggul IV (40), Peternakan Pintar (42), Korporasi Agribisnis (45), Armada Modern (47). **v20 Tingkat 6** (label biru "T6", Lv 57–74): Kandang Otomatis (57), Benih Unggul V (58), Kantor Global (60), Mesin Listrik (62), Irigasi Cerdas (66), Vaksin Modern (68), Pasar Modal (71), Robot Lapangan (74). **Tingkat 7** (label emas "T7", Lv 82–99): Genomik Ternak (82), Rekayasa Genom (84), Merek Dunia (86), Hidrogen Hijau (88), Pakan Presisi AI (93), Satelit Tani (95), Konglomerasi (97), Armada Otonom (99). Seluruh pohon butuh 120 poin dan level 100 memberi 99, jadi tanpa poin bonus (misi, kalender, liga, prestasi, Pusat Riset) beberapa riset tetap harus dipilih. Tiap efek dibatasi maksimal 50%, dan pohon lengkap tidak melewati batas itu. Efeknya: hasil panen, biaya benih/pupuk, pakan, produksi dan kelahiran ternak, gaji, bunga pinjaman, harga kontrak dan kota, BBM, keausan, kecepatan tugas, kapasitas silo, gudang dingin, dan truk. Reset riset mengembalikan semua poin dengan biaya `1.500 × level`.
 
 ### Pinjaman
 
@@ -366,7 +369,7 @@ Ketuk angka uang di bar atas (atau kartu **📊 Laporan keuangan** di **Prestasi
 
 XP didapat dari setiap tugas yang selesai, dari nilai hasil panen, dan dari produksi ternak. Jumlah XP saat ini dan target level berikutnya tampil di bar atas (misalnya "XP 514/1.500"). Saat naik level kamu mendapat hadiah uang sebesar `1.000 × level` (`BALANCE.levelReward`), dan sebuah jendela menampilkan hadiah itu beserta tanaman, mesin, hewan, pabrik, wilayah, dan ladang yang baru terbuka. Tab **Prestasi** berisi misi harian dan papan peringkat (🎯 Misi), pohon riset (🔬 Riset), daftar target dengan hadiah uangnya, mulai dari yang paling dekat tercapai, beserta statistik dan catatan kejadian (🏆 Prestasi), serta laporan keuangan, pinjaman, dan grafik kekayaan bersih (uang + nilai ladang, mesin, isi gudang, ternak, dan pabrik, dikurangi pinjaman) (💰 Keuangan).
 
-**Level 11–50.** Level maksimal adalah 50 dan setiap level membuka sesuatu:
+**Level 11–50.** Setiap level membuka sesuatu (level maksimal kini 100, lihat **Level 51–100** di bawah):
 
 | Lv | Terbuka | Lv | Terbuka |
 |---|---|---|---|
@@ -396,6 +399,38 @@ XP didapat dari setiap tugas yang selesai, dari nilai hasil panen, dan dari prod
 | 39 | 🌹 Mawar, pemetik buah robotik | 49 | penabur 60m |
 | 40 | penabur 48m, ladang Nyeri | 50 | pemanen Trion X Otonom |
 
+**Level 51–100 (v20).** Level maksimal adalah 100. Setiap level membuka sesuatu, dan dalam setiap 3 level ada setidaknya satu buka besar (tanaman, ternak, pabrik, kolam, wilayah, staf ★4, tahap proyek, tingkat tender, atau divisi liga). Rencana lengkapnya ada di `docs/LEVEL100_PLAN.md`.
+
+| Lv | Terbuka | Lv | Terbuka |
+|---|---|---|---|
+| 51 | irigasi tetes otomatis | 76 | 🌍 Delta Nil, ladang Kafr el-Sheikh, kota Kairo |
+| 52 | 🌍 Punjab, ladang Ludhiana, kota Ludhiana | 77 | 🏭 Pabrik Parfum, 👩‍🔬 Agronom Kepala (Mandor ★4) |
+| 53 | 🍚 Padi Basmati, 🧑‍✈️ Direktur Logistik Global (★4) | 78 | irigasi pintar sensor |
+| 54 | traktor Fendtt 1300, kota Delhi | 79 | 🌴 Kurma, kota Aleksandria |
+| 55 | 🏭 Kilang Anggur, truk 120t, ladang Amritsar | 80 | traktor 9RX 1600, ladang Mansoura, perk Dana Abadi Riset |
+| 56 | pemanen CR12 Twin | 81 | 🦞 Tambak Lobster |
+| 57 | 🌰 Almon, bajak 40-mata, riset T6 | 82 | drone pemetik buah, riset T7 |
+| 58 | 🐪 Unta Perah, pemetik lengan ganda, ladang Bathinda | 83 | 🏭 Pabrik Bioetanol, pemanen Trion Swarm |
+| 59 | penabur 72m | 84 | ladang Fayoum, riset T7 |
+| 60 | 🛳️ Tender Raksasa, penebar kapur 36t, perk Gudang Warisan | 85 | 🏛️ Proyek tahap 5, penyemprot satelit |
+| 61 | 🌾 Quinoa, ladang Jalandhar | 86 | truk listrik 220t, riset T7 |
+| 62 | kawanan drone penyemprot, riset T6 | 87 | 🐝 Lebah Manuka |
+| 63 | 🐠 Keramba Kerapu, ladang Patiala | 88 | bajak 60-mata, riset T7 |
+| 64 | 🌎 Lembah California, ladang Fresno, kota Fresno | 89 | ladang Minya |
+| 65 | 🤵 CEO Industri (Manajer Pabrik ★4), 🏛️ Proyek tahap 4 | 90 | 🌐 Tender Benua, penabur 120m, perk Mentor Agung |
+| 66 | traktor Quadtrac 1400, kota San Francisco | 91 | penebar kapur 48t |
+| 67 | 🏭 Pabrik Kacang, ladang Modesto | 92 | 🌿 Wasabi |
+| 68 | 🥜 Pistachio, riset T6 | 93 | ladang Luxor, riset T7 |
+| 69 | pemanen X9 2000 | 94 | drone kargo 40t |
+| 70 | 💠 Divisi Master (liga), truk otonom 160t, ladang Kern County | 95 | 🏭 Pabrik Farmasi Herbal, riset T7 |
+| 71 | 🐐 Kambing Kasmir, riset T6 | 96 | traktor Xerion Nexus |
+| 72 | bajak 48-mata | 97 | riset T7 Konglomerasi |
+| 73 | 🫚 Ginseng, ladang Sacramento Delta | 98 | 🍄 Kebun Truffle |
+| 74 | penabur 90m, riset T6 | 99 | robot panen IDEAL, riset T7 |
+| 75 | ladang Tulare Basin | 100 | 👑 perk Dinasti Seratus, prestasi Legenda Seratus |
+
+Di level 100 jendela naik level menampilkan mahkota **👑 Level maksimal 100!** (kilau emas + konfeti ekstra), dan bar atas menampilkan **MAX**. XP tetap terkumpul. Simpanan lama tidak pernah turun level: ambang Lv 1–50 tidak berubah, dan simpanan yang menabung XP di batas lama (Lv 50) naik tepat satu level (ke 51, dengan jendelanya) pada XP berikutnya.
+
 Ladang di wilayah baru terkunci sampai levelnya tercapai (pin 🔒 Lv N di peta); level buka sebuah ladang adalah yang lebih tinggi antara `unlockLevel` ladang dan wilayahnya. Ke-20 ladang lama tetap bisa dibeli sejak level 1. v16 meratakan Lv 5–12 (ambang XP 4.200 / 7.200 / 11.500 / 17.500 / 24.000 / 35.000 / 48.000 / 70.000, sebelumnya 4.500 / 8.000 / 13.000 / 20.000 / 30.000 / 45.000 / 57.000 / 73.000): dengan bot rencana+ladang, setiap level Lv 4→13 kini ±15–24 hari game (sebelumnya 16–39, dengan punuk di Lv 7→10), Lv 13→15 ±12–23. Semua ambang baru lebih rendah dari yang lama, jadi simpanan lama tidak pernah turun level atau kehilangan XP. Kurva XP diuji dengan bot rakus (rencana ladang, beli ladang/mesin, misi harian, 2 seed): level 20 sekitar hari ke-425–435, level 30 sekitar hari ke-800–820, level 40 sekitar hari ke-1.325–1.350, dan level 50 sekitar hari ke-1.985–2.000 (Lv 30→50 ±1.180 hari, ±20 jam pada kecepatan 1×). Simpanan lama di level 30 melanjutkan: XP yang tertabung dipotong ke ambang level 31 sehingga XP berikutnya menaikkan tepat satu level. Jendela naik level menjeda permainan, tetapi jeda itu tidak pernah ikut tersimpan (simpanan memakai kecepatan sebelum jendela dibuka).
 
 ### Wilayah
@@ -413,12 +448,16 @@ Peta di **Ladang › Peta** menampilkan satu benua sekaligus (chip 🌏 Asia & O
 | Pampas | Amerika | 34 | sedang, belahan selatan (musim bergeser ½ tahun) | 400–1.000 (Lv 34–47) | Rosario, Buenos Aires |
 | Kenya | Eropa & Afrika | 38 | dataran tinggi tropis | 300–800 (Lv 38–48) | Nairobi, Mombasa |
 | Alberta | Amerika | 43 | prairi dingin | 600–1.600 (Lv 43–48) | Calgary, Vancouver |
+| Punjab | Asia | 52 | subtropis kering, aluvial | 1.200–2.600 (Lv 52–63) | Ludhiana, Delhi |
+| Lembah California | Amerika | 64 | mediterania kering | 1.800–3.400 (Lv 64–75) | Fresno, San Francisco |
+| Delta Nil | Eropa & Afrika | 76 | gurun beririgasi, panas | 2.500–5.000 (Lv 76–93) | Kairo, Aleksandria |
 
 Penanda iklim di `REGIONS[].climate`: `tropical` (musim basah/kering) dan `southern` (musim sedang bergeser setengah tahun).
 
 ### Bab Petani, misi, dan papan peringkat
 
 - **📖 Bab Petani** (di atas **Prestasi › 🎯 Misi**, muncul setelah penjualan pertama di panduan): rangkaian langkah yang menuntun dari petani pemula ke raja industri. Bab 1 *Petani Mandiri*: beli ladang ke-2 → aktifkan 🔁 Rencana di 1 ladang → rekrut pekerja → selesaikan 1 kontrak. Bab 2 *Juragan Desa*: bangun kolam ikan (Lv 3) → rekrut Manajer Logistik (Lv 6) → bangun rumah kaca (Lv 9). Bab 3 *Raja Industri*: bangun pabrik (Lv 11) → rekrut Manajer Pabrik (Lv 11) → 10 kontrak → ladang di 5 wilayah. Bab 4 *Taipan Dunia*: 3 kolam → 25 ladang → 50 kontrak → ke-13 wilayah. Tiap langkah punya tujuan, kemajuan, hadiah, dan tombol **🧭 Tunjukkan** yang membuka tab/sub-tab yang tepat; **🎁 Ambil hadiah** muncul saat tujuan tercapai (kartu berpendar, angka di sub-tab Misi, dan pil kuning "📖 Bab: … — hadiah siap!" di atas Ladangku). Langkah terakhir tiap bab memberi +1 poin riset. Simpanan lama: langkah yang sudah tercapai langsung selesai tanpa hadiah, dengan satu notifikasi ringkas.
+- **📖 Bab 5 *Dinasti Dunia*** (v20, Lv 52+): ladang di Punjab → rekrut 🧑‍✈️ Direktur Logistik Global → selesaikan 1 🛳️ Tender Raksasa → Proyek Warisan tahap 4 → ladang di ke-16 wilayah. Tantangan Generasi Baru melewati langkah yang mustahil di bawah aturannya.
 - **🎯 Misi hari ini (hari game)**: setiap hari game (±1 menit nyata pada 1×; hitung mundurnya menampilkan jam game dan detik nyata) ada 3 misi baru yang disesuaikan dengan level, ladang, dan tempo bermainmu, misalnya "Panen 30 t Jagung", "Jual hasil sendiri senilai $8.000" (barang yang dibeli dari pasar lalu dijual lagi tidak dihitung), "Selesaikan 2 tugas bajak", "Sediakan 2 t pakan ternak (panen/beli)", "Kumpulkan 1.200 XP", "Selesaikan 1 kontrak", atau "Produksi 2 batch di pabrik". Semua bisa diselesaikan dengan otomatisasi: tugas dari 🔁 Rencana, jual otomatis, Manajer Logistik, dan Manajer Pabrik ikut dihitung (baris 🤖 di tiap misi). Target XP = 60–90% XP rata-rata 3 hari game terakhir. Misi yang selesai diambil lewat **Ambil** (dengan konfeti); hadiah yang lupa diambil tetap dibayar saat pergantian hari.
 - **Hadiah Berskala**: uang hadiah ikut naik dengan pendapatan produksi rata-rata 3 hari game terakhir (penjualan panen, ternak, olahan, dan kontrak dikurangi pembelian di pasar), dengan jumlah tetap lama sebagai batas bawah. Misi: 5–12% per misi (ketiganya ≤ ±30% pendapatan sehari); bonus beruntun: setengah hari; prestasi: ¼–1 hari; langkah Bab: 15%. Karena uang di akhir permainan melimpah, hadiah "besar" untuk yang sulit berupa XP dan **poin riset** (misi panen/kontrak/pabrik kadang +1 🔬, prestasi besar +1–3 🔬).
 - **🔥 Beruntun**: selesaikan ketiga misi beberapa hari berturut-turut. Setiap 7 hari beruntun ada bonus besar; satu hari terlewat membuat hitungan kembali ke 0.
@@ -439,6 +478,7 @@ Papan kekayaan sudah tidak seru di akhir permainan (kamu bisa 6× lebih kaya dar
 
 - Kamu bertanding melawan 7 pesaing yang sama (Koperasi Sido Rukun … Agro Nusantara Group). Di awal tiap musim target mereka **disesuaikan dengan formmu** (rata-rata nilaimu di musim-musim sebelumnya) × kekuatan divisi ± sebaran per pesaing (stabil sempit, fluktuatif lebar). Jadi yang menentukan adalah apakah kamu lebih baik dari dirimu sendiri, bukan seberapa besar pertanianmu.
 - **Divisi** 🥉 Perunggu (pesaing ±0,90× formmu) → 🥈 Perak (0,97×) → 🥇 Emas (1,03×) → 💎 Berlian (1,09×). 2 teratas naik (▲, baris hijau), 2 terbawah turun (▼, baris merah).
+- **v20 💠 Master** (kekuatan 1,15×): divisi ke-5. Naik dari Berlian ke Master butuh **Lv 70**; sebelum itu kartu liga menampilkan "🔒 Master terbuka di Lv 70". Juara 1 di Master mendapat 4 🔬.
 - **Hadiah** juara 1–3: piala di **🏆 Rak piala** (tetap ada lintas generasi), poin riset (juara 1: 1/2/2/3 🔬 per divisi) dan booster bertema metrik (mis. ⛽ → tugas ladang 15% lebih cepat 10 hari). Tidak pernah uang tunai.
 - Kartu liga: divisi, hitung mundur musim, penjelasan metrik, klasemen langsung, hadiah, rak piala, dan riwayat 12 musim. Saat musim berakhir muncul jendela dengan piala, peringkat, naik/turun divisi, dan konfeti; musim yang selesai saat offline (mode hemat tetap menjalankan liga, panen kasar ikut dihitung) dirangkum di jendela yang sama.
 - **Simpanan lama**: mulai di Perunggu. Bila dimuat lebih dari 3 hari setelah musim dimulai, sisa musim menjadi **🔥 Pemanasan** (formmu diukur, tanpa klasemen); musim pertama yang dinilai dimulai di awal tahun game berikutnya.
@@ -449,11 +489,14 @@ Mulai **Lv 30**, **Prestasi › 🌳 Warisan** menawarkan **Wariskan pertanian**
 
 `⭐ = bulat ke bawah[(level − 27) + √(kekayaan bersih ÷ $25 jt) + √prestasi + √(tahap Proyek Warisan + 3 × Monumen)] × pengali tantangan`
 
+v20: suku level naik 1 per level sampai Lv 50, lalu ½ per level: Lv 50 = 23, Lv 100 = 23 + 25 = **48 ⭐**.
+
 Contoh: Lv 33, kekayaan $1 M, 30 prestasi, 12 tahap proyek → 6 + 6,3 + 5,5 + 3,5 = **21 ⭐**. Rinciannya selalu terlihat sebelum konfirmasi, dan jumlah itulah yang diberikan.
 
 - **Konfirmasi 2 langkah**: (1) peringatan apa yang hilang dan yang tetap, rincian bintang, beli perk dengan bintang yang akan didapat, pilih tantangan dan wilayah awal; (2) layar terakhir dengan tombol merah yang baru aktif setelah 2 detik. Sebelum mewariskan, simpanan lama dicadangkan ke `farm-manager-save.bak-<waktu>`.
 - **Yang tetap**: bintang, perk, lambang, rak piala liga, dan **🏛️ Museum** (ringkasan tiap generasi: nama, hari, level, kekayaan, lambang, bintang). Blok warisan disimpan di luar data permainan (kunci `legacy` di simpanan dan salinan di `localStorage` `farm-manager-legacy`), jadi juga bertahan setelah ⚙️ Reset game.
 - **Pohon perk** (12 perk, total 32 ⭐): 🌱 Akar Keluarga (modal +$15.000, 1⭐) → 🏚️ Lumbung Tua (silo +1 tingkat, 2⭐) → 🗺️ Tanah Leluhur (pilih wilayah awal Lv 1, 4⭐); 💰 Celengan Warisan (modal +$50.000, 3⭐); 📜 Catatan Kakek (+1 poin riset, 2⭐) → 📚 Perpustakaan Keluarga (+1 lagi, 4⭐); ⭐ Pengalaman Turun-temurun (XP +5%, 3⭐) → 🌟 Kebijaksanaan Leluhur (XP +5% lagi, 6⭐); 🎯 Daftar Tugas Ayah (+1 misi harian, 3⭐) → 👷 Mandor Keluarga (Mandor pertama −50%, 2⭐); 🛡️ Lambang Keluarga (pilih lambang & warna, 1⭐) → 🎨 Cat Traktor Warisan (cat mesin emas/ungu, 1⭐). Efek awal berlaku di awal setiap generasi, dan langsung sekali bila dibeli di tengah generasi; XP, misi, Mandor, dan kosmetik langsung berlaku.
+- **v20 perk tingkat lanjut** (butuh pernah mencapai level itu, di generasi mana pun): 🏗️ Gudang Warisan (Lv 60, silo +2 tingkat, 5⭐), 🏞️ Warisan Tanah Luas (Lv 70, modal +$250.000, 6⭐), 🏦 Dana Abadi Riset (Lv 80, +2 🔬 di awal, 8⭐), 🧓 Mentor Agung (Lv 90, XP +5%, 10⭐), 👑 Dinasti Seratus (Lv 100, +1 misi harian dan +3 🔬 di awal, 15⭐).
 - **Tantangan** (opsional, dipilih saat mewariskan; selesai bila Lv 30 tercapai dengan aturannya): 🌴 *Hanya wilayah tropis* ×1,5 (ladang hanya di Jawa Barat, Kalimantan, Mato Grosso, Delta Mekong, Kenya), 🚫 *Tanpa sewa panen* ×1,3 (mulai dengan satu pemanen bekas; sewa pemanen/pemetik ditolak, juga di mode hemat), 🧑‍💼 *Tanpa Manajer* ×1,3 (tanpa Manajer Logistik/Pabrik; Mandor boleh). Langkah Bab Petani yang mustahil di bawah aturan itu dilewati. Tantangan bisa dilepas kapan saja (aturan dan bonusnya hilang).
 - Animasi: pohon keluarga tumbuh (satu daun per perk, satu buah per generasi di museum), bintang terbang saat membeli perk dan saat mewariskan, lambang dengan bingkai divisi liga tertinggi.
 
@@ -484,6 +527,8 @@ Prangko baru dicap dengan animasi; prangko tidak pernah turun. Melengkapi satu b
 ### 🚢 Tender Ekspor (v18)
 
 Mulai **level 35**, kira-kira tiap 40 hari muncul satu tawaran tender di atas **Pasar › 📋 Kontrak**: ribuan ton satu tanaman (mis. 26.000 t kedelai) ke pelabuhan dunia (Rotterdam, Shanghai, Dubai, Tokyo, …) dalam **30 hari**, lewat kota pelabuhan yang bisa dicapai truk (Jakarta, Odesa, Chicago, …). Besarnya dihitung dari luas ladangmu dan armada truk (±45% produksi seandainya semua ladang menanamnya, ±50% daya angkut truk), jadi tidak bisa dibeli dengan uang saja. Hanya satu tender aktif.
+
+**v20 tingkat tender:** mulai **Lv 60** tawaran baru menjadi **🛳️ Tender Raksasa** (±60% produksi / 65% armada, 40 hari, bonus 35%, +5 🔬), dan mulai **Lv 90** **🌐 Tender Benua** (±75% / 80%, 45 hari, bonus 45%, +7 🔬). Tender memakai tingkat saat ditawarkan; kartu menampilkan nama tingkat dan tingkat berikutnya. San Francisco dan Aleksandria ikut menjadi pelabuhan ekspor.
 
 - Kiriman berangkat dengan truk (tombol **🚚 Kirim truk**, atau **Kirim otomatis** yang mengirim truk bebas tiap jam sebelum Manajer Logistik, menyisakan 1 pekerja). Muatan dibayar saat tiba di pelabuhan (harga terkunci = pasar × 1,1). Stok tanaman tender tidak ikut dijual otomatis.
 - **⚓ Pelabuhan Ekspor** di benua pelabuhan itu memuat 0,5% tender per tahap langsung dari silo tiap malam dan menambah bonus 5% per tahap.

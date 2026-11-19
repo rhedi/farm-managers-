@@ -20,7 +20,7 @@ import { newFieldState } from './fields.js';
 import { legacyCfg, perkSum, activeChallenge } from './legacyPerks.js';
 
 export const LEGACY_VERSION = 1;
-const DEFAULT_STARS = { levelFrom: 27, perLevel: 1, nwUnit: 25000000, monumentStages: 3 };
+const DEFAULT_STARS = { levelFrom: 27, perLevel: 1, softFrom: 50, perLevelAfter: 0.5, nwUnit: 25000000, monumentStages: 3 };
 const DEFAULT_EMBLEM = { icon: '🌱', color: 'hijau' };
 const ok = (extra = {}) => ({ ok: true, ...extra });
 const fail = (reason) => ({ ok: false, reason });
@@ -78,13 +78,14 @@ export function ensureGeneration(s, data) {
 
 /**
  * Pure star formula. `level` (max level reached), `netWorth` ($), `achievements` (count), `stages` (Proyek Warisan
- * stages finished + monumentStages per Monumen). Sublinear: √ of net worth, achievements and stages; level is capped at 50.
+ * stages finished + monumentStages per Monumen). Sublinear: √ of net worth, achievements and stages. The level term is
+ * perLevel × (level − levelFrom) up to softFrom (50), then perLevelAfter (0.5) per level (v20: Lv 100 → 23 + 25 = 48).
  * → {parts: {level, wealth, achievements, projects}, raw}.
  */
 export function starFormula({ level = 1, netWorth: nw = 0, achievements = 0, stages = 0 }, cfg = DEFAULT_STARS) {
   const c = { ...DEFAULT_STARS, ...cfg };
   const parts = {
-    level: c.perLevel * Math.max(0, level - c.levelFrom),
+    level: c.perLevel * Math.max(0, Math.min(level, c.softFrom) - c.levelFrom) + c.perLevelAfter * Math.max(0, level - c.softFrom),
     wealth: Math.sqrt(Math.max(0, nw) / c.nwUnit),
     achievements: Math.sqrt(Math.max(0, achievements)),
     projects: Math.sqrt(Math.max(0, stages)),
@@ -140,18 +141,22 @@ export const perkText = (p) => Object.entries(p.effects || {}).map(([k, v]) => E
 /** 'start' = given at each generation start (and once when bought mid-run), 'next' = from the next generation, 'live' = now. */
 export const perkWhen = (p) => (Object.keys(p.effects || {}).some((k) => START_KEYS.has(k)) ? 'start' : p.effects?.regionChoice ? 'next' : 'live');
 
-function perkReason(cfg, L, p) {
+/** Highest level this family ever reached: the museum's generations and the current run. */
+export const bestLevel = (L, runLevel = 0) => Math.max(runLevel || 0, ...(L.museum || []).map((m) => m.level || 0));
+
+function perkReason(cfg, L, p, runLevel = 0) {
   if (L.perks.includes(p.id)) return 'Sudah dimiliki.';
   const missing = (p.requires || []).filter((id) => !L.perks.includes(id));
   if (missing.length) return `Butuh ${missing.map((id) => cfg.perks.find((x) => x.id === id)?.name ?? id).join(' & ')}.`;
+  if (p.minLevel && bestLevel(L, runLevel) < p.minLevel) return `Butuh pernah mencapai Lv ${p.minLevel}.`;
   if (L.stars < p.cost) return `Butuh ${p.cost} ⭐.`;
   return null;
 }
 
-function buyOn(cfg, L, id) {
+function buyOn(cfg, L, id, runLevel = 0) {
   const p = cfg.perks.find((x) => x.id === id);
   if (!p) return fail('Perk tidak ditemukan.');
-  const reason = perkReason(cfg, L, p);
+  const reason = perkReason(cfg, L, p, runLevel);
   if (reason) return fail(reason);
   L.stars -= p.cost;
   L.perks.push(p.id);
@@ -160,7 +165,7 @@ function buyOn(cfg, L, id) {
 
 /** Spend stars on a perk now. Start effects (money, research points, silo) are also given at once for this run. */
 export function buyLegacyPerk(game, id) {
-  const cfg = legacyCfg(game), r = buyOn(cfg, game.legacy, id);
+  const cfg = legacyCfg(game), r = buyOn(cfg, game.legacy, id, game.state.level);
   if (!r.ok) return r;
   const e = r.perk.effects || {}, s = game.state, applied = {};
   if (e.startMoney > 0) { game.earn(e.startMoney, 'hadiah', { stat: false }); applied.money = e.startMoney; }
@@ -242,7 +247,7 @@ export function planInheritance(game, { challengeId = null, regionId, buy = [], 
   L.stars += pv.total;
   L.earned += pv.total;
   for (const id of Array.isArray(buy) ? buy : []) {
-    const r = buyOn(cfg, L, id);
+    const r = buyOn(cfg, L, id, game.state.level);
     if (!r.ok) return fail(`${cfg.perks.find((p) => p.id === id)?.name ?? id}: ${r.reason}`);
   }
   const has = (key) => L.perks.some((id) => (cfg.perks.find((p) => p.id === id)?.effects?.[key] ?? 0) > 0);
@@ -296,9 +301,9 @@ export function legacyView(game) {
   const cfg = legacyCfg(game), L = game.legacy, g = game.state.generation ?? {};
   const pv = legacyPreview(game);
   const perks = (cfg.perks || []).map((p) => {
-    const reason = perkReason(cfg, L, p), owned = L.perks.includes(p.id);
+    const reason = perkReason(cfg, L, p, game.state.level), owned = L.perks.includes(p.id);
     const prereq = (p.requires || []).every((id) => L.perks.includes(id));
-    return { id: p.id, branch: p.branch, name: p.name, emoji: p.emoji, cost: p.cost, requires: p.requires || [],
+    return { id: p.id, branch: p.branch, name: p.name, emoji: p.emoji, cost: p.cost, requires: p.requires || [], minLevel: p.minLevel ?? null,
       desc: perkText(p), when: perkWhen(p), owned, status: owned ? 'owned' : !reason ? 'ready' : prereq ? 'open' : 'locked', reason: owned ? null : reason };
   });
   const def = activeChallenge(game);

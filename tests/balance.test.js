@@ -13,8 +13,8 @@ const cheapestFeed = (a) => Math.min(...a.feedCrops.map((id) => P[id].basePrice)
 const animalNet = (a) => a.productPerDay * P[a.product].basePrice - a.feedPerDay * cheapestFeed(a);
 const reward = (id) => ACHIEVEMENTS.find((a) => a.id === id).reward;
 
-test('levels: faster early curve, every level 2–10 unlocks something (11–50: levels.test.js)', () => {
-  assert.equal(LEVELS.length, 50);
+test('levels: faster early curve, every level 2–10 unlocks something (11–100: levels.test.js, level100.test.js)', () => {
+  assert.equal(LEVELS.length, 100);
   assert.ok(LEVELS[1] <= 300 && LEVELS[2] <= 1000, 'early thresholds halved');
   for (let i = 1; i < LEVELS.length; i++) assert.ok(LEVELS[i] > LEVELS[i - 1]);
   for (let lvl = 2; lvl <= 10; lvl++) {

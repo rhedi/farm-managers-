@@ -7,6 +7,7 @@
 //  canola  fast oilseed (5 d) ............. ≈445   sunflower alkaline/dry soils, slower ............. ≈460
 //  sugarcane long + capital heavy ......... ≈480   cotton  wide pH, dry-hardy ....................... ≈515
 //  tomato (7) ≈520 · coffee (8, acid) ≈555 · strawberry (9) ≈585 · vanilla (10) ≈665
+//  basmati (53, thirsty paddy) ≈1235 · quinoa (61, dry/alkaline) ≈1315 · wasabi (92, wet + cool) ≈1570
 export const CROPS = [
   { id: 'wheat', name: 'Gandum', emoji: '🌾', seedCostPerHa: 120, growDays: 5, baseYield: 7, idealPh: [6.0, 7.5], waterNeed: 'med', unlockLevel: 1, seasons: ['spring', 'autumn'], nutrientUse: 0.2 },
   { id: 'barley', name: 'Barley', emoji: '🌿', seedCostPerHa: 60, growDays: 3, baseYield: 5.5, idealPh: [6.0, 8.0], waterNeed: 'low', unlockLevel: 1, seasons: ['spring', 'autumn', 'winter'], nutrientUse: 0.15 },
@@ -33,6 +34,11 @@ export const CROPS = [
   { id: 'pepper', name: 'Lada', emoji: '🌶️', seedCostPerHa: 2400, growDays: 12, baseYield: 1.6, idealPh: [5.0, 6.5], waterNeed: 'high', unlockLevel: 32, seasons: ['wet', 'summer'], minTemp: 20, nutrientUse: 0.2 },
   { id: 'rose', name: 'Mawar', emoji: '🌹', seedCostPerHa: 4500, growDays: 8, baseYield: 6, idealPh: [6.0, 7.0], waterNeed: 'med', unlockLevel: 39, seasons: ['spring', 'summer', 'dry'], minTemp: 12, nutrientUse: 0.15 },
   { id: 'blueberry', name: 'Bluberi', emoji: '🫐', seedCostPerHa: 2000, growDays: 9, baseYield: 2.4, idealPh: [4.5, 5.5], waterNeed: 'med', unlockLevel: 45, seasons: ['summer', 'autumn'], minTemp: 6, nutrientUse: 0.15 },
+  // Lv 51–100: basmati ≈1235 · quinoa ≈1315 · ginseng ≈1410 · wasabi ≈1570 (homes: Punjab, California, Delta Nil).
+  { id: 'basmati', name: 'Padi Basmati', emoji: '🍚', seedCostPerHa: 900, growDays: 8, baseYield: 4.2, idealPh: [6.0, 7.5], waterNeed: 'high', unlockLevel: 53, seasons: ['summer', 'autumn', 'wet'], minTemp: 14, nutrientUse: 0.25 },
+  { id: 'quinoa', name: 'Quinoa', emoji: '🌾', seedCostPerHa: 1200, growDays: 9, baseYield: 3.7, idealPh: [6.0, 8.5], waterNeed: 'low', unlockLevel: 61, seasons: ['spring', 'summer', 'dry'], minTemp: 4, nutrientUse: 0.2 },
+  { id: 'ginseng', name: 'Ginseng', emoji: '🫚', seedCostPerHa: 3000, growDays: 16, baseYield: 0.36, idealPh: [5.0, 6.5], waterNeed: 'med', unlockLevel: 73, seasons: ['spring', 'autumn'], minTemp: 2, nutrientUse: 0.25 },
+  { id: 'wasabi', name: 'Wasabi', emoji: '🌿', seedCostPerHa: 2600, growDays: 14, baseYield: 1.0, idealPh: [6.0, 7.0], waterNeed: 'high', unlockLevel: 92, seasons: ['spring', 'autumn', 'wet'], minTemp: 6, nutrientUse: 0.2 },
 ];
 
 // Kebun buah (perennial orchards, js/engine/orchard.js). Planted once on a plowed field (`seed` task with a tree,
@@ -50,6 +56,10 @@ export const TREES = [
   { id: 'coconut', name: 'Kelapa', emoji: '🥥', perennial: true, plantCostPerHa: 35000, maturityDays: 60, harvestEveryDays: 5, baseYield: 11.6, lifespanDays: 700, idealPh: [5.5, 8.0], waterNeed: 'med', unlockLevel: 18, seasons: ['spring', 'summer', 'wet'], minTemp: 18, nutrientUse: 0.15 },
   { id: 'cherry', name: 'Ceri', emoji: '🍒', perennial: true, plantCostPerHa: 36000, maturityDays: 50, harvestEveryDays: 6, baseYield: 2.2, lifespanDays: 420, idealPh: [6.0, 7.5], waterNeed: 'med', unlockLevel: 22, seasons: ['spring', 'summer', 'dry'], minTemp: 2, nutrientUse: 0.15 },
   { id: 'durian', name: 'Durian', emoji: '🍈', perennial: true, plantCostPerHa: 40000, maturityDays: 80, harvestEveryDays: 8, baseYield: 2.6, lifespanDays: 800, idealPh: [5.0, 6.5], waterNeed: 'high', unlockLevel: 26, seasons: ['summer', 'autumn', 'wet'], minTemp: 20, nutrientUse: 0.2 },
+  { id: 'almond', name: 'Almon', emoji: '🌰', perennial: true, plantCostPerHa: 52000, maturityDays: 70, harvestEveryDays: 7, baseYield: 2.2, lifespanDays: 900, idealPh: [6.0, 8.0], waterNeed: 'low', unlockLevel: 57, seasons: ['summer', 'autumn', 'dry'], minTemp: 4, nutrientUse: 0.15 },
+  { id: 'pistachio', name: 'Pistachio', emoji: '🥜', perennial: true, plantCostPerHa: 60000, maturityDays: 80, harvestEveryDays: 8, baseYield: 1.6, lifespanDays: 1000, idealPh: [7.0, 8.5], waterNeed: 'low', unlockLevel: 68, seasons: ['summer', 'autumn', 'dry'], minTemp: 6, nutrientUse: 0.15 },
+  { id: 'kurma', name: 'Kurma', emoji: '🌴', perennial: true, plantCostPerHa: 70000, maturityDays: 90, harvestEveryDays: 8, baseYield: 4.0, lifespanDays: 1200, idealPh: [7.0, 8.5], waterNeed: 'low', unlockLevel: 79, seasons: ['summer', 'autumn', 'dry'], minTemp: 12, nutrientUse: 0.15 },
+  { id: 'truffle', name: 'Kebun Truffle', emoji: '🍄', perennial: true, plantCostPerHa: 120000, maturityDays: 120, harvestEveryDays: 10, baseYield: 0.06, lifespanDays: 1500, idealPh: [7.5, 8.5], waterNeed: 'med', unlockLevel: 98, seasons: ['autumn', 'winter'], minTemp: 0, nutrientUse: 0.15 },
 ];
 
 // category: 'crop' (field and orchard harvest, stored in the silo), 'animal' (livestock products, Gudang dingin),
@@ -128,6 +138,31 @@ export const PRODUCTS = [
   { id: 'udang', name: 'Udang', emoji: '🦐', basePrice: 16, unit: 'kg', category: 'animal', volatility: 0.08 },
   { id: 'salmon', name: 'Salmon', emoji: '🐟', basePrice: 12, unit: 'kg', category: 'animal', volatility: 0.07 },
   { id: 'pelet_ikan', name: 'Pelet Ikan', emoji: '🟤', basePrice: 450, unit: 't', category: 'processed', volatility: 0.04, buyable: true },
+  // Lv 51–100 crops and trees
+  { id: 'basmati', name: 'Padi Basmati', emoji: '🍚', basePrice: 1900, unit: 't', category: 'crop', volatility: 0.07 },
+  { id: 'quinoa', name: 'Quinoa', emoji: '🌾', basePrice: 2600, unit: 't', category: 'crop', volatility: 0.08 },
+  { id: 'ginseng', name: 'Ginseng', emoji: '🫚', basePrice: 52000, unit: 't', category: 'crop', volatility: 0.1 },
+  { id: 'wasabi', name: 'Wasabi', emoji: '🌿', basePrice: 18000, unit: 't', category: 'crop', volatility: 0.1 },
+  { id: 'almond', name: 'Almon', emoji: '🌰', basePrice: 7200, unit: 't', category: 'crop', volatility: 0.08 },
+  { id: 'pistachio', name: 'Pistachio', emoji: '🥜', basePrice: 12500, unit: 't', category: 'crop', volatility: 0.08 },
+  { id: 'kurma', name: 'Kurma', emoji: '🌴', basePrice: 5800, unit: 't', category: 'crop', volatility: 0.08 },
+  { id: 'truffle', name: 'Truffle', emoji: '🍄', basePrice: 600000, unit: 't', category: 'crop', volatility: 0.12 },
+  // Lv 51–100 animals (Unta Perah Lv 58, Kambing Kasmir Lv 71, Lebah Manuka Lv 87) and ponds (Kerapu Lv 63, Lobster Lv 81)
+  { id: 'camel_milk', name: 'Susu Unta', emoji: '🥛', basePrice: 16, unit: 'L', category: 'animal', volatility: 0.07 },
+  { id: 'kasmir', name: 'Wol Kasmir', emoji: '🧶', basePrice: 900, unit: 'kg', category: 'animal', volatility: 0.07 },
+  { id: 'madu_manuka', name: 'Madu Manuka', emoji: '🍯', basePrice: 400, unit: 'kg', category: 'animal', volatility: 0.07 },
+  { id: 'ikan_kerapu', name: 'Ikan Kerapu', emoji: '🐠', basePrice: 28, unit: 'kg', category: 'animal', volatility: 0.07 },
+  { id: 'lobster', name: 'Lobster', emoji: '🦞', basePrice: 60, unit: 'kg', category: 'animal', volatility: 0.07 },
+  // Lv 51–100 factories: Kilang Anggur, Pabrik Kacang, Pabrik Parfum, Pabrik Bioetanol, Pabrik Farmasi Herbal
+  { id: 'wine', name: 'Anggur Merah', emoji: '🍷', basePrice: 2100, unit: 't', category: 'processed', volatility: 0.05 },
+  { id: 'jus_anggur', name: 'Jus Anggur', emoji: '🧃', basePrice: 1650, unit: 't', category: 'processed', volatility: 0.05 },
+  { id: 'susu_almon', name: 'Susu Almon', emoji: '🥛', basePrice: 3900, unit: 't', category: 'processed', volatility: 0.05 },
+  { id: 'pasta_pistachio', name: 'Pasta Pistachio', emoji: '🟩', basePrice: 24000, unit: 't', category: 'processed', volatility: 0.05 },
+  { id: 'parfum', name: 'Parfum Mawar', emoji: '🧴', basePrice: 400, unit: 'kg', category: 'processed', volatility: 0.05 },
+  { id: 'parfum_mewah', name: 'Parfum Mewah', emoji: '💎', basePrice: 1600, unit: 'kg', category: 'processed', volatility: 0.05 },
+  { id: 'bioetanol', name: 'Bioetanol', emoji: '⛽', basePrice: 1250, unit: 't', category: 'processed', volatility: 0.05 },
+  { id: 'ekstrak_ginseng', name: 'Ekstrak Ginseng', emoji: '🧪', basePrice: 430, unit: 'kg', category: 'processed', volatility: 0.05 },
+  { id: 'salep_manuka', name: 'Salep Manuka', emoji: '🍯', basePrice: 340, unit: 'kg', category: 'processed', volatility: 0.05 },
 ];
 
 export const MACHINES = [
@@ -192,6 +227,29 @@ export const MACHINES = [
   { id: 'plow_32', name: 'Kase Bajak 32-Mata', brand: 'Kase', type: 'implement', price: 320000, unlockLevel: 48, task: 'plow', hpRequired: 1100, haPerHour: 22 },
   { id: 'seeder_60', name: 'Claz Penabur 60m', brand: 'Claz', type: 'implement', price: 380000, unlockLevel: 49, task: 'seed', hpRequired: 1100, haPerHour: 24 },
   { id: 'claz_trion_x', name: 'Claz Trion X Otonom', brand: 'Claz', type: 'harvester', price: 2600000, unlockLevel: 50, haPerHour: 40, fuelPerHour: 180 },
+  // Lv 51–100: tractors to 1900 hp, harvesters to 95 ha/h (fuel/ha keeps falling), implements for 1200–5000 ha fields
+  { id: 'irrig_drip', name: 'Netafin Irigasi Tetes Otomatis', brand: 'Netafin', type: 'implement', price: 200000, unlockLevel: 51, task: 'irrigate', hpRequired: 900, haPerHour: 21 },
+  { id: 'fendtt_1300', name: 'Fendtt 1300 Vario Titan', brand: 'Fendtt', type: 'tractor', price: 2400000, unlockLevel: 54, hp: 1250, speed: 9, fuelPerHour: 105 },
+  { id: 'nh_cr12_twin', name: 'New Hollow CR12 Twin Rotor', brand: 'New Hollow', type: 'harvester', price: 3400000, unlockLevel: 56, haPerHour: 50, fuelPerHour: 200 },
+  { id: 'plow_40', name: 'Fendtt Bajak 40-Mata', brand: 'Fendtt', type: 'implement', price: 440000, unlockLevel: 57, task: 'plow', hpRequired: 1250, haPerHour: 27 },
+  { id: 'shaker_xxl', name: 'Kase Pemetik Buah Lengan Ganda', brand: 'Kase', type: 'implement', price: 300000, unlockLevel: 58, task: 'pick', hpRequired: 600, haPerHour: 14 },
+  { id: 'seeder_72', name: 'John Dear Penabur 72m', brand: 'John Dear', type: 'implement', price: 520000, unlockLevel: 59, task: 'seed', hpRequired: 1250, haPerHour: 29 },
+  { id: 'lime_36', name: 'Claz Penebar Kapur 36t', brand: 'Claz', type: 'implement', price: 150000, unlockLevel: 60, task: 'lime', hpRequired: 900, haPerHour: 19 },
+  { id: 'fert_drone_swarm', name: 'Fendtt Kawanan Drone Penyemprot', brand: 'Fendtt', type: 'implement', price: 360000, unlockLevel: 62, task: 'fertilize', hpRequired: 1100, haPerHour: 30 },
+  { id: 'kase_quadtrac_1400', name: 'Kase Quadtrac 1400', brand: 'Kase', type: 'tractor', price: 3300000, unlockLevel: 66, hp: 1400, speed: 10, fuelPerHour: 112 },
+  { id: 'jd_x9_2000', name: 'John Dear X9 2000', brand: 'John Dear', type: 'harvester', price: 4500000, unlockLevel: 69, haPerHour: 62, fuelPerHour: 225 },
+  { id: 'plow_48', name: 'Kase Bajak 48-Mata', brand: 'Kase', type: 'implement', price: 600000, unlockLevel: 72, task: 'plow', hpRequired: 1400, haPerHour: 33 },
+  { id: 'seeder_90', name: 'Claz Penabur 90m', brand: 'Claz', type: 'implement', price: 700000, unlockLevel: 74, task: 'seed', hpRequired: 1400, haPerHour: 35 },
+  { id: 'irrig_smart', name: 'John Dear Irigasi Pintar Sensor', brand: 'John Dear', type: 'implement', price: 360000, unlockLevel: 78, task: 'irrigate', hpRequired: 1250, haPerHour: 30 },
+  { id: 'jd_9rx_1600', name: 'John Dear 9RX 1600 Hybrid', brand: 'John Dear', type: 'tractor', price: 4600000, unlockLevel: 80, hp: 1600, speed: 11.5, fuelPerHour: 118 },
+  { id: 'shaker_drone', name: 'Fendtt Drone Pemetik Buah', brand: 'Fendtt', type: 'implement', price: 520000, unlockLevel: 82, task: 'pick', hpRequired: 900, haPerHour: 22 },
+  { id: 'claz_trion_swarm', name: 'Claz Trion Swarm', brand: 'Claz', type: 'harvester', price: 6000000, unlockLevel: 83, haPerHour: 76, fuelPerHour: 250 },
+  { id: 'fert_satelit', name: 'Claz Penyemprot Satelit 60000L', brand: 'Claz', type: 'implement', price: 520000, unlockLevel: 85, task: 'fertilize', hpRequired: 1250, haPerHour: 40 },
+  { id: 'plow_60', name: 'Fendtt Bajak 60-Mata', brand: 'Fendtt', type: 'implement', price: 820000, unlockLevel: 88, task: 'plow', hpRequired: 1600, haPerHour: 41 },
+  { id: 'seeder_120', name: 'John Dear Penabur 120m', brand: 'John Dear', type: 'implement', price: 950000, unlockLevel: 90, task: 'seed', hpRequired: 1600, haPerHour: 44 },
+  { id: 'lime_48', name: 'Kase Penebar Kapur 48t', brand: 'Kase', type: 'implement', price: 260000, unlockLevel: 91, task: 'lime', hpRequired: 1250, haPerHour: 26 },
+  { id: 'claz_xerion_nexus', name: 'Claz Xerion Nexus Otonom', brand: 'Claz', type: 'tractor', price: 6500000, unlockLevel: 96, hp: 1900, speed: 13, fuelPerHour: 125 },
+  { id: 'fendtt_ideal_robot', name: 'Fendtt IDEAL Robot Panen', brand: 'Fendtt', type: 'harvester', price: 8000000, unlockLevel: 99, haPerHour: 95, fuelPerHour: 280 },
   // Fruit harvest (orchards): tractor-mounted tree shakers (task 'pick'); without one, pickers are rented per ha.
   { id: 'shaker_s', name: 'Kase Pengguncang Pohon', brand: 'Kase', type: 'implement', price: 16000, unlockLevel: 7, task: 'pick', hpRequired: 70, haPerHour: 1.2 },
   { id: 'shaker_l', name: 'Fendtt Pemetik Buah Otomatis', brand: 'Fendtt', type: 'implement', price: 70000, unlockLevel: 16, task: 'pick', hpRequired: 230, haPerHour: 4 },
@@ -204,6 +262,10 @@ export const MACHINES = [
   { id: 'truk_scanya', name: 'Scanya R500 Trailer 35t', brand: 'Scanya', type: 'truck', price: 140000, unlockLevel: 12, capacity: 35, speedKmh: 85, fuelPerKm: 0.4 },
   { id: 'truk_volvu', name: 'Volvu FH16 Road Train 60t', brand: 'Volvu', type: 'truck', price: 260000, unlockLevel: 20, capacity: 60, speedKmh: 90, fuelPerKm: 0.52 },
   { id: 'truk_scanya_s', name: 'Scanya S770 Road Train 90t', brand: 'Scanya', type: 'truck', price: 420000, unlockLevel: 35, capacity: 90, speedKmh: 90, fuelPerKm: 0.7 },
+  { id: 'truk_road_120', name: 'Volvu FH Road Train 120t', brand: 'Volvu', type: 'truck', price: 650000, unlockLevel: 55, capacity: 120, speedKmh: 95, fuelPerKm: 0.85 },
+  { id: 'truk_autonom_160', name: 'Scanya Truk Otonom 160t', brand: 'Scanya', type: 'truck', price: 950000, unlockLevel: 70, capacity: 160, speedKmh: 100, fuelPerKm: 1.0 },
+  { id: 'truk_listrik_220', name: 'Teslo Semi Listrik 220t', brand: 'Teslo', type: 'truck', price: 1400000, unlockLevel: 86, capacity: 220, speedKmh: 110, fuelPerKm: 0.9 },
+  { id: 'drone_kargo', name: 'Fendtt Drone Kargo 40t', brand: 'Fendtt', type: 'truck', price: 1800000, unlockLevel: 94, capacity: 40, speedKmh: 250, fuelPerKm: 0.3 },
 ];
 
 export const ANIMALS = [
@@ -223,6 +285,10 @@ export const ANIMALS = [
   // insect bait), light but very valuable nests. Sapi Wagyu: premium beef cattle. Both pay back ≈ 41–43 days.
   { id: 'walet', name: 'Burung Walet', emoji: '🐦', price: 60, product: 'sarang_walet', productPerDay: 0.005, feedPerDay: 0.0046, feedCrops: ['rice', 'corn'], barnCost: 300000, barnCapacity: 2000, sellPrice: 30, unlockLevel: 36 },
   { id: 'wagyu', name: 'Sapi Wagyu', emoji: '🐂', price: 9000, product: 'wagyu_beef', productPerDay: 3, feedPerDay: 0.28, feedCrops: ['corn', 'barley', 'soybean'], barnCost: 80000, barnCapacity: 20, sellPrice: 6000, unlockLevel: 42, livestock: true },
+  // Lv 51–100: Unta Perah, Kambing Kasmir, Lebah Manuka. Big barns, payback ≈ 40 days, one barn > $5k/day.
+  { id: 'unta', name: 'Unta Perah', emoji: '🐪', price: 9000, product: 'camel_milk', productPerDay: 20, feedPerDay: 0.12, feedCrops: ['barley', 'wheat', 'quinoa'], barnCost: 240000, barnCapacity: 80, sellPrice: 6000, unlockLevel: 58, livestock: true },
+  { id: 'kasmir', name: 'Kambing Kasmir', emoji: '🐐', price: 14000, product: 'kasmir', productPerDay: 0.5, feedPerDay: 0.03, feedCrops: ['barley', 'wheat', 'quinoa'], barnCost: 450000, barnCapacity: 120, sellPrice: 9000, unlockLevel: 71, livestock: true },
+  { id: 'manuka', name: 'Lebah Manuka', emoji: '🐝', price: 30000, product: 'madu_manuka', productPerDay: 2.5, feedPerDay: 0.06, feedCrops: ['sugarcane'], barnCost: 1200000, barnCapacity: 120, sellPrice: 18000, unlockLevel: 87 },
 ];
 
 // Peternakan ikan (js/engine/fish.js). One pond = one batch: tebar benih (`fryPrice`/ekor, up to `capacity`), grow
@@ -236,6 +302,8 @@ export const PONDS = [
   { id: 'udang', name: 'Tambak Udang', emoji: '🦐', product: 'udang', unlockLevel: 12, climate: 'tropical', anyRegionLevel: 30, buildCost: 25000, capacity: 50000, fryPrice: 0.05, growDays: 14, harvestKg: 0.02, fcr: 1.4, waterDecay: 12, waterCost: 400 },
   { id: 'mas', name: 'Kolam Ikan Mas', emoji: '🐟', product: 'ikan_mas', unlockLevel: 14, buildCost: 12000, capacity: 3000, fryPrice: 0.3, growDays: 18, harvestKg: 0.5, fcr: 1.5, waterDecay: 8, waterCost: 250 },
   { id: 'salmon', name: 'Keramba Salmon', emoji: '🐟', product: 'salmon', unlockLevel: 22, climate: 'cold', anyRegionLevel: 40, buildCost: 75000, capacity: 2000, fryPrice: 2, growDays: 24, harvestKg: 2.5, fcr: 1.2, waterDecay: 6, waterCost: 600 },
+  { id: 'kerapu', name: 'Keramba Kerapu', emoji: '🐠', product: 'ikan_kerapu', unlockLevel: 63, climate: 'tropical', anyRegionLevel: 80, buildCost: 200000, capacity: 6000, fryPrice: 3, growDays: 30, harvestKg: 1.2, fcr: 1.4, waterDecay: 7, waterCost: 1500 },
+  { id: 'lobster', name: 'Tambak Lobster', emoji: '🦞', product: 'lobster', unlockLevel: 81, buildCost: 450000, capacity: 10000, fryPrice: 6, growDays: 28, harvestKg: 0.8, fcr: 1.5, waterDecay: 8, waterCost: 3000 },
 ];
 // Kualitas air: growth ×1 at ≥ goodWater, falling to ×minGrowth at 0; below badWater fish die up to
 // badWaterMortality/day (+ hungerMortality × unfed share). Aerator (buildCost × aeratorRate) multiplies decay.
@@ -287,6 +355,27 @@ export const FACTORIES = [
     { id: 'cokelat_susu', name: 'Cokelat susu', inputs: { cocoa: 2, milk: 1000, sugar: 1 }, outputs: { chocolate: 3.5 }, hours: 10 }, // +55%
     { id: 'cokelat_hitam', name: 'Cokelat hitam', inputs: { cocoa: 3, sugar: 0.5 }, outputs: { chocolate: 3.4 }, hours: 10 }, // +26%
   ] },
+  // Lv 51–100: Kilang Anggur, Pabrik Kacang, Pabrik Parfum, Pabrik Bioetanol, Pabrik Farmasi Herbal.
+  { id: 'winery', name: 'Kilang Anggur', emoji: '🍷', unlockLevel: 55, price: 3000000, upgradeCost: 800000, maxLevel: 5, recipes: [
+    { id: 'wine', name: 'Anggur merah', inputs: { grape: 120 }, outputs: { wine: 84 }, hours: 10 }, // +63%
+    { id: 'jus_anggur', name: 'Jus anggur', inputs: { grape: 60 }, outputs: { jus_anggur: 48 }, hours: 6 }, // +47%
+  ] },
+  { id: 'nut_factory', name: 'Pabrik Kacang', emoji: '🥜', unlockLevel: 67, price: 8000000, upgradeCost: 2000000, maxLevel: 5, recipes: [
+    { id: 'susu_almon', name: 'Susu almon', inputs: { almond: 30 }, outputs: { susu_almon: 90 }, hours: 8 }, // +62%
+    { id: 'pasta_pistachio', name: 'Pasta pistachio', inputs: { pistachio: 18 }, outputs: { pasta_pistachio: 15 }, hours: 10 }, // +60%
+  ] },
+  { id: 'perfumery', name: 'Pabrik Parfum', emoji: '🌸', unlockLevel: 77, price: 20000000, upgradeCost: 5000000, maxLevel: 5, recipes: [
+    { id: 'parfum_mawar', name: 'Parfum mawar', inputs: { rose: 60, lavender: 15 }, outputs: { parfum: 540 }, hours: 12 }, // +64%
+    { id: 'parfum_mewah', name: 'Parfum mewah', inputs: { saffron: 0.3, rose: 30 }, outputs: { parfum_mewah: 180 }, hours: 16 }, // +71%
+  ] },
+  { id: 'bioethanol', name: 'Pabrik Bioetanol', emoji: '⛽', unlockLevel: 83, price: 35000000, upgradeCost: 9000000, maxLevel: 5, recipes: [
+    { id: 'etanol_tebu', name: 'Etanol tebu', inputs: { sugarcane: 4000 }, outputs: { bioetanol: 300 }, hours: 12 }, // +56%
+    { id: 'etanol_jagung', name: 'Etanol jagung', inputs: { corn: 1200 }, outputs: { bioetanol: 300 }, hours: 12 }, // +60%
+  ] },
+  { id: 'herbal', name: 'Pabrik Farmasi Herbal', emoji: '💊', unlockLevel: 95, price: 60000000, upgradeCost: 15000000, maxLevel: 5, recipes: [
+    { id: 'ekstrak_ginseng', name: 'Ekstrak ginseng', inputs: { ginseng: 6 }, outputs: { ekstrak_ginseng: 1200 }, hours: 12 }, // +65%
+    { id: 'salep_manuka', name: 'Salep manuka', inputs: { madu_manuka: 1200, lavender: 6 }, outputs: { salep_manuka: 2400 }, hours: 10 }, // +65%
+  ] },
 ];
 
 // Peta (js/ui/farm.js) shows one continent at a time; FIELDS x/y are % positions on their continent's map.
@@ -318,6 +407,13 @@ export const REGIONS = [
     climate: { baseTemp: 19, rainChance: 0.42, tempSwing: 4, tropical: true } },
   { id: 'alberta', name: 'Alberta', continent: 'amerika', unlockLevel: 43, desc: 'Prairi dingin, musim tanam pendek: kanola, gandum, barley.',
     climate: { baseTemp: 7, rainChance: 0.25, tempSwing: 13 } },
+  // Lv 52–76 regions (Level 100): no `tropical` flags.
+  { id: 'punjab', name: 'Punjab', continent: 'asia', unlockLevel: 52, desc: 'Lumbung India, aluvial subur: padi basmati, gandum, kapas.',
+    climate: { baseTemp: 24, rainChance: 0.3, tempSwing: 11 } },
+  { id: 'california', name: 'Lembah California', continent: 'amerika', unlockLevel: 64, desc: 'Mediterania kering beririgasi: almon, pistachio, anggur, tomat.',
+    climate: { baseTemp: 18, rainChance: 0.18, tempSwing: 8 } },
+  { id: 'nil', name: 'Delta Nil', continent: 'eropa', unlockLevel: 76, desc: 'Gurun beririgasi sungai, panas: kapas, tebu, kurma.',
+    climate: { baseTemp: 25, rainChance: 0.12, tempSwing: 8 } },
 ];
 
 // Cities for truck deliveries (js/engine/logistics.js). `km`: road distance from each region it can be reached
@@ -336,7 +432,7 @@ export const CITIES = [
   { id: 'sapporo', name: 'Sapporo', emoji: '❄️', unlockLevel: 5, km: { hokkaido: 120 }, base: 1.04,
     demand: { milk: 1.15, butter: 1.15, cow_cheese: 1.15, salmon: 1.12, potato: 1.12, rice: 1.1, wheat: 0.95 } },
   { id: 'paris', name: 'Paris', emoji: '🗼', unlockLevel: 7, km: { normandia: 240, bavaria: 830 }, base: 1.06,
-    demand: { cow_cheese: 1.25, cheese: 1.25, butter: 1.2, bread: 1.2, cake: 1.25, salmon: 1.2, flour: 1.15, grape: 1.15, lavender: 1.15, chocolate: 1.25, wagyu_beef: 1.2 } },
+    demand: { cow_cheese: 1.25, cheese: 1.25, butter: 1.2, bread: 1.2, cake: 1.25, salmon: 1.2, flour: 1.15, grape: 1.15, lavender: 1.15, chocolate: 1.25, wagyu_beef: 1.2, wine: 1.22, parfum: 1.25, parfum_mewah: 1.22, truffle: 1.15, kasmir: 1.2 } },
   { id: 'chicago', name: 'Chicago', emoji: '🌃', unlockLevel: 8, km: { iowa: 560 }, base: 1.08,
     demand: { flour: 1.2, pork: 1.2, milk: 1.15, bread: 1.25, cake: 1.25, soybean: 1.15, corn: 1.15 } },
   { id: 'cuiaba', name: 'Cuiabá', emoji: '🌇', unlockLevel: 12, km: { matogrosso: 60 }, base: 1.03,
@@ -355,20 +451,35 @@ export const CITIES = [
   { id: 'rosario', name: 'Rosario', emoji: '🌉', unlockLevel: 34, km: { pampas: 70 }, base: 1.03,
     demand: { soybean: 1.1, corn: 1.08, sunflower: 1.08, oil: 1.15, wheat: 1.05 } },
   { id: 'buenosaires', name: 'Buenos Aires', emoji: '💃', unlockLevel: 36, km: { pampas: 300 }, base: 1.06,
-    demand: { milk: 1.15, cow_cheese: 1.22, butter: 1.18, bread: 1.2, cake: 1.25, grape: 1.15, flour: 1.18, pork: 1.15, wagyu_beef: 1.22, chocolate: 1.2 } },
+    demand: { milk: 1.15, cow_cheese: 1.22, butter: 1.18, bread: 1.2, cake: 1.25, grape: 1.15, flour: 1.18, pork: 1.15, wagyu_beef: 1.22, chocolate: 1.2, quinoa: 1.12, wine: 1.18, pasta_pistachio: 1.2, bioetanol: 1.15 } },
   { id: 'nairobi', name: 'Nairobi', emoji: '🦒', unlockLevel: 38, km: { kenya: 140 }, base: 1.04,
     demand: { tea: 1.1, coffee: 1.1, rose: 1.12, avocado: 1.12, milk: 1.15, sugar: 1.12, kopi_bubuk: 1.12 } },
   { id: 'mombasa', name: 'Mombasa', emoji: '🚢', unlockLevel: 41, km: { kenya: 480 }, base: 1.07,
-    demand: { tea: 1.15, coffee: 1.15, rose: 1.15, cooking_oil: 1.2, sugar: 1.2, cocoa: 1.12, coconut: 1.12, udang: 1.18, kopi_bubuk: 1.22, chocolate: 1.2 } },
+    demand: { tea: 1.15, coffee: 1.15, rose: 1.15, cooking_oil: 1.2, sugar: 1.2, cocoa: 1.12, coconut: 1.12, udang: 1.18, kopi_bubuk: 1.22, chocolate: 1.2, basmati: 1.1, kurma: 1.12, camel_milk: 1.15, ikan_kerapu: 1.2, madu_manuka: 1.2 } },
   { id: 'calgary', name: 'Calgary', emoji: '🤠', unlockLevel: 43, km: { alberta: 80 }, base: 1.03,
     demand: { canola: 1.1, barley: 1.08, malt: 1.15, wheat: 1.05, pork: 1.1, blueberry: 1.1 } },
   { id: 'vancouver', name: 'Vancouver', emoji: '🏔️', unlockLevel: 45, km: { alberta: 970 }, base: 1.08,
-    demand: { canola: 1.15, oil: 1.25, flour: 1.2, blueberry: 1.15, cherry: 1.15, apple: 1.12, honey: 1.2, cake: 1.25, salmon: 1.22, wagyu_beef: 1.25, sarang_walet: 1.25, chocolate: 1.25 } },
+    demand: { canola: 1.15, oil: 1.25, flour: 1.2, blueberry: 1.15, cherry: 1.15, apple: 1.12, honey: 1.2, cake: 1.25, salmon: 1.22, wagyu_beef: 1.25, sarang_walet: 1.25, chocolate: 1.25, ginseng: 1.12, wasabi: 1.12, lobster: 1.2, susu_almon: 1.2, salep_manuka: 1.2 } },
+  // Lv 52–79 regions (Level 100): a near city and a far metropolis/port each.
+  { id: 'ludhiana', name: 'Ludhiana', emoji: '🛕', unlockLevel: 52, km: { punjab: 60 }, base: 1.03,
+    demand: { basmati: 1.1, wheat: 1.05, cotton: 1.08, milk: 1.15, camel_milk: 1.12 } },
+  { id: 'delhi', name: 'Delhi', emoji: '🕌', unlockLevel: 54, km: { punjab: 320 }, base: 1.07,
+    demand: { basmati: 1.15, sugar: 1.18, tea: 1.15, cooking_oil: 1.2, kasmir: 1.22, parfum: 1.22, wine: 1.15 } },
+  { id: 'fresno', name: 'Fresno', emoji: '🌞', unlockLevel: 64, km: { california: 50 }, base: 1.03,
+    demand: { almond: 1.1, pistachio: 1.1, grape: 1.08, tomato: 1.08, wine: 1.12 } },
+  { id: 'sanfrancisco', name: 'San Francisco', emoji: '🌉', unlockLevel: 66, km: { california: 300 }, base: 1.08,
+    demand: { almond: 1.15, wine: 1.25, susu_almon: 1.22, pasta_pistachio: 1.25, wagyu_beef: 1.22, ginseng: 1.15, truffle: 1.15, salep_manuka: 1.22 } },
+  { id: 'kairo', name: 'Kairo', emoji: '🐫', unlockLevel: 76, km: { nil: 40 }, base: 1.03,
+    demand: { kurma: 1.1, cotton: 1.1, sugar: 1.12, camel_milk: 1.15, bioetanol: 1.12 } },
+  { id: 'aleksandria', name: 'Aleksandria', emoji: '⚓', unlockLevel: 79, km: { nil: 220 }, base: 1.07,
+    demand: { kurma: 1.15, cotton: 1.15, fabric: 1.2, parfum_mewah: 1.25, bioetanol: 1.2, ekstrak_ginseng: 1.22, lobster: 1.2 } },
 ];
 
 // Research tree (js/engine/research.js). Points: 1 per level-up (old saves: level − 1, derived from the level).
 // `effects` are summed per key over unlocked nodes (perk(key), each key capped at PERK_MAX); see research.js PERK_KEYS.
 // Tier 5 (`minLevel` 32–47): 2 nodes per branch, 52 points in total vs 49 earned by Lv 50, so one node stays a choice.
+// v20 tier 6 (`tier: 6`, minLevel 57–74) and tier 7 (`tier: 7`, 82–99): 2 nodes per branch each, 68 points; the whole
+// tree costs 120 vs 99 earned by Lv 100 (+ bonus RP). Every perk key stays ≤ PERK_MAX 0.5 with the full tree.
 export const RESEARCH_BRANCHES = [
   { id: 'tani', name: 'Pertanian', emoji: '🌾' }, { id: 'ternak', name: 'Peternakan', emoji: '🐄' },
   { id: 'bisnis', name: 'Bisnis', emoji: '💼' }, { id: 'mesin', name: 'Mekanik', emoji: '🚜' },
@@ -402,6 +513,23 @@ export const RESEARCH = [
   { id: 'mesin_bbm2', branch: 'mesin', name: 'Mesin Hemat II', emoji: '🛢️', cost: 3, requires: ['mesin_cepat', 'mesin_truk'], effects: { fuel: 0.1 } },
   { id: 'mesin_gps', branch: 'mesin', name: 'Autopilot GPS', emoji: '📡', cost: 2, minLevel: 37, requires: ['mesin_bbm2'], effects: { taskSpeed: 0.1 } },
   { id: 'mesin_armada', branch: 'mesin', name: 'Armada Modern', emoji: '🚛', cost: 3, minLevel: 47, requires: ['mesin_gps'], effects: { wear: 0.15, truckCap: 0.1 } },
+  // v20 tier 6–7 (Lv 57–99)
+  { id: 'tani_panen5', branch: 'tani', name: 'Benih Unggul V', emoji: '🧬', cost: 4, minLevel: 58, tier: 6, requires: ['tani_panen4'], effects: { yield: 0.05 } },
+  { id: 'tani_irigasi', branch: 'tani', name: 'Irigasi Cerdas', emoji: '💧', cost: 3, minLevel: 66, tier: 6, requires: ['tani_panen5'], effects: { seedCost: 0.05, fertCost: 0.1 } },
+  { id: 'tani_panen6', branch: 'tani', name: 'Rekayasa Genom', emoji: '🧪', cost: 5, minLevel: 84, tier: 7, requires: ['tani_irigasi'], effects: { yield: 0.05 } },
+  { id: 'tani_satelit', branch: 'tani', name: 'Satelit Tani', emoji: '🛰️', cost: 5, minLevel: 95, tier: 7, requires: ['tani_panen6'], effects: { yield: 0.05, seedCost: 0.05 } },
+  { id: 'ternak_otomatis', branch: 'ternak', name: 'Kandang Otomatis', emoji: '🏭', cost: 3, minLevel: 57, tier: 6, requires: ['ternak_produksi3'], effects: { animalProd: 0.05, feed: 0.05 } },
+  { id: 'ternak_vaksin', branch: 'ternak', name: 'Vaksin Modern', emoji: '💉', cost: 4, minLevel: 68, tier: 6, requires: ['ternak_otomatis'], effects: { births: 0.05, animalProd: 0.05 } },
+  { id: 'ternak_genom', branch: 'ternak', name: 'Genomik Ternak', emoji: '🧬', cost: 5, minLevel: 82, tier: 7, requires: ['ternak_vaksin'], effects: { animalProd: 0.1 } },
+  { id: 'ternak_pakan3', branch: 'ternak', name: 'Pakan Presisi AI', emoji: '🤖', cost: 5, minLevel: 93, tier: 7, requires: ['ternak_genom'], effects: { feed: 0.1, births: 0.1 } },
+  { id: 'bisnis_global', branch: 'bisnis', name: 'Kantor Global', emoji: '🌐', cost: 3, minLevel: 60, tier: 6, requires: ['bisnis_korporat'], effects: { cityPrice: 0.03 } },
+  { id: 'bisnis_saham', branch: 'bisnis', name: 'Pasar Modal', emoji: '📈', cost: 4, minLevel: 71, tier: 6, requires: ['bisnis_global'], effects: { interest: 0.25, contractPrice: 0.03 } },
+  { id: 'bisnis_merek', branch: 'bisnis', name: 'Merek Dunia', emoji: '🏷️', cost: 5, minLevel: 86, tier: 7, requires: ['bisnis_saham'], effects: { cityPrice: 0.04, contractPrice: 0.04 } },
+  { id: 'bisnis_konglo', branch: 'bisnis', name: 'Konglomerasi', emoji: '🏙️', cost: 5, minLevel: 97, tier: 7, requires: ['bisnis_merek'], effects: { wages: 0.1, silo: 0.15 } },
+  { id: 'mesin_listrik', branch: 'mesin', name: 'Mesin Listrik', emoji: '🔋', cost: 3, minLevel: 62, tier: 6, requires: ['mesin_armada'], effects: { fuel: 0.1 } },
+  { id: 'mesin_robot', branch: 'mesin', name: 'Robot Lapangan', emoji: '🦾', cost: 4, minLevel: 74, tier: 6, requires: ['mesin_listrik'], effects: { taskSpeed: 0.1 } },
+  { id: 'mesin_hidrogen', branch: 'mesin', name: 'Hidrogen Hijau', emoji: '💨', cost: 5, minLevel: 88, tier: 7, requires: ['mesin_robot'], effects: { fuel: 0.1, wear: 0.1 } },
+  { id: 'mesin_swarm', branch: 'mesin', name: 'Armada Otonom', emoji: '🛸', cost: 5, minLevel: 99, tier: 7, requires: ['mesin_hidrogen'], effects: { taskSpeed: 0.1, truckCap: 0.15 } },
 ];
 
 // x/y: % position on the region's continent map (CONTINENTS). Lv 10–48 expansion fields are priced for a payback
@@ -436,6 +564,12 @@ export const FIELDS = [
   { id: 'mk3', name: 'Vườn Bến Tre', regionId: 'mekong', sizeHa: 420, soil: 'silt', ph: 6.0, contamination: 'none', price: 5500000, x: 34, y: 11, unlockLevel: 37 },
   { id: 'mk4', name: 'Ruộng An Giang', regionId: 'mekong', sizeHa: 550, soil: 'loam', ph: 5.9, contamination: 'none', price: 7700000, x: 15, y: 21, unlockLevel: 42 },
   { id: 'mk5', name: 'Đồng Tháp Mười', regionId: 'mekong', sizeHa: 700, soil: 'clay', ph: 5.0, contamination: 'medium', price: 7000000, x: 28, y: 22, unlockLevel: 46 },
+  // Punjab (bottom left; alluvial, alkaline, Lv 52+). y ≥ 69 keeps the pins clear of the Jawa Barat label (y ≈ 62).
+  { id: 'pj1', name: 'Khet Ludhiana', regionId: 'punjab', sizeHa: 1200, soil: 'loam', ph: 7.4, contamination: 'none', price: 19000000, x: 12, y: 72 },
+  { id: 'pj2', name: 'Khet Amritsar', regionId: 'punjab', sizeHa: 1500, soil: 'silt', ph: 7.2, contamination: 'none', price: 23000000, x: 26, y: 71, unlockLevel: 55 },
+  { id: 'pj3', name: 'Khet Bathinda', regionId: 'punjab', sizeHa: 1800, soil: 'sand', ph: 7.9, contamination: 'low', price: 22000000, x: 40, y: 69, unlockLevel: 58 },
+  { id: 'pj4', name: 'Khet Jalandhar', regionId: 'punjab', sizeHa: 2200, soil: 'loam', ph: 7.0, contamination: 'none', price: 36000000, x: 19, y: 81, unlockLevel: 61 },
+  { id: 'pj5', name: 'Khet Patiala', regionId: 'punjab', sizeHa: 2600, soil: 'clay', ph: 7.6, contamination: 'none', price: 42000000, x: 33, y: 80, unlockLevel: 63 },
   // ── 🌍 Eropa & Afrika ──
   // Normandia (top left)
   { id: 'f13', name: 'Champ de Caen', regionId: 'normandia', sizeHa: 6, soil: 'silt', ph: 7.4, contamination: 'none', price: 48000, x: 10, y: 12 },
@@ -459,6 +593,12 @@ export const FIELDS = [
   { id: 'ke3', name: 'Shamba Naivasha', regionId: 'kenya', sizeHa: 500, soil: 'loam', ph: 6.4, contamination: 'none', price: 7500000, x: 75, y: 64, unlockLevel: 43 },
   { id: 'ke4', name: 'Shamba Kiambu', regionId: 'kenya', sizeHa: 650, soil: 'clay', ph: 5.4, contamination: 'low', price: 8000000, x: 56, y: 75, unlockLevel: 45 },
   { id: 'ke5', name: 'Shamba Nakuru', regionId: 'kenya', sizeHa: 800, soil: 'loam', ph: 6.2, contamination: 'none', price: 12000000, x: 69, y: 77, unlockLevel: 48 },
+  // Delta Nil (left bottom; irrigated desert, hot, Lv 76+)
+  { id: 'nl1', name: 'Ghitan Kafr el-Sheikh', regionId: 'nil', sizeHa: 2500, soil: 'silt', ph: 7.6, contamination: 'none', price: 50000000, x: 12, y: 52 },
+  { id: 'nl2', name: 'Ghitan Mansoura', regionId: 'nil', sizeHa: 3000, soil: 'clay', ph: 7.8, contamination: 'none', price: 62000000, x: 26, y: 55, unlockLevel: 80 },
+  { id: 'nl3', name: 'Ghitan Fayoum', regionId: 'nil', sizeHa: 3600, soil: 'sand', ph: 8.0, contamination: 'low', price: 70000000, x: 36, y: 64, unlockLevel: 84 },
+  { id: 'nl4', name: 'Ghitan Minya', regionId: 'nil', sizeHa: 4200, soil: 'loam', ph: 7.4, contamination: 'none', price: 90000000, x: 14, y: 70, unlockLevel: 89 },
+  { id: 'nl5', name: 'Ghitan Luxor', regionId: 'nil', sizeHa: 5000, soil: 'silt', ph: 7.7, contamination: 'none', price: 110000000, x: 28, y: 80, unlockLevel: 93 },
   // ── 🌎 Amerika ──
   // Iowa (top right)
   { id: 'f9', name: 'Cedar Creek Farm', regionId: 'iowa', sizeHa: 15, soil: 'loam', ph: 6.6, contamination: 'none', price: 165000, x: 64, y: 11 },
@@ -483,6 +623,12 @@ export const FIELDS = [
   { id: 'pa3', name: 'Campo Venado Tuerto', regionId: 'pampas', sizeHa: 650, soil: 'loam', ph: 6.8, contamination: 'none', price: 8500000, x: 38, y: 73, unlockLevel: 39 },
   { id: 'pa4', name: 'Estancia Tandil', regionId: 'pampas', sizeHa: 800, soil: 'clay', ph: 7.0, contamination: 'low', price: 9000000, x: 20, y: 84, unlockLevel: 44 },
   { id: 'pa5', name: 'Campo Pehuajó', regionId: 'pampas', sizeHa: 1000, soil: 'sand', ph: 6.9, contamination: 'none', price: 10000000, x: 33, y: 86, unlockLevel: 47 },
+  // Lembah California (left middle; dry Mediterranean, irrigated, Lv 64+). y ≥ 36 keeps the pins clear of the Alberta label (y ≈ 30).
+  { id: 'cv1', name: 'Fresno Ranch', regionId: 'california', sizeHa: 1800, soil: 'loam', ph: 7.0, contamination: 'none', price: 32000000, x: 14, y: 38 },
+  { id: 'cv2', name: 'Modesto Orchards', regionId: 'california', sizeHa: 2200, soil: 'silt', ph: 7.3, contamination: 'none', price: 40000000, x: 28, y: 36, unlockLevel: 67 },
+  { id: 'cv3', name: 'Kern County Flats', regionId: 'california', sizeHa: 2600, soil: 'sand', ph: 7.8, contamination: 'low', price: 44000000, x: 40, y: 42, unlockLevel: 70 },
+  { id: 'cv4', name: 'Sacramento Delta', regionId: 'california', sizeHa: 3000, soil: 'clay', ph: 6.6, contamination: 'none', price: 58000000, x: 20, y: 48, unlockLevel: 73 },
+  { id: 'cv5', name: 'Tulare Basin', regionId: 'california', sizeHa: 3400, soil: 'loam', ph: 7.5, contamination: 'none', price: 66000000, x: 34, y: 50, unlockLevel: 75 },
 ];
 
 export const STARTING = {
@@ -492,7 +638,7 @@ export const STARTING = {
   harvesterRentPerHa: 120,
 };
 
-// LEVELS[i] = XP for level i + 1 (50 entries, max level 50). Lv 5–12 lowered in v16 (old 4500/8000/13000/20000/30000/
+// LEVELS[i] = XP for level i + 1 (100 entries, max level 100). Lv 5–12 lowered in v16 (old 4500/8000/13000/20000/30000/
 // 45000/57000/73000 → 4200/7200/11500/17500/24000/35000/48000/70000): plans-and-land bot, 3 seeds, every level
 // Lv 4→13 takes ≈ 15–24 game days (was 16–39 with a hump at 7→10); Lv 13→15 ≈ 12–23. Every new threshold is
 // below the old one, so no save loses a level. 11–20 ×1.27 and 21–30 ×1.29 per
@@ -503,7 +649,15 @@ export const LEVELS = [0, 250, 900, 2200, 4200, 7200, 11500, 17500, 24000, 35000
   48000, 70000, 92000, 117000, 149000, 189000, 240000, 305000, 387000, 491000,
   634000, 817000, 1050000, 1360000, 1750000, 2260000, 2920000, 3770000, 4860000, 6270000,
   7460000, 8850000, 10500000, 12400000, 14500000, 17000000, 19900000, 23200000, 26900000, 31200000,
-  36000000, 41500000, 47600000, 54500000, 62100000, 70700000, 80100000, 90500000, 102000000, 115000000];
+  36000000, 41500000, 47600000, 54500000, 62100000, 70700000, 80100000, 90500000, 102000000, 115000000,
+  // v20 Lv 51–100 (docs/LEVEL100_PLAN.md): gap(L) = gap(L−1) × (1.075 − 0.0005·(L − 51)) from gap(50) = 13 M, rounded to
+  // $1 M. Bot (seeds 1–2): "auto" (plans + managers + land) ≈ 63 days/level at Lv 50–77 (Lv 50 ≈ day 1600); "investor"
+  // (+ herds/ponds/factories) is ≈ 2× faster. r0 raised 1.07 → 1.075 after the first bot pass.
+  129000000, 144000000, 160000000, 177000000, 196000000, 216000000, 237000000, 260000000, 285000000, 311000000,
+  339000000, 369000000, 401000000, 435000000, 472000000, 511000000, 553000000, 597000000, 645000000, 695000000,
+  749000000, 806000000, 867000000, 932000000, 1001000000, 1074000000, 1152000000, 1235000000, 1322000000, 1415000000,
+  1514000000, 1618000000, 1728000000, 1845000000, 1969000000, 2100000000, 2238000000, 2384000000, 2538000000, 2701000000,
+  2873000000, 3054000000, 3245000000, 3446000000, 3658000000, 3881000000, 4116000000, 4362000000, 4621000000, 4894000000];
 
 // Stats used here (WP1 tracks them in state.stats): machineModels = distinct machine defIds owned;
 // livestockOwned = head count of ANIMALS with `livestock: true`; salesValue = cumulative $ from sellProduct;
@@ -528,7 +682,13 @@ export const ACHIEVEMENTS = [
   { id: 'level_20', name: 'Maestro Agribisnis', desc: 'Capai level 20.', reward: 400000, condition: { stat: 'level', gte: 20 } },
   { id: 'level_30', name: 'Raja Agrikultur Dunia', desc: 'Capai level 30.', reward: 1500000, incomeDays: 1, condition: { stat: 'level', gte: 30 } },
   { id: 'level_40', name: 'Kaisar Agribisnis', desc: 'Capai level 40.', reward: 4000000, incomeDays: 1, rp: 2, condition: { stat: 'level', gte: 40 } },
-  { id: 'level_50', name: 'Legenda Abadi', desc: 'Capai level 50 (maksimal).', reward: 10000000, incomeDays: 1, rp: 3, condition: { stat: 'level', gte: 50 } },
+  { id: 'level_50', name: 'Legenda Abadi', desc: 'Capai level 50.', reward: 10000000, incomeDays: 1, rp: 3, condition: { stat: 'level', gte: 50 } },
+  // v20 Lv 51–100
+  { id: 'level_60', name: 'Raja Benua', desc: 'Capai level 60.', reward: 20000000, incomeDays: 1, rp: 2, condition: { stat: 'level', gte: 60 } },
+  { id: 'level_70', name: 'Penguasa Pangan Dunia', desc: 'Capai level 70.', reward: 40000000, incomeDays: 1, rp: 3, condition: { stat: 'level', gte: 70 } },
+  { id: 'level_80', name: 'Titan Agrikultur', desc: 'Capai level 80.', reward: 80000000, incomeDays: 1, rp: 3, condition: { stat: 'level', gte: 80 } },
+  { id: 'level_90', name: 'Dewa Panen', desc: 'Capai level 90.', reward: 150000000, incomeDays: 1, rp: 4, condition: { stat: 'level', gte: 90 } },
+  { id: 'level_100', name: 'Legenda Seratus', desc: 'Capai level 100 (maksimal).', reward: 300000000, incomeDays: 1, rp: 5, condition: { stat: 'level', gte: 100 } },
   // Land round trips lose 30% of the price, far above these rewards.
   { id: 'regions_7', name: 'Penjelajah Benua', desc: 'Miliki ladang di 7 wilayah.', reward: 200000, condition: { stat: 'regionsOwned', gte: 7 } },
   { id: 'regions_13', name: 'Penguasa Dunia', desc: 'Miliki ladang di ke-13 wilayah.', reward: 1000000, incomeDays: 1, rp: 2, condition: { stat: 'regionsOwned', gte: 13 } },
@@ -543,6 +703,11 @@ export const ACHIEVEMENTS = [
   { id: 'ponds_5', name: 'Juragan Tambak', desc: 'Miliki 5 kolam ikan.', reward: 40000, condition: { stat: 'pondsOwned', gte: 5 } },
   { id: 'factory_runs_1000', name: 'Pabrik Tanpa Henti', desc: 'Manajer Pabrik menjalankan 1.000 putaran produksi.', reward: 300000, incomeDays: 1, rp: 1, condition: { stat: 'factoryManagerRuns', gte: 1000 } },
   { id: 'earned_100m', name: 'Konglomerat Tani', desc: 'Raih total pendapatan 100.000.000.', reward: 5000000, incomeDays: 1, condition: { stat: 'totalEarned', gte: 100000000 } },
+  // v20 late tiers (16 regions incl. Punjab, Lembah California, Delta Nil)
+  { id: 'regions_16', name: 'Penguasa Planet', desc: 'Miliki ladang di ke-16 wilayah.', reward: 5000000, incomeDays: 1, rp: 2, condition: { stat: 'regionsOwned', gte: 16 } },
+  { id: 'fields_75', name: 'Kaisar Tanah', desc: 'Miliki 75 ladang.', reward: 20000000, incomeDays: 1, condition: { stat: 'fieldsOwned', gte: 75 } },
+  { id: 'tons_2500000', name: 'Lumbung Galaksi', desc: 'Panen total 2.500.000 ton hasil bumi.', reward: 15000000, incomeDays: 1, rp: 1, condition: { stat: 'tonsHarvested', gte: 2500000 } },
+  { id: 'earned_10b', name: 'Raja Dunia', desc: 'Raih total pendapatan 10.000.000.000.', reward: 100000000, incomeDays: 1, condition: { stat: 'totalEarned', gte: 10000000000 } },
 ];
 
 export const BALANCE = {
@@ -591,7 +756,8 @@ export const BALANCE = {
     stud: { maxTier: 5, step: 0.1, costFactor: 0.2, perDay: 0.01 },
     animals: { chickens: { days: 4, rate: 0.026 }, cows: { days: 12, rate: 0.048 }, sheep: { days: 10, rate: 0.046 },
       pigs: { days: 8, rate: 0.038 }, goats: { days: 10, rate: 0.037 }, bees: { days: 5, rate: 0.06 },
-      ducks: { days: 4, rate: 0.024 }, buffalo: { days: 14, rate: 0.057 }, alpaca: { days: 14, rate: 0.053 } } },
+      ducks: { days: 4, rate: 0.024 }, buffalo: { days: 14, rate: 0.057 }, alpaca: { days: 14, rate: 0.053 },
+      unta: { days: 16, rate: 0.05 }, kasmir: { days: 12, rate: 0.045 }, manuka: { days: 6, rate: 0.05 } } },
   // Machine upgrades (js/engine/upgrades.js), per owned instance, levels 0–3 per track. Level L costs price·costs[L−1]
   // and needs player level ≥ unlockLevel + levelGap·(L−1). engine: tractor hp +15%/lvl, harvester ha/h +10%/lvl;
   // transmission: tractor speed / harvester & implement ha/h +10%/lvl; efficiency: fuel −10%/lvl (implements: transmission only).
@@ -621,6 +787,8 @@ export const BALANCE = {
       { id: 'magang', name: 'Dimas', title: 'Manajer Magang', emoji: '🧑‍💼', skill: 1, unlockLevel: 6, hireCost: 3000, wage: 150, trucks: 1, radiusKm: 100, bonus: 0 },
       { id: 'senior', name: 'Bu Ratna', title: 'Manajer Senior', emoji: '👩‍💼', skill: 2, unlockLevel: 9, hireCost: 12000, wage: 450, trucks: 3, radiusKm: 300, bonus: 0.02 },
       { id: 'direktur', name: 'Pak Hartono', title: 'Direktur Logistik', emoji: '👨‍💼', skill: 3, unlockLevel: 14, hireCost: 30000, wage: 900, trucks: 6, radiusKm: 1000, bonus: 0.04 },
+      // v20 ★4 (Lv 53): the 3,000 km radius reaches every far port; wage ≈ 1–2% of a Lv 53 farm's daily income.
+      { id: 'global', name: 'Bu Kartika', title: 'Direktur Logistik Global', emoji: '🧑‍✈️', skill: 4, unlockLevel: 53, hireCost: 2000000, wage: 60000, trucks: 12, radiusKm: 3000, bonus: 0.06 },
     ],
   },
   // Manajer Pabrik (js/engine/factoryManager.js + factoryPlanner.js): staff role like the dispatcher (hire/replace/fire
@@ -633,6 +801,7 @@ export const BALANCE = {
       { id: 'supervisor', name: 'Mbak Sari', title: 'Supervisor', emoji: '👩‍🔧', skill: 1, unlockLevel: 11, hireCost: 4000, wage: 100, factories: 2, intervalHours: 6, inputMult: 1, outputMult: 1, buyInputs: false },
       { id: 'kepala', name: 'Pak Joko', title: 'Kepala Produksi', emoji: '👷', skill: 2, unlockLevel: 15, hireCost: 14000, wage: 480, factories: 5, intervalHours: 2, inputMult: 0.95, outputMult: 1, buyInputs: false },
       { id: 'direktur', name: 'Bu Lestari', title: 'Direktur Pabrik', emoji: '👩‍🏭', skill: 3, unlockLevel: 25, hireCost: 32000, wage: 950, factories: null, intervalHours: 1, inputMult: 0.95, outputMult: 1.06, buyInputs: true },
+      { id: 'ceo', name: 'Pak Wibowo', title: 'CEO Industri', emoji: '🤵', skill: 4, unlockLevel: 65, hireCost: 5000000, wage: 120000, factories: null, intervalHours: 1, inputMult: 0.92, outputMult: 1.1, buyInputs: true },
     ],
   },
   // 👷 Mandor Ladang (js/engine/mandor.js): 🔁 field plans run free on `freeFields` fields; more need a hired Mandor
@@ -647,6 +816,7 @@ export const BALANCE = {
       { id: 'mandor', name: 'Pak Darto', title: 'Mandor', emoji: '👨‍🌾', skill: 1, unlockLevel: 4, hireCost: 2000, wage: 25, fields: 12, speed: 0 },
       { id: 'senior', name: 'Bu Sumi', title: 'Mandor Senior', emoji: '👩‍🌾', skill: 2, unlockLevel: 12, hireCost: 25000, wage: 800, fields: 30, speed: 0 },
       { id: 'kepala', name: 'Pak Gatot', title: 'Kepala Mandor', emoji: '👷‍♂️', skill: 3, unlockLevel: 20, hireCost: 120000, wage: 5000, fields: null, speed: 0.05 },
+      { id: 'agronom', name: 'Dr. Ayu', title: 'Agronom Kepala', emoji: '👩‍🔬', skill: 4, unlockLevel: 77, hireCost: 8000000, wage: 200000, fields: null, speed: 0.1 },
     ],
   },
   // v17 Diversifikasi (js/engine/contracts.js, logistics.js): late-game value for non-crop goods.
@@ -655,20 +825,26 @@ export const BALANCE = {
   // factory outputs; never buyable goods), qty = qtyDays × daily output, price market × rate(1 + perLevel·(lvl − from)),
   // with its own active slot. Non-crop goods can't be bought, so a rate above the ×1.2 buy markup is safe.
   diversify: {
-    city: { fromLevel: 20, perLevel: 0.005, max: 0.15 },
+    city: { fromLevel: 20, perLevel: 0.005, max: 0.2 }, // v20: max 0.15 → 0.2 (reached at Lv 60)
     special: { fromLevel: 15, offers: 1, priceMin: 1.22, priceMax: 1.35, perLevel: 0.006, maxRate: 1.6, qtyDaysMin: 2, qtyDaysMax: 4,
       dueMin: 6, dueMax: 12, extraActive: 1 },
   },
   // v17 balance: herds and ponds are a strong pillar, not the whole farm. The n-th extra barn of an animal (pond of a
   // type) costs base × (1 + rate × already owned), 3 significant digits (js/engine/animals.js expansionCost):
   // the 50th barn costs ×1.35, the 150th ×2.05. Investor bot: next-barn payback ≈ 45 d (Lv 1–19) → 60 d (Lv 40+).
-  expansion: { barn: 0.007, pond: 0.007 },
+  // v20 growth brake (late): above Lv 50 the per-barn/pond rate grows to ×(1 + mult) at Lv 100, so the 100th barn costs
+  // ×1.7 at Lv 50 but ×4.5 at Lv 100. Only new barns/ponds cost more; existing herds and ponds are untouched.
+  expansion: { barn: 0.007, pond: 0.007, late: { fromLevel: 50, mult: 4 } },
   // 📉 Pasar jenuh (js/engine/saturation.js): animal, fish and processed goods (never crops or buyable goods). Each sold
   // unit adds to the product's pressure p; every rollover keeps `carry` of it (≈ 3–5 days to fade). The price dips by
   // min(maxDip, p / D) with D = depth$ / basePrice units, depth$ log-interpolated over [level, $ at base price]:
   // selling ≈ 10% of depth$ in a day dips ≈ 10%. The local market grows with the farm's level.
   market: { saturation: { carry: 0.45, maxDip: 0.6,
-    depth: [[1, 10000], [10, 200000], [20, 5000000], [30, 15000000], [40, 30000000], [50, 60000000]] } },
+    depth: [[1, 10000], [10, 200000], [20, 5000000], [30, 15000000], [40, 30000000], [50, 60000000],
+      [60, 100000000], [70, 160000000], [80, 250000000], [90, 380000000], [100, 550000000]], // v20 Lv 51–100
+    // v20 growth brake: animal and fish goods (category 'animal') above Lv 50 use this flatter market (×2.7 by Lv 100
+    // instead of ×9), so herds and ponds can't outgrow the land economy. Lv ≤ 50 unchanged.
+    animalDepth: [[50, 60000000], [60, 80000000], [70, 100000000], [80, 120000000], [90, 140000000], [100, 160000000]] } },
   // Research (js/engine/research.js): respec (reset all nodes, points back) costs respecPerLevel × level.
   research: { respecPerLevel: 1500 },
 };
@@ -689,21 +865,23 @@ BALANCE.kabar = {
 // cityPrice (city prices of that continent, best Pelabuhan counts), rp (+1 research point per stage), koperasi
 // (seed + fertilizer in the region and the region's share of wages), contractBonus (contracts, all Pasar summed,
 // ≤ contractBonusMax). A Monumen per continent opens once every region there has a project at stage 3.
-// legacyValue: share of the spend counted in net worth (rival ranking).
+// legacyValue: share of the spend counted in net worth (rival ranking). v20: stages 4 (Lv 65) and 5 (Lv 85) for the
+// Lv 51–100 economy; the Monumen still needs stage 3 (MONUMENT_STAGE in projects.js).
 BALANCE.projects = {
-  unlockLevel: 15, maxBuilding: 3, legacyValue: 0.5, contractBonusMax: 0.12,
+  unlockLevel: 15, maxBuilding: 3, legacyValue: 0.5, contractBonusMax: 0.15,
   regionScale: { base: 0.6, perLevel: 0.02 },
-  stages: [{ cost: 1000000, days: 4, level: 15 }, { cost: 50000000, days: 10, level: 25 }, { cost: 1000000000, days: 25, level: 35 }],
+  stages: [{ cost: 1000000, days: 4, level: 15 }, { cost: 50000000, days: 10, level: 25 }, { cost: 1000000000, days: 25, level: 35 },
+    { cost: 20000000000, days: 40, level: 65 }, { cost: 150000000000, days: 60, level: 85 }],
   types: [
-    { id: 'bendungan', name: 'Bendungan', emoji: '🏞️', effect: 'rainFloor', values: [0.3, 0.38, 0.45] },
-    { id: 'pelabuhan', name: 'Pelabuhan Ekspor', emoji: '⚓', effect: 'cityPrice', values: [0.03, 0.05, 0.08] },
-    { id: 'riset', name: 'Pusat Riset', emoji: '🔭', effect: 'rp', values: [1, 1, 1] },
-    { id: 'koperasi', name: 'Koperasi Petani', emoji: '🤝', effect: 'koperasi', values: [0.03, 0.05, 0.08] },
-    { id: 'pasar', name: 'Pasar Induk', emoji: '🏪', effect: 'contractBonus', values: [0.02, 0.03, 0.05] },
+    { id: 'bendungan', name: 'Bendungan', emoji: '🏞️', effect: 'rainFloor', values: [0.3, 0.38, 0.45, 0.5, 0.55] },
+    { id: 'pelabuhan', name: 'Pelabuhan Ekspor', emoji: '⚓', effect: 'cityPrice', values: [0.03, 0.05, 0.08, 0.11, 0.14] },
+    { id: 'riset', name: 'Pusat Riset', emoji: '🔭', effect: 'rp', values: [1, 1, 1, 1, 1] },
+    { id: 'koperasi', name: 'Koperasi Petani', emoji: '🤝', effect: 'koperasi', values: [0.03, 0.05, 0.08, 0.11, 0.14] },
+    { id: 'pasar', name: 'Pasar Induk', emoji: '🏪', effect: 'contractBonus', values: [0.02, 0.03, 0.05, 0.07, 0.09] },
   ],
   skip: { jabar: 'bendungan', bavaria: 'pelabuhan', iowa: 'pelabuhan', normandia: 'bendungan', hokkaido: 'koperasi',
     matogrosso: 'pelabuhan', queensland: 'pasar', kalimantan: 'bendungan', ukraina: 'riset', mekong: 'bendungan',
-    pampas: 'riset', kenya: 'pelabuhan', alberta: 'pelabuhan' },
+    pampas: 'riset', kenya: 'pelabuhan', alberta: 'pelabuhan', punjab: 'pelabuhan', california: 'koperasi', nil: 'pasar' },
   monument: { cost: 2000000000, days: 30, level: 40, rp: 3,
     names: { asia: ['Candi Agraria', '🛕'], eropa: ['Menara Gandum', '🗼'], amerika: ['Patung Petani', '🗽'] } },
 };
@@ -772,7 +950,12 @@ BALANCE.tenders = {
   unlockLevel: 35, everyDays: 40, firstDelayDays: 2, offerDays: 6, durationDays: 30,
   farmShare: 0.45, truckShare: 0.5, minQty: 2000, priceRate: 1.1, premium: 0.25, rp: 3, penaltyRate: 0.03, xpPerValue: 0.004,
   portLoadPerStage: 0.005, portPremiumPerStage: 0.05, reserveWorkers: 1,
-  ports: ['jakarta', 'banjarmasin', 'hcmc', 'brisbane', 'sapporo', 'chicago', 'odesa', 'buenosaires', 'mombasa', 'vancouver', 'paris'],
+  // v20 tiers (tenders.tierCfg): an offer uses the best tier open at the level it is offered at; overrides the base keys.
+  tiers: [
+    { id: 'raksasa', level: 60, name: 'Tender Raksasa', emoji: '🛳️', farmShare: 0.6, truckShare: 0.65, premium: 0.35, rp: 5, durationDays: 40 },
+    { id: 'benua', level: 90, name: 'Tender Benua', emoji: '🌐', farmShare: 0.75, truckShare: 0.8, premium: 0.45, rp: 7, durationDays: 45 },
+  ],
+  ports: ['jakarta', 'banjarmasin', 'hcmc', 'brisbane', 'sapporo', 'chicago', 'odesa', 'buenosaires', 'mombasa', 'vancouver', 'paris', 'sanfrancisco', 'aleksandria'],
   destinations: [
     { id: 'rotterdam', name: 'Rotterdam', trophy: 'Piala Tulip Rotterdam', emoji: '🌷' },
     { id: 'shanghai', name: 'Shanghai', trophy: 'Piala Naga Shanghai', emoji: '🐉' },
@@ -796,7 +979,8 @@ BALANCE.tenders = {
 // A challenge is completed by reaching unlockLevel under its rules (×mult on that generation's stars).
 BALANCE.legacy = {
   unlockLevel: 30, museumMax: 30,
-  stars: { levelFrom: 27, perLevel: 1, nwUnit: 25000000, monumentStages: 3 },
+  // v20: the level term grows 1/level to softFrom (50), then perLevelAfter (0.5) per level: Lv 100 → 23 + 25 = 48 ⭐.
+  stars: { levelFrom: 27, perLevel: 1, softFrom: 50, perLevelAfter: 0.5, nwUnit: 25000000, monumentStages: 3 },
   branches: [
     { id: 'modal', name: 'Modal & Lahan', emoji: '💰' }, { id: 'ilmu', name: 'Ilmu Keluarga', emoji: '📜' },
     { id: 'usaha', name: 'Usaha', emoji: '🎯' }, { id: 'gaya', name: 'Gaya', emoji: '🎨' },
@@ -814,14 +998,20 @@ BALANCE.legacy = {
     { id: 'mandor', branch: 'usaha', name: 'Mandor Keluarga', emoji: '👷', cost: 2, requires: ['misi'], effects: { mandorDiscount: 0.5 } },
     { id: 'lambang', branch: 'gaya', name: 'Lambang Keluarga', emoji: '🛡️', cost: 1, requires: [], effects: { emblem: 1 } },
     { id: 'cat', branch: 'gaya', name: 'Cat Traktor Warisan', emoji: '🎨', cost: 1, requires: ['lambang'], effects: { paints: 1 } },
+    // v20 (`minLevel`: the family must have reached that level in some generation, museum or this run).
+    { id: 'gudang_warisan', branch: 'modal', name: 'Gudang Warisan', emoji: '🏗️', cost: 5, minLevel: 60, requires: ['lumbung'], effects: { startSilo: 2 } },
+    { id: 'tanah_luas', branch: 'modal', name: 'Warisan Tanah Luas', emoji: '🏞️', cost: 6, minLevel: 70, requires: ['celengan'], effects: { startMoney: 250000 } },
+    { id: 'dana_abadi', branch: 'ilmu', name: 'Dana Abadi Riset', emoji: '🏦', cost: 8, minLevel: 80, requires: ['pustaka'], effects: { startRp: 2 } },
+    { id: 'mentor', branch: 'ilmu', name: 'Mentor Agung', emoji: '🧓', cost: 10, minLevel: 90, requires: ['bijak'], effects: { xp: 0.05 } },
+    { id: 'dinasti', branch: 'usaha', name: 'Dinasti Seratus', emoji: '👑', cost: 15, minLevel: 100, requires: ['misi'], effects: { missionSlot: 1, startRp: 3 } },
   ],
   // waive: Bab Petani steps the rules make impossible count as met. starter: machines added to the start kit.
   challenges: [
-    { id: 'tropis', name: 'Hanya wilayah tropis', emoji: '🌴', mult: 1.5, waive: ['regions5', 'fields25', 'regions13'],
+    { id: 'tropis', name: 'Hanya wilayah tropis', emoji: '🌴', mult: 1.5, waive: ['regions5', 'fields25', 'regions13', 'punjab', 'regions16'],
       desc: 'Hanya boleh membeli ladang di wilayah tropis (Jawa Barat, Kalimantan, Mato Grosso, Delta Mekong, Kenya). Mulai di Jawa Barat.' },
     { id: 'tanpaSewa', name: 'Tanpa sewa panen', emoji: '🚫', mult: 1.3, starter: ['mf_activa'],
       desc: 'Tidak boleh menyewa pemanen atau pemetik buah: panen hanya dengan mesin sendiri. Mulai dengan satu pemanen bekas.' },
-    { id: 'tanpaManajer', name: 'Tanpa Manajer', emoji: '🧑‍💼', mult: 1.3, waive: ['dispatcher', 'factoryManager'],
+    { id: 'tanpaManajer', name: 'Tanpa Manajer', emoji: '🧑‍💼', mult: 1.3, waive: ['dispatcher', 'factoryManager', 'dispatcherGlobal'],
       desc: 'Tidak boleh merekrut Manajer Logistik atau Manajer Pabrik (Mandor tetap boleh). Kirim dan olah sendiri.' },
   ],
   emblem: { icons: ['🌱', '🌾', '🌳', '🐄', '🚜', '🌻', '🍇', '🐝', '⚓', '🏔️'], colors: ['hijau', 'emas', 'merah', 'biru', 'ungu', 'coklat'] },
@@ -838,11 +1028,12 @@ BALANCE.league = {
     { id: 'perak', name: 'Perak', emoji: '🥈', strength: 0.97 },
     { id: 'emas', name: 'Emas', emoji: '🥇', strength: 1.03 },
     { id: 'berlian', name: 'Berlian', emoji: '💎', strength: 1.09 },
+    { id: 'master', name: 'Master', emoji: '💠', strength: 1.15, minLevel: 70 }, // v20: promotion from Berlian needs Lv 70
   ],
   rewards: [
-    { rank: 1, cup: 'emas', rp: [1, 2, 2, 3], boosterDays: 10 },
-    { rank: 2, cup: 'perak', rp: [0, 1, 1, 2], boosterDays: 6 },
-    { rank: 3, cup: 'perunggu', rp: [0, 0, 1, 1], boosterDays: 4 },
+    { rank: 1, cup: 'emas', rp: [1, 2, 2, 3, 4], boosterDays: 10 },
+    { rank: 2, cup: 'perak', rp: [0, 1, 1, 2, 3], boosterDays: 6 },
+    { rank: 3, cup: 'perunggu', rp: [0, 0, 1, 1, 2], boosterDays: 4 },
   ],
   boosters: { profitHa: { kind: 'seedCost', mult: 0.8 }, yieldIdx: { kind: 'yield', mult: 1.1 }, contracts: { kind: 'yield', mult: 1.05 },
     fuelT: { kind: 'taskSpeed', mult: 1.15 }, animalIdx: { kind: 'animalProd', mult: 1.1 } },

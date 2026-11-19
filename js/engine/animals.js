@@ -17,11 +17,15 @@ export function herdOf(game, animalId) {
 export const capacityOf = (game, a) => herdOf(game, a.id).barns * a.barnCapacity;
 
 /**
- * Rising expansion cost (v17 balance): `base × (1 + BALANCE.expansion[kind] × owned)`, 3 significant digits.
- * kind 'barn' (owned = barns of that animal) or 'pond' (owned = ponds of that type).
+ * Rising expansion cost (v17 balance): `base × (1 + rate × owned)`, 3 significant digits.
+ * kind 'barn' (owned = barns of that animal) or 'pond' (owned = ponds of that type). rate = BALANCE.expansion[kind],
+ * v20 growth brake: × (1 + late.mult × (level − late.fromLevel) / 50) above late.fromLevel (Lv 50 → 100: ×1 → ×(1 + mult)).
+ * Only the price of the next barn/pond changes; herds, barns and ponds already owned are never touched.
  */
 export function expansionCost(game, kind, base, owned) {
-  const x = base * (1 + (game.data.BALANCE.expansion?.[kind] ?? 0) * Math.max(0, owned || 0));
+  const E = game.data.BALANCE.expansion || {}, late = E.late;
+  const k = late ? 1 + (late.mult ?? 0) * Math.min(1, Math.max(0, (game.state.level - (late.fromLevel ?? 50)) / 50)) : 1;
+  const x = base * (1 + (E[kind] ?? 0) * k * Math.max(0, owned || 0));
   const e = 10 ** Math.max(0, Math.floor(Math.log10(x)) - 2);
   return Math.round(x / e) * e;
 }

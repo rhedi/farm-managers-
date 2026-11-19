@@ -14,14 +14,15 @@ const STATUS = {
 
 function nodeRow(n) {
   const [icon, label] = STATUS[n.status];
-  const lvl = n.levelOk === false ? `Terbuka di Lv ${n.minLevel}` : null; // tier-5 nodes (minLevel)
+  const lvl = n.levelOk === false ? `Terbuka di Lv ${n.minLevel}` : null; // tier 5–7 nodes (minLevel)
   const reqs = n.requires.length ? `Butuh: ${n.requires.map((r) => `${r.unlocked ? '✓' : '✗'} ${r.name}`).join(', ')}` : null;
   const req = [lvl, reqs].filter(Boolean).join(' · ') || null;
   const ready = n.status === 'ready';
-  return h(`div.rs-node.rs-${n.status}`,
+  return h(`div.rs-node.rs-${n.status}${n.tier ? `.rs-t${n.tier}` : ''}`,
     h('div.rs-node-head',
       h('span.rs-node-emoji', n.emoji),
-      h('span.rs-node-main', h('span.rs-node-name', n.name, n.minLevel > 1 ? h('span.rs-lv', `Lv ${n.minLevel}`) : null),
+      h('span.rs-node-main', h('span.rs-node-name', n.name, n.tier ? h(`span.rs-tier.rs-tier-${n.tier}`, `T${n.tier}`) : null,
+        n.minLevel > 1 ? h('span.rs-lv', `Lv ${n.minLevel}`) : null),
         h('span.small.rs-effect', n.desc)),
       ready
         ? h('button.btn.btn-small.btn-primary.rs-unlock', {
